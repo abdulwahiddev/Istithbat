@@ -58,8 +58,9 @@ export function stepsForCandidate(fastPath: boolean): StepName[] {
   return fastPath ? ['POLICY'] : ['INCIDENT', 'ANALYSIS', 'REGRESSION_QUESTIONS', 'BLAST_RADIUS', 'POLICY'];
 }
 
-export function nextPendingStep<T extends { step: StepName; status: string }>(steps: readonly T[]): T | null {
-  return [...steps].sort((a, b) => STEP_ORDER.indexOf(a.step) - STEP_ORDER.indexOf(b.step))
+export function nextPendingStep<T extends { step: StepName; status: string; item_key?: string; itemKey?: string }>(steps: readonly T[]): T | null {
+  return [...steps].sort((a, b) => STEP_ORDER.indexOf(a.step) - STEP_ORDER.indexOf(b.step)
+    || compareText(a.item_key??a.itemKey??'',b.item_key??b.itemKey??''))
     .find(step => step.status !== 'DONE' && step.status !== 'FAILED') ?? null;
 }
 

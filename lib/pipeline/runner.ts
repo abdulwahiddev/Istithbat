@@ -19,6 +19,7 @@ export type AdvanceResult = {
 function errorCode(error:unknown, step:StepName):string {
   if (error instanceof PipelineStepError) return error.code;
   if (error instanceof Error && error.message==='DIFF_FAILED') return 'DIFF_FAILED';
+  if (step==='REGRESSION_QUESTIONS'||step==='REGRESSION_PAIR') return 'REGRESSION_FAILED';
   return step==='ANALYSIS'?'AI_ANALYSIS_FAILED':'DIFF_FAILED';
 }
 
@@ -49,7 +50,7 @@ export async function advancePipeline(runId:string, budgetMs=20_000, expectedSte
       const handler=STEP_HANDLERS[next.step];
       if (!handler) return {runId,status:'WAITING',nextStep:next.step,completedSteps,incidentId:run.incident_id};
       if (next.attempts>=2) {
-        const code=next.step==='ANALYSIS'?'AI_ANALYSIS_FAILED':'DIFF_FAILED';
+        const code=next.step==='ANALYSIS'?'AI_ANALYSIS_FAILED':next.step.startsWith('REGRESSION')?'REGRESSION_FAILED':'DIFF_FAILED';
         await sql.begin(async tx=>{
           const failed=await tx`UPDATE pipeline_steps SET status='FAILED',error_code=${code},completed_at=now()
             WHERE id=${next.id} AND status IN ('PENDING','RUNNING') RETURNING id`;

@@ -157,6 +157,12 @@ export const gatewayBindings = pgTable('gateway_bindings', {
 export const regressionRuns = pgTable('regression_runs', {
   id: uuid('id').primaryKey().defaultRandom(),
   incident_id: uuid('incident_id'),
+  pipeline_run_id: uuid('pipeline_run_id'),
+  source_id: text('source_id'),
+  canonical_key: text('canonical_key'),
+  identity_hash: text('identity_hash'),
+  status: text('status').notNull().default('PENDING'),
+  question_index: integer('question_index'),
   protected_app_id: text('protected_app_id').notNull(),
   batch_id: uuid('batch_id').notNull(),
   question: text('question').notNull(),
@@ -171,7 +177,16 @@ export const regressionRuns = pgTable('regression_runs', {
   material_change: boolean('material_change'),
   comparison_json: jsonb('comparison_json'),
   model_config_hash: text('model_config_hash'),
+  config_json: jsonb('config_json'),
+  old_output_json: jsonb('old_output_json'),
+  new_output_json: jsonb('new_output_json'),
+  old_meta_json: jsonb('old_meta_json'),
+  new_meta_json: jsonb('new_meta_json'),
+  comparison_meta_json: jsonb('comparison_meta_json'),
+  failure_json: jsonb('failure_json'),
   created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updated_at: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  completed_at: timestamp('completed_at', { withTimezone: true }),
 });
 
 export const incidentAssetImpacts = pgTable('incident_asset_impacts', {
