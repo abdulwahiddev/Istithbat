@@ -1,0 +1,48 @@
+{
+  "upstreamVersionLabel": "v14",
+  "upstreamPublishedAt": "2026-10-04T00:00:00Z",
+  "metadata": {
+    "synthetic": true,
+    "notice": "CONTROLLED SYNTHETIC SOURCE — not real hadith data",
+    "provider": "Istithbat Hadith Evidence Sandbox (synthetic demo infrastructure)",
+    "attribution": "None. All content is synthetic: no real narration, no real scholar, no real provider, no real reference."
+  },
+  "records": [
+    {
+      "canonical_key": "HAD-4821",
+      "upstream_record_id": "sandbox-4821",
+      "content": {
+        "arabic_text": "نص تجريبي — هذه جملة اختبارية محايدة لأغراض العرض فقط، وليست من الحديث ولا منقولة عن أي مصدر.",
+        "translation": "Test text — a neutral test sentence for demonstration purposes only; it is not hadith and is not quoted from any source.",
+        "judgment": "صحيح",
+        "scholar": {
+          "id": "synthetic_evaluator_a",
+          "role": "demo_grader",
+          "display": "Synthetic Evaluator A",
+          "display_ar": "المُقيِّم التجريبي (أ)"
+        },
+        "reference": {
+          "book": "Istithbat Sandbox Reference Collection",
+          "volume": 1,
+          "page": 12
+        },
+        "narrators": [
+          {
+            "id": "synthetic_narrator_a",
+            "role": "demo_narrator",
+            "display": "Synthetic Narrator A"
+          }
+        ],
+        "updated_at": "2026-09-01T00:00:00Z",
+        "display_label": "Sandbox record HAD-4821 (synthetic)",
+        "source_url": "https://sandbox.istithbat.invalid/records/HAD-4821",
+        "internal_id": "SBX-4821",
+        "description": "Controlled synthetic record for the Istithbat evidence-scope drift demo."
+      },
+      "metadata": {
+        "synthetic": true,
+        "fixture_family": "HAD-4821 evidence-scope drift demo"
+      }
+    }
+  ]
+}

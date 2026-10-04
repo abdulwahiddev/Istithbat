@@ -1,0 +1,1 @@
+export default function Home() { return <main style={{fontFamily:'system-ui',maxWidth:720,margin:'10vh auto',padding:24}}><h1>Istithbat | استثبات</h1><p>Integrity infrastructure for Islamic knowledge.</p><p>Foundation is running. The controlled demo source is synthetic and is not real hadith data.</p></main>; }
