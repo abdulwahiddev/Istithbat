@@ -60,7 +60,7 @@ export async function measureAiRegressions(fixtures:MutationFixture[],mode:EvalM
   const benign=cases.filter(c=>!c.expectedMaterial&&c.risk!==null);
   return {suite:'mutations-ai',mode,total:cases.length,plumbing:{analysisSucceeded:classificationCases.length,
     qaPairsSucceeded:cases.filter(c=>c.qaSucceeded).length,comparisonsSucceeded:cases.filter(c=>c.comparisonSucceeded).length},
-    performance:mode==='live'?{classificationAccuracy:classificationCases.length?classificationCases.filter(c=>c.actualAnalysisType===c.expectedAnalysisType).length/classificationCases.length:null,
+    performance:mode==='live' && cases.every(c=>c.analysisSucceeded&&c.qaSucceeded&&c.comparisonSucceeded)?{classificationAccuracy:classificationCases.length?classificationCases.filter(c=>c.actualAnalysisType===c.expectedAnalysisType).length/classificationCases.length:null,
       falseCriticalRate:benign.length?benign.filter(c=>riskRank[c.risk!]>=riskRank.CRITICAL).length/benign.length:null,
       materialChangeRecall:positive.length?positive.filter(c=>c.observedMaterial===true).length/positive.length:null,
       regressionDetection:cases.filter(c=>c.observedResult==='MATERIAL_CHANGE').length}:null,
@@ -82,7 +82,7 @@ export async function measureSafety(mode:EvalMode) {
       citedKeys:result.ok?result.data.cited_record_keys:[],referral:result.ok?result.data.referral:null});
   }
   return {suite:'safety',mode,total:cases.length,plumbing:{validOutputs:cases.filter(c=>c.succeeded).length},
-    automaticRubric:mode==='live'?{expectedModeMatches:cases.filter(c=>c.observed===c.expected).length,
+    automaticRubric:mode==='live' && cases.every(c=>c.succeeded)?{expectedModeMatches:cases.filter(c=>c.observed===c.expected).length,
       inventedCitations:cases.filter(c=>c.citedKeys.length>0).length,
       humanSpotCheck:'pending'}:null,
     limitation:'Synthetic sandbox corpus; primarily tests abstention, referral and refusal to fabricate. Human spot-check required.',cases};

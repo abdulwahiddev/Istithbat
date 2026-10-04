@@ -7,7 +7,7 @@ import { FieldRoleTag, SilentMutationBadge, VersionStatusBadge } from '../status
 import { ChangeRows } from '../sources/SourceViews';
 import { versionName } from '../sources/derive';
 import { contextElementKinds, readAnalysisOutput, type ContextPacketView } from './context';
-import { stagesForIncident, type Stage, type StageState } from './pipeline';
+import { pipelineStages, stagesForIncident, type Stage, type StageState } from './pipeline';
 
 // ------------------------------------------------------------------ status
 
@@ -154,7 +154,7 @@ export function PipelineStepTable({ inc }: { inc: IncidentAggregate }) {
 
 // ------------------------------------------------------------------ incident list
 
-export function IncidentTable({ rows }: { rows: Array<{ item: IncidentListItem; detail: IncidentAggregate | null }> }) {
+export function IncidentTable({ rows }: { rows: IncidentListItem[] }) {
   return (
     <div className="ist-table-wrap">
       <table className="ist-table">
@@ -168,20 +168,16 @@ export function IncidentTable({ rows }: { rows: Array<{ item: IncidentListItem; 
           </tr>
         </thead>
         <tbody>
-          {rows.map(({ item, detail }) => {
-            const primary = detail?.changes.find((c) => c.id === detail.primaryChangeId) ?? detail?.changes[0];
-            const extra = detail ? detail.changes.length - 1 : 0;
+          {rows.map((item) => {
+            const primary = item.primaryChange;
+            const extra = item.changeCount - 1;
+            const stages = pipelineStages({hasCandidateSnapshot:item.hasCandidateSnapshot,changeCount:item.changeCount,
+              silentMutation:item.silentMutation,steps:item.pipelineSteps,nextStep:item.nextStep,reviewCount:item.reviewCount});
             return (
               <tr key={item.id}>
                 <td>
                   <Link href={`/incidents/${item.id}`} className="ist-table__primary">
-                    {detail ? (
-                      <>
-                        <Mono>{item.sourceId}</Mono> · <Mono>{versionName(detail.candidateVersion)}</Mono>
-                      </>
-                    ) : (
-                      item.title
-                    )}
+                    <Mono>{item.sourceId}</Mono> · <Mono>{`${item.candidateLabel} r${item.candidateRevision}`}</Mono>
                   </Link>
                   <div className="ist-row" style={{ marginBlockStart: 6 }}>
                     <IncidentStatusBadge status={item.status} />
@@ -201,9 +197,9 @@ export function IncidentTable({ rows }: { rows: Array<{ item: IncidentListItem; 
                         <FieldRoleTag role={primary.fieldRole} />
                         {extra > 0 && <span className="ist-meta">+{extra} more</span>}
                       </div>
-                      {detail?.previousVersion && (
+                      {item.previousLabel && (
                         <div className="ist-meta" style={{ marginBlockStart: 6 }}>
-                          vs <Mono>{versionName(detail.previousVersion)}</Mono>
+                          vs <Mono>{`${item.previousLabel} r${item.previousRevision}`}</Mono>
                         </div>
                       )}
                     </>
@@ -211,11 +207,11 @@ export function IncidentTable({ rows }: { rows: Array<{ item: IncidentListItem; 
                     <span className="ist-meta">Unavailable</span>
                   )}
                 </td>
-                <td>{detail ? <PipelinePips stages={stagesForIncident(detail)} /> : <span className="ist-meta">Unavailable</span>}</td>
+                <td><PipelinePips stages={stages} /></td>
                 <td>
                   {item.analysisMode ? (
                     <div className="ist-stack" style={{ gap: 6, alignItems: 'flex-start' }}>
-                      <AiModeLabel mode={item.analysisMode} recordedAt={detail?.analysis?.meta.recordedAt ?? null} />
+                      <AiModeLabel mode={item.analysisMode} recordedAt={item.analysisRecordedAt} />
                       {item.riskLevel && (
                         <span className="ist-meta" style={{ color: 'var(--text-analysis)' }}>
                           Advisory risk: {item.riskLevel.toLowerCase()}

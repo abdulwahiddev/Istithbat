@@ -54,23 +54,6 @@ export function readIncidentDetail(incidentId: string): Promise<ReadResult<Incid
   return attempt('incident', () => getIncidentDetail(incidentId));
 }
 
-/**
- * The incident list contract has no version label or primary change, so each row is
- * enriched with its own aggregate (same contract as the detail page). Small N in this demo.
- */
-export interface IncidentRow {
-  item: IncidentListItem;
-  detail: IncidentAggregate | null;
-}
-
-export async function readIncidentRows(): Promise<ReadResult<IncidentRow[]>> {
-  const list = await readIncidents();
-  if (!list.ok) return list;
-  return attempt('incident list', async () =>
-    Promise.all(list.data.map(async (item) => ({ item, detail: await getIncidentDetail(item.id) }))),
-  );
-}
-
 /** Incidents keyed by candidate version, for cross-links from Source Detail. Failure is non-fatal there. */
 export async function readIncidentIndex(): Promise<Map<string, IncidentListItem>> {
   const list = await readIncidents();

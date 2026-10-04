@@ -1,13 +1,13 @@
 import { PageTopbar } from '@/components/shell/AppShell';
 import { IncidentTable } from '@/components/incidents/IncidentViews';
 import { EmptyState, ErrorState } from '@/components/states/States';
-import { readIncidentRows } from '../_data/read';
+import { readIncidents } from '../_data/read';
 
 export const metadata = { title: 'Incidents · Istithbat' };
 export const dynamic = 'force-dynamic';
 
 export default async function IncidentsPage() {
-  const result = await readIncidentRows();
+  const result = await readIncidents();
 
   return (
     <>

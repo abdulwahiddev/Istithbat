@@ -142,12 +142,17 @@ describe('incident evidence and analysis (real Packet 03 data)', () => {
 
   it('renders the incident list from real items', () => {
     const items = [r2, r1].map((d) => ({
-      item: {
         id: d.id, sourceId: d.sourceId, candidateVersionId: d.candidateVersion.id, status: d.status, riskLevel: d.riskLevel, title: d.title,
         summary: d.summary, openedAt: '2026-10-04T11:43:15.497Z', pipelineStatus: d.pipeline?.status ?? null, nextStep: d.pipeline?.nextStep ?? null,
         silentMutation: d.candidateVersion.silentMutation, analysisMode: d.analysis?.meta.mode ?? null,
-      },
-      detail: d,
+        candidateLabel:d.candidateVersion.upstreamLabel,candidateRevision:d.candidateVersion.revisionNumber,
+        previousLabel:d.previousVersion?.upstreamLabel??null,previousRevision:d.previousVersion?.revisionNumber??null,
+        primaryChange:(d.changes.find(c=>c.id===d.primaryChangeId)??d.changes[0])
+          ? {canonicalKey:(d.changes.find(c=>c.id===d.primaryChangeId)??d.changes[0]).canonicalKey,
+            fieldPath:(d.changes.find(c=>c.id===d.primaryChangeId)??d.changes[0]).fieldPath,
+            fieldRole:(d.changes.find(c=>c.id===d.primaryChangeId)??d.changes[0]).fieldRole}:null,
+        changeCount:d.changes.length,hasCandidateSnapshot:Boolean(d.candidateVersion.rawSha256),
+        pipelineSteps:d.pipelineSteps,reviewCount:d.reviews.length,analysisRecordedAt:d.analysis?.meta.recordedAt??null,
     }));
     const html = renderToStaticMarkup(<IncidentTable rows={items} />);
     expect(html).toContain('v14 r2');

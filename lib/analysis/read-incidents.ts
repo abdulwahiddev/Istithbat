@@ -3,21 +3,53 @@ import { getSql } from '@/lib/db/client';
 import { getSourceDetail } from '@/lib/server/source-read';
 import { IncidentAggregate, IncidentListItem } from '@/lib/contracts';
 import { getPipelineRun } from '@/lib/pipeline/read';
+import { nextPendingStep, type StepName } from '@/lib/pipeline/model';
+import { STEP_HANDLERS } from '@/lib/pipeline/steps';
 import { readBlastRadius } from '@/lib/blast-radius/service';
 
 export async function listIncidents() {
-  const rows=await getSql()`SELECT i.*,v.silent_mutation,r.id AS run_id,r.status AS pipeline_status,a.meta_json AS analysis_meta
+  const sql=getSql();
+  const rows=await sql`SELECT i.*,v.silent_mutation,v.upstream_version_label AS candidate_label,
+    v.revision_number AS candidate_revision,v.raw_sha256 AS candidate_raw_sha256,
+    p.upstream_version_label AS previous_label,p.revision_number AS previous_revision,
+    c.canonical_key AS primary_key,c.field_path AS primary_field_path,c.field_role AS primary_field_role,
+    (SELECT count(*)::int FROM changes ch WHERE ch.to_version_id=i.candidate_version_id) AS change_count,
+    (SELECT count(*)::int FROM review_decisions d WHERE d.incident_id=i.id) AS review_count,
+    r.id AS run_id,r.status AS pipeline_status,a.meta_json AS analysis_meta
     FROM incidents i JOIN source_versions v ON v.id=i.candidate_version_id
+    LEFT JOIN source_versions p ON p.id=i.previous_version_id
+    LEFT JOIN changes c ON c.id=i.primary_change_id
     LEFT JOIN pipeline_runs r ON r.source_version_id=i.candidate_version_id
     LEFT JOIN LATERAL (SELECT meta_json FROM analyses WHERE incident_id=i.id ORDER BY created_at DESC LIMIT 1) a ON true
     ORDER BY i.opened_at DESC,i.id DESC`;
-  const runs=await Promise.all(rows.map(row=>row.run_id?getPipelineRun(row.run_id as string):Promise.resolve(null)));
-  return rows.map((row,index)=>IncidentListItem.parse({
+  const runIds=rows.map(row=>row.run_id as string).filter(Boolean);
+  const steps: Array<Record<string,any>>=runIds.length?await sql`SELECT run_id,step,item_key,status,attempts,error_code,output_ref,started_at,completed_at
+    FROM pipeline_steps WHERE run_id=ANY(${sql.array(runIds)}::uuid[]) ORDER BY run_id,step,item_key`:[];
+  const stepsByRun=new Map<string,Array<Record<string,any>>>();
+  for(const step of steps) {
+    const current=stepsByRun.get(step.run_id)??[];
+    current.push(step);
+    stepsByRun.set(step.run_id,current);
+  }
+  return rows.map(row=>{
+    const runSteps=stepsByRun.get(row.run_id)??[];
+    const nextStep=row.pipeline_status==='RUNNING'
+      ? nextPendingStep(runSteps.filter(step=>Boolean(STEP_HANDLERS[step.step as StepName])) as Array<{step:StepName;status:string;item_key:string}>)?.step??null
+      : null;
+    return IncidentListItem.parse({
     id:row.id,sourceId:row.source_id,candidateVersionId:row.candidate_version_id,status:row.status,
     riskLevel:row.risk_level,title:row.title,summary:row.summary,openedAt:row.opened_at.toISOString(),
-    pipelineStatus:row.pipeline_status??null,nextStep:runs[index]?.nextStep??null,
+    pipelineStatus:row.pipeline_status??null,nextStep,
     silentMutation:row.silent_mutation,analysisMode:row.analysis_meta?.mode??null,
-  }));
+    candidateLabel:row.candidate_label,candidateRevision:row.candidate_revision,
+    previousLabel:row.previous_label??null,previousRevision:row.previous_revision??null,
+    primaryChange:row.primary_key?{canonicalKey:row.primary_key,fieldPath:row.primary_field_path,fieldRole:row.primary_field_role}:null,
+    changeCount:row.change_count,hasCandidateSnapshot:Boolean(row.candidate_raw_sha256),reviewCount:row.review_count,
+    analysisRecordedAt:row.analysis_meta?.recordedAt??null,
+    pipelineSteps:runSteps.map(step=>({step:step.step,itemKey:step.item_key,status:step.status,attempts:step.attempts,
+      errorCode:step.error_code,outputRef:step.output_ref,startedAt:step.started_at?.toISOString()??null,
+      completedAt:step.completed_at?.toISOString()??null})),
+  });});
 }
 
 export async function getIncidentDetail(incidentId:string) {
