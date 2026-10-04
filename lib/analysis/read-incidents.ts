@@ -50,7 +50,13 @@ export async function getIncidentDetail(incidentId:string) {
       output:analysis.output_json,contextPacketHash:analysis.context_packet_hash,meta:analysis.meta_json,createdAt:analysis.created_at.toISOString()}:null,
     regressions:regressions.map(row=>({id:row.id,question:row.question,origin:row.question_origin,oldAnswer:row.old_answer,
       newAnswer:row.new_answer,result:row.result,oldVersionId:row.old_version_id,newVersionId:row.new_version_id})),
-    pipeline:run,pipelineSteps:run?.steps??[],policyEvaluation:policyRows[0]??null,reviews:reviews.map(row=>row),
+    pipeline:run,pipelineSteps:run?.steps??[],policyEvaluation:policyRows[0]?{
+      id:policyRows[0].id,sourceVersionId:policyRows[0].source_version_id,incidentId:policyRows[0].incident_id,
+      policyCode:policyRows[0].policy_code,deterministic:policyRows[0].deterministic_facts_json,
+      advisory:policyRows[0].advisory_facts_json,action:policyRows[0].action,evaluatedAt:policyRows[0].evaluated_at.toISOString(),
+    }:null,reviews:reviews.map(row=>({id:row.id,incidentId:row.incident_id,decision:row.decision,reviewer:row.reviewer,
+      reason:row.reason,previousVersionId:row.previous_version_id,candidateVersionId:row.candidate_version_id,
+      createdAt:row.created_at.toISOString()})),
     audit:auditRows.map(row=>({id:row.id,eventType:row.event_type,entityType:row.entity_type,entityId:row.entity_id,
       actor:row.actor,metadata:row.metadata_json,createdAt:row.created_at.toISOString()})),
   });

@@ -32,5 +32,5 @@ export function measureMutations(fixtures:MutationFixture[]) {
     typeAccuracy:expectedChanges ? correctTypes/expectedChanges : 1,
     roleAccuracy:expectedChanges ? correctRoles/expectedChanges : 1,
     flagAccuracy:expectedChanges ? correctFlags/expectedChanges : 1,
-    cases,aiMetrics:'not evaluated in Packet 02',policyActions:'expected floor stored; not executed in Packet 02'};
+    cases,aiMetrics:'see separate AI/regression suite',policyActions:'see separate policy-actions suite'};
 }

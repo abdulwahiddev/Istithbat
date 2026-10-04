@@ -21,12 +21,18 @@ export async function getSourceDetail(sourceId: string) {
   const source = (await listSources()).find(item => item.id === sourceId);
   if (!source) return null;
   const sql = getSql();
-  const [sourceRows,versions,changes,checks] = await Promise.all([
+  const [sourceRows,versions,changes,checks,policyRows,incidentRows] = await Promise.all([
     sql`SELECT field_roles_json FROM sources WHERE id=${sourceId}`,
     sql`SELECT * FROM source_versions WHERE source_id=${sourceId} ORDER BY detected_at ASC,id ASC`,
     sql`SELECT c.* FROM changes c JOIN source_versions v ON v.id=c.to_version_id WHERE v.source_id=${sourceId} ORDER BY v.detected_at ASC,c.field_path ASC NULLS FIRST,c.id ASC`,
     sql`SELECT * FROM source_checks WHERE source_id=${sourceId} ORDER BY checked_at DESC,id DESC LIMIT 25`,
+    sql`SELECT e.source_version_id,e.policy_code,e.action,e.deterministic_facts_json,e.evaluated_at FROM policy_evaluations e
+      JOIN source_versions v ON v.id=e.source_version_id WHERE v.source_id=${sourceId} AND e.is_effective=true`,
+    sql`SELECT i.candidate_version_id,i.status,r.status AS pipeline_status FROM incidents i
+      LEFT JOIN pipeline_runs r ON r.source_version_id=i.candidate_version_id WHERE i.source_id=${sourceId}`,
   ]);
+  const policyByVersion=new Map(policyRows.map(row=>[row.source_version_id as string,row]));
+  const incidentByVersion=new Map(incidentRows.map(row=>[row.candidate_version_id as string,row]));
   return SourceDetail.parse({
     source,fieldRoles:sourceRows[0].field_roles_json,
     versions:versions.map(row => ({
@@ -36,6 +42,10 @@ export async function getSourceDetail(sourceId: string) {
       silentMutation:row.silent_mutation,changeClass:row.change_class,
       rawSnapshotPath:row.raw_snapshot_path,canonicalSnapshotPath:row.canonical_snapshot_path,
       recordCount:row.record_count,detectedAt:row.detected_at.toISOString(),
+      heldForReview:row.status==='ANALYZING' && incidentByVersion.get(row.id)?.status==='NEEDS_REVIEW'
+        && incidentByVersion.get(row.id)?.pipeline_status==='COMPLETE' && policyByVersion.get(row.id)?.action==='REVIEW',
+      autoPromotion:policyByVersion.get(row.id)?.policy_code==='POL-005' && policyByVersion.get(row.id)?.action==='ALLOW'
+        ? {policyCode:'POL-005',equivalence:policyByVersion.get(row.id)?.deterministic_facts_json?.equivalenceReason ?? 'metadata only',promotedAt:policyByVersion.get(row.id)!.evaluated_at.toISOString()} : null,
     })),
     changes:changes.map(row => ({
       id:row.id,canonicalKey:row.canonical_key,changeType:row.change_type,fieldPath:row.field_path,

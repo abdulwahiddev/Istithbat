@@ -1,6 +1,7 @@
 import { loadMutationFixtures } from '@/lib/evaluation/harness';
 import { measureMutations } from '@/lib/evaluation/metrics';
 import { measureAiRegressions, measureSafety, type EvalMode } from '@/lib/evaluation/ai';
+import { measurePolicyActions } from '@/lib/evaluation/governance';
 
 const args=process.argv.slice(2);
 const suiteIndex=args.indexOf('--suite');
@@ -21,6 +22,9 @@ if(ids.size!==40) throw new Error('Duplicate mutation fixture IDs');
 const results=measureMutations(fixtures);
 console.log(JSON.stringify(results,null,2));
 if(results.fixturePasses!==40) process.exitCode=1;
+const policy=measurePolicyActions(fixtures);
+console.log(JSON.stringify(policy,null,2));
+if(policy.correct!==40 || policy.forcedAiFailureQuarantined!==policy.forcedAiFailureSubstantive) process.exitCode=1;
 if(aiMode) {
   const ai=await measureAiRegressions(fixtures,aiMode);
   console.log(JSON.stringify(ai,null,2));

@@ -1,6 +1,7 @@
 import 'server-only';
 import { ensureIncident, runAnalysis } from './handlers';
 import { prepareRegressionQuestions, runRegressionPairStep } from '@/lib/regression/run';
+import { evaluateCandidate } from '@/lib/policy/evaluate';
 import type { StepName } from './model';
 
 export type StepContext = {runId:string;versionId:string;incidentId:string|null};
@@ -21,4 +22,5 @@ export const STEP_HANDLERS: Partial<Record<StepName,StepHandler>> = {
     if (!context.incidentId) throw new Error('REGRESSION_FAILED');
     return runRegressionPairStep(context.runId,context.incidentId);
   },
+  POLICY: context => evaluateCandidate(context.versionId,context.incidentId),
 };
