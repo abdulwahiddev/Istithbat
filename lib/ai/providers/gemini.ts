@@ -1,3 +1,4 @@
+import { fetchWithTransientRetry } from './transient';
 import type { ProviderAdapter, ProviderRequest, ProviderResponse } from './types';
 
 /**
@@ -53,7 +54,7 @@ export function createGeminiAdapter(apiKey: string): ProviderAdapter {
       const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
       let res: Response;
       try {
-        res = await fetch(`${BASE}/${encodeURIComponent(req.model)}:generateContent`, {
+        res = await fetchWithTransientRetry(`${BASE}/${encodeURIComponent(req.model)}:generateContent`, {
           method: 'POST',
           headers: { 'content-type': 'application/json', 'x-goog-api-key': apiKey },
           body: JSON.stringify(body),

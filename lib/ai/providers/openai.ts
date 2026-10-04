@@ -1,3 +1,4 @@
+import { fetchWithTransientRetry } from './transient';
 import type { ProviderAdapter, ProviderRequest, ProviderResponse } from './types';
 
 /**
@@ -72,7 +73,7 @@ export function createOpenAiAdapter(apiKey: string): ProviderAdapter {
       const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
       let res: Response;
       try {
-        res = await fetch(ENDPOINT, {
+        res = await fetchWithTransientRetry(ENDPOINT, {
           method: 'POST',
           headers: { 'content-type': 'application/json', authorization: `Bearer ${apiKey}` },
           body: JSON.stringify(body),
