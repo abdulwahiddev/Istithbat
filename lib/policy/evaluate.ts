@@ -40,6 +40,13 @@ export async function loadPolicyInput(tx: postgres.TransactionSql, versionId: st
   const output = analysis?.output_json;
   const aiFailed = incidentId !== null && (failed('ANALYSIS') || (!analysis && stepRows.some(row => row.step === 'ANALYSIS' && row.status === 'DONE')));
   const regressionFailed = incidentId !== null && (failed('REGRESSION_QUESTIONS') || failed('REGRESSION_PAIR') || regressions.some(row => row.status === 'FAILED' || row.result === 'FAILED'));
+  const blastRows = incidentId && stepRows.some(row => row.step === 'BLAST_RADIUS' && row.status === 'DONE')
+    ? await tx`SELECT impact,count(*)::int AS total FROM incident_asset_impacts WHERE incident_id=${incidentId} GROUP BY impact` : [];
+  const blastRadius = blastRows.length ? {
+    exposed: blastRows.find(row => row.impact === 'EXPOSED')?.total ?? 0,
+    stale: blastRows.find(row => row.impact === 'STALE')?.total ?? 0,
+    impacted: blastRows.find(row => row.impact === 'IMPACTED')?.total ?? 0,
+  } : undefined;
   const risk = output?.risk_level;
   const recommendation = output?.recommended_action;
   const advisory: AdvisoryFacts = {
@@ -48,7 +55,7 @@ export async function loadPolicyInput(tx: postgres.TransactionSql, versionId: st
     meaningChanged: output?.meaning_changed === true,
     recommendedAction: ['ALLOW','REVIEW','QUARANTINE','ESCALATE'].includes(recommendation) ? recommendation as PolicyAction : null,
     materialChangeDetected: regressions.some(row => row.status === 'COMPLETE' && row.result === 'MATERIAL_CHANGE'),
-    aiFailed, regressionFailed,
+    aiFailed, regressionFailed, blastRadius,
   };
   return { sourceType: version.source_type, contentLevel: effectiveLevel, silentMutation: version.silent_mutation,
     serializationOnly: version.change_class === 'SERIALIZATION_ONLY', changes, advisory };
@@ -68,7 +75,7 @@ export async function evaluateCandidateTx(tx: postgres.TransactionSql, versionId
     if (locked.length) return locked[0].id as string;
     const run = (await tx`SELECT id,fast_path FROM pipeline_runs WHERE source_version_id=${versionId}`)[0];
     if (!run) throw new PipelineStepError('POLICY_EVALUATION_FAILED','Pipeline run missing');
-    const prerequisiteSteps = await tx`SELECT step,status FROM pipeline_steps WHERE run_id=${run.id} AND step NOT IN ('POLICY','BLAST_RADIUS')`;
+    const prerequisiteSteps = await tx`SELECT step,status FROM pipeline_steps WHERE run_id=${run.id} AND step<>'POLICY'`;
     if (prerequisiteSteps.some(step => step.status !== 'DONE' && step.status !== 'FAILED')) throw new PipelineStepError('POLICY_EVALUATION_FAILED','Evidence steps not terminal');
     const input = await loadPolicyInput(tx,versionId,incidentId);
     const result = evaluatePolicy(input);

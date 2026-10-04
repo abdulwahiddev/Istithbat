@@ -4,12 +4,15 @@ import { InvalidReviewTransition, promoteCandidateTx } from '@/lib/gateway/promo
 import { canReview, type ReviewAction } from './transitions';
 import type { PolicyAction } from '@/lib/policy/rules';
 import type postgres from 'postgres';
+import { recomputeAfterPromotion } from '@/lib/blast-radius/service';
 
 export type ReviewRequest = { incidentId: string; decision: ReviewAction; reviewer: string; reason?: string };
 
 export async function reviewIncident(input: ReviewRequest) {
   if (!input.reviewer.trim() || (input.decision === 'KEEP_QUARANTINED' && !input.reason?.trim())) throw new InvalidReviewTransition();
-  return getSql().begin(tx => reviewIncidentTx(tx,input));
+  const result = await getSql().begin(tx => reviewIncidentTx(tx,input));
+  if (input.decision === 'APPROVE') await recomputeAfterPromotion(input.incidentId);
+  return result;
 }
 
 export async function reviewIncidentTx(tx: postgres.TransactionSql, input: ReviewRequest) {

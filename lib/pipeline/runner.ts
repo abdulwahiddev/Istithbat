@@ -20,6 +20,7 @@ function errorCode(error:unknown, step:StepName):string {
   if (error instanceof PipelineStepError) return error.code;
   if (error instanceof Error && error.message==='DIFF_FAILED') return 'DIFF_FAILED';
   if (step==='REGRESSION_QUESTIONS'||step==='REGRESSION_PAIR') return 'REGRESSION_FAILED';
+  if (step==='BLAST_RADIUS') return 'BLAST_RADIUS_FAILED';
   if (step==='POLICY') return 'POLICY_EVALUATION_FAILED';
   return step==='ANALYSIS'?'AI_ANALYSIS_FAILED':'DIFF_FAILED';
 }
@@ -27,8 +28,10 @@ function errorCode(error:unknown, step:StepName):string {
 export async function advancePipeline(runId:string, budgetMs=20_000, expectedStep?:StepName):Promise<AdvanceResult|null> {
   const sql=getSql();
   const owner=randomUUID();
-  const claimed=await sql`UPDATE pipeline_runs SET lease_owner=${owner},lease_until=now()+interval '90 seconds',updated_at=now()
-    WHERE id=${runId} AND status='RUNNING' AND (lease_until IS NULL OR lease_until<now()) RETURNING id`;
+  const claimed=await sql`UPDATE pipeline_runs SET status='RUNNING',lease_owner=${owner},lease_until=now()+interval '90 seconds',updated_at=now()
+    WHERE id=${runId} AND (status='RUNNING' OR (status='COMPLETE' AND EXISTS
+      (SELECT 1 FROM pipeline_steps WHERE run_id=${runId} AND step='BLAST_RADIUS' AND status='PENDING')))
+      AND (lease_until IS NULL OR lease_until<now()) RETURNING id`;
   if (!claimed.length) {
     const rows=await sql`SELECT id,status,incident_id FROM pipeline_runs WHERE id=${runId}`;
     if (!rows.length) return null;
@@ -42,7 +45,7 @@ export async function advancePipeline(runId:string, budgetMs=20_000, expectedSte
       if (!runs.length) return {runId,status:'BUSY',nextStep:null,completedSteps,incidentId:null};
       const run=runs[0];
       const steps=await sql`SELECT id,step,status,attempts FROM pipeline_steps WHERE run_id=${runId}`;
-      // D-08: POLICY does not wait for Packet 05's unregistered BLAST_RADIUS handler.
+      // Registered handlers run in frozen order; a failed stage is terminal for D-08.
       const executable=steps.filter(step => Boolean(STEP_HANDLERS[step.step as StepName]));
       const next=nextPendingStep(executable as unknown as Array<{id:string;step:StepName;status:string;attempts:number}>);
       if (!next) {
@@ -62,7 +65,7 @@ export async function advancePipeline(runId:string, budgetMs=20_000, expectedSte
       const handler=STEP_HANDLERS[next.step];
       if (!handler) return {runId,status:'WAITING',nextStep:next.step,completedSteps,incidentId:run.incident_id};
       if (next.attempts>=2) {
-        const code=next.step==='ANALYSIS'?'AI_ANALYSIS_FAILED':next.step.startsWith('REGRESSION')?'REGRESSION_FAILED':next.step==='POLICY'?'POLICY_EVALUATION_FAILED':'DIFF_FAILED';
+        const code=next.step==='ANALYSIS'?'AI_ANALYSIS_FAILED':next.step.startsWith('REGRESSION')?'REGRESSION_FAILED':next.step==='BLAST_RADIUS'?'BLAST_RADIUS_FAILED':next.step==='POLICY'?'POLICY_EVALUATION_FAILED':'DIFF_FAILED';
         await sql.begin(async tx=>{
           const failed=await tx`UPDATE pipeline_steps SET status='FAILED',error_code=${code},completed_at=now()
             WHERE id=${next.id} AND status IN ('PENDING','RUNNING') RETURNING id`;

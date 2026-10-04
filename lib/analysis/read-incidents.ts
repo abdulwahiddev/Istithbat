@@ -3,6 +3,7 @@ import { getSql } from '@/lib/db/client';
 import { getSourceDetail } from '@/lib/server/source-read';
 import { IncidentAggregate, IncidentListItem } from '@/lib/contracts';
 import { getPipelineRun } from '@/lib/pipeline/read';
+import { readBlastRadius } from '@/lib/blast-radius/service';
 
 export async function listIncidents() {
   const rows=await getSql()`SELECT i.*,v.silent_mutation,r.id AS run_id,r.status AS pipeline_status,a.meta_json AS analysis_meta
@@ -38,6 +39,7 @@ export async function getIncidentDetail(incidentId:string) {
       ORDER BY created_at,id`,
   ]);
   const run=runRows[0]?await getPipelineRun(runRows[0].id):null;
+  const blastRadius=await readBlastRadius(incidentId);
   const analysis=analysisRows[0];
   return IncidentAggregate.parse({
     id:incident.id,sourceId:incident.source_id,status:incident.status,riskLevel:incident.risk_level,
@@ -57,7 +59,7 @@ export async function getIncidentDetail(incidentId:string) {
     }:null,reviews:reviews.map(row=>({id:row.id,incidentId:row.incident_id,decision:row.decision,reviewer:row.reviewer,
       reason:row.reason,previousVersionId:row.previous_version_id,candidateVersionId:row.candidate_version_id,
       createdAt:row.created_at.toISOString()})),
-    audit:auditRows.map(row=>({id:row.id,eventType:row.event_type,entityType:row.entity_type,entityId:row.entity_id,
+    blastRadius,audit:auditRows.map(row=>({id:row.id,eventType:row.event_type,entityType:row.entity_type,entityId:row.entity_id,
       actor:row.actor,metadata:row.metadata_json,createdAt:row.created_at.toISOString()})),
   });
 }

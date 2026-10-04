@@ -90,7 +90,7 @@ describe.skipIf(!live)('Packet 06 live Postgres transaction invariants', () => {
       const run = (await tx`INSERT INTO pipeline_runs (source_version_id,incident_id,status) VALUES (${fixture.candidate},${fixture.incident},'RUNNING') RETURNING id`)[0].id;
       await tx`INSERT INTO pipeline_steps (run_id,step,item_key,status,attempts,error_code) VALUES
         (${run},'INCIDENT','','DONE',1,NULL),(${run},'ANALYSIS','','FAILED',2,'AI_ANALYSIS_FAILED'),
-        (${run},'REGRESSION_QUESTIONS','','FAILED',2,'REGRESSION_FAILED'),(${run},'BLAST_RADIUS','','PENDING',0,NULL),(${run},'POLICY','','PENDING',0,NULL)`;
+        (${run},'REGRESSION_QUESTIONS','','FAILED',2,'REGRESSION_FAILED'),(${run},'BLAST_RADIUS','','FAILED',2,'BLAST_RADIUS_FAILED'),(${run},'POLICY','','PENDING',0,NULL)`;
       const first = await evaluateCandidateTx(tx,fixture.candidate,fixture.incident);
       const second = await evaluateCandidateTx(tx,fixture.candidate,fixture.incident);
       expect(second).toBe(first);
