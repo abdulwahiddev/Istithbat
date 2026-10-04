@@ -44,6 +44,8 @@ export const BlastRadius=z.object({
   edges:z.array(z.object({id:z.string(),from:z.string(),to:z.string(),type:z.string()})),
   counts:z.object({exposed:z.number().int(),stale:z.number().int(),impacted:z.number().int()}),
   traversalHash:z.string(),traversalStatus:z.enum(['PERSISTED','LIVE']),
+  execution:z.object({status:PipelineStatus,attempts:z.number().int(),errorCode:z.string().nullable(),
+    outputRef:z.string().nullable(),completedAt:z.string().nullable()}).nullable(),
   history:z.array(z.object({phase:z.enum(['PIPELINE','POST_PROMOTION']),traversalHash:z.string(),computedAt:z.string(),
     counts:z.object({exposed:z.number().int(),stale:z.number().int(),impacted:z.number().int()}),graph:z.unknown()})),
 });

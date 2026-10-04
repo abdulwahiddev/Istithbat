@@ -77,7 +77,7 @@ describe('Packet 05 deterministic Blast Radius',()=>{
   });
   it('validates the graph contract and preserves D-08 terminal failure progression',()=>{
     const graph=buildBlastRadius(fixture());
-    expect(BlastRadius.safeParse({...graph,traversalStatus:'PERSISTED',history:[]}).success).toBe(true);
+    expect(BlastRadius.safeParse({...graph,traversalStatus:'PERSISTED',execution:null,history:[]}).success).toBe(true);
     const next=nextPendingStep([{step:'BLAST_RADIUS' as const,status:'FAILED'},{step:'POLICY' as const,status:'PENDING'}]);
     expect(next?.step).toBe('POLICY');
   });

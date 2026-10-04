@@ -45,7 +45,12 @@ export async function readBlastRadius(incidentId: string) {
     const snapshots = await tx`SELECT metadata_json,created_at FROM audit_events
       WHERE entity_type='incident' AND entity_id=${incidentId} AND event_type='BLAST_RADIUS_COMPUTED'
       ORDER BY created_at,id`;
+    const [step] = await tx`SELECT s.status,s.attempts,s.error_code,s.output_ref,s.completed_at
+      FROM pipeline_steps s JOIN pipeline_runs r ON r.id=s.run_id
+      WHERE r.incident_id=${incidentId} AND s.step='BLAST_RADIUS' AND s.item_key='' LIMIT 1`;
     return { ...graph, traversalStatus: snapshots.some(row => row.metadata_json.traversalHash === graph.traversalHash) ? 'PERSISTED' : 'LIVE',
+      execution: step ? { status: step.status, attempts: step.attempts, errorCode: step.error_code,
+        outputRef: step.output_ref, completedAt: step.completed_at?.toISOString() ?? null } : null,
       history: snapshots.map(row => ({ phase: row.metadata_json.phase, traversalHash: row.metadata_json.traversalHash,
         computedAt: row.created_at.toISOString(), counts: row.metadata_json.counts, graph: row.metadata_json.graph })) };
   });
