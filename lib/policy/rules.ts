@@ -23,11 +23,11 @@ export type PolicyInput = {
   advisory: AdvisoryFacts;
 };
 export const POLICY_DEFINITIONS = [
-  { code: 'POL-001', priority: 100, role: 'AUTHORITATIVE_TEXT', floor: 'QUARANTINE' },
-  { code: 'POL-002', priority: 90, role: 'SCHOLAR_JUDGMENT', floor: 'QUARANTINE' },
-  { code: 'POL-003', priority: 80, role: 'TRANSLATION', floor: 'REVIEW' },
-  { code: 'POL-004', priority: 70, role: 'PROVENANCE', floor: 'REVIEW' },
-  { code: 'POL-005', priority: 10, role: null, floor: 'ALLOW' },
+  { code: 'POL-001', priority: 100, trigger: { substantiveOnly: true, fieldRole: 'AUTHORITATIVE_TEXT' }, action: { floor: 'QUARANTINE', specialistReview: true } },
+  { code: 'POL-002', priority: 90, trigger: { substantiveOnly: true, fieldRole: 'SCHOLAR_JUDGMENT' }, action: { floor: 'QUARANTINE', regression: true, humanReview: true } },
+  { code: 'POL-003', priority: 80, trigger: { substantiveOnly: true, fieldRole: 'TRANSLATION' }, action: { floor: 'REVIEW', escalateToQuarantineWhen: ['meaningChanged','materialChangeDetected','sensitiveFailure'] } },
+  { code: 'POL-004', priority: 70, trigger: { substantiveOnly: true, fieldRole: 'PROVENANCE' }, action: { floor: 'REVIEW', escalateToQuarantineWhen: ['highRisk','aiFailedOnAorC'] } },
+  { code: 'POL-005', priority: 10, trigger: { noSubstantiveOutside: 'OPERATIONAL_METADATA' }, action: { floor: 'ALLOW', auditEquivalence: true } },
 ] as const;
 const rank: Record<PolicyAction, number> = { ALLOW: 0, REVIEW: 1, QUARANTINE: 2, ESCALATE: 3 };
 const stronger = (a: PolicyAction, b: PolicyAction): PolicyAction => rank[a] >= rank[b] ? a : b;

@@ -15,9 +15,9 @@ async function setup(tx: postgres.TransactionSql) {
   const asset = `${id}-asset`, app = `${id}-app`;
   await tx`INSERT INTO sources (id,name,provider,source_type,connector_type,endpoint,connector_health,field_roles_json,content_level)
     VALUES (${id},'Transaction test','Istithbat','SANDBOX','TEST','https://example.invalid','HEALTHY',${tx.json({})},'A')`;
-  await tx`INSERT INTO source_versions (id,source_id,upstream_version_label,revision_number,raw_sha256,canonical_sha256,status,raw_snapshot_path,canonical_snapshot_path,record_count)
-    VALUES (${old},${id},'v13',1,${'a'.repeat(64)},${'b'.repeat(64)},'TRUSTED','test/old/raw','test/old/canonical',0),
-      (${candidate},${id},'v14',1,${'c'.repeat(64)},${'d'.repeat(64)},'QUARANTINED','test/new/raw','test/new/canonical',0)`;
+  await tx`INSERT INTO source_versions (id,source_id,previous_version_id,upstream_version_label,revision_number,raw_sha256,canonical_sha256,status,raw_snapshot_path,canonical_snapshot_path,record_count)
+    VALUES (${old},${id},NULL,'v13',1,${'a'.repeat(64)},${'b'.repeat(64)},'TRUSTED','test/old/raw','test/old/canonical',0),
+      (${candidate},${id},${old},'v14',1,${'c'.repeat(64)},${'d'.repeat(64)},'QUARANTINED','test/new/raw','test/new/canonical',0)`;
   await tx`INSERT INTO assets (id,name,asset_type,metadata_json) VALUES (${asset},'Test app','APPLICATION',${tx.json({})})`;
   await tx`INSERT INTO protected_apps (id,asset_id,name) VALUES (${app},${asset},'Test app')`;
   await tx`INSERT INTO gateway_bindings (protected_app_id,source_id,served_version_id,latest_seen_version_id) VALUES (${app},${id},${old},${candidate})`;
@@ -123,6 +123,20 @@ describe.skipIf(!live)('Packet 06 live Postgres transaction invariants', () => {
       expect(binding.served_version_id).toBe(fixture.candidate);
       expect((await tx`SELECT status FROM source_versions WHERE id=${fixture.old}`)[0].status).toBe('SUPERSEDED');
       expect((await tx`SELECT count(*)::int AS n FROM incidents WHERE candidate_version_id=${fixture.candidate}`)[0].n).toBe(0);
+      throw rollback;
+    })).rejects.toBe(rollback);
+  }, 20_000);
+  it('refuses POL-005 when an empty diff contradicts the canonical hash', async () => {
+    await expect(getSql().begin(async tx => {
+      const fixture = await setup(tx);
+      await tx`DELETE FROM policy_evaluations WHERE id=${fixture.evaluation}`;
+      await tx`DELETE FROM incidents WHERE id=${fixture.incident}`;
+      await tx`UPDATE source_versions SET status='PENDING' WHERE id=${fixture.candidate}`;
+      const run = (await tx`INSERT INTO pipeline_runs (source_version_id,status,fast_path) VALUES (${fixture.candidate},'RUNNING',true) RETURNING id`)[0].id;
+      await tx`INSERT INTO pipeline_steps (run_id,step,item_key,status) VALUES (${run},'POLICY','','PENDING')`;
+      await expect(evaluateCandidateTx(tx,fixture.candidate,null)).rejects.toThrow('POLICY_EVALUATION_FAILED');
+      expect((await tx`SELECT status FROM source_versions WHERE id=${fixture.old}`)[0].status).toBe('TRUSTED');
+      expect((await tx`SELECT count(*)::int AS n FROM policy_evaluations WHERE source_version_id=${fixture.candidate}`)[0].n).toBe(0);
       throw rollback;
     })).rejects.toBe(rollback);
   }, 20_000);

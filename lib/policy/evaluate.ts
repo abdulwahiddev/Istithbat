@@ -10,7 +10,7 @@ import type { PolicyChange } from './partition';
 async function ensurePolicies(tx: postgres.TransactionSql) {
   for (const definition of POLICY_DEFINITIONS) {
     await tx`INSERT INTO policies (code,priority,trigger_json,action_json,enabled)
-      VALUES (${definition.code},${definition.priority},${tx.json({role:definition.role,substantiveOnly:definition.code!=='POL-005'})},${tx.json({floor:definition.floor})},true)
+      VALUES (${definition.code},${definition.priority},${tx.json(definition.trigger)},${tx.json(definition.action)},true)
       ON CONFLICT (code) DO UPDATE SET priority=EXCLUDED.priority,trigger_json=EXCLUDED.trigger_json,action_json=EXCLUDED.action_json,enabled=true`;
   }
 }
@@ -19,6 +19,10 @@ export async function loadPolicyInput(tx: postgres.TransactionSql, versionId: st
   const version = (await tx`SELECT v.*,s.source_type,s.content_level FROM source_versions v JOIN sources s ON s.id=v.source_id WHERE v.id=${versionId}`)[0];
   if (!version) throw new PipelineStepError('POLICY_EVALUATION_FAILED','Candidate version missing');
   const rawChanges = await tx`SELECT id,canonical_key,change_type,field_path,field_role,diff_flags,diff_json FROM changes WHERE to_version_id=${versionId} ORDER BY canonical_key,field_path NULLS FIRST,id`;
+  if (version.previous_version_id && rawChanges.length === 0) {
+    const previous = (await tx`SELECT canonical_sha256 FROM source_versions WHERE id=${version.previous_version_id}`)[0];
+    if (!previous || previous.canonical_sha256 !== version.canonical_sha256) throw new PipelineStepError('POLICY_EVALUATION_FAILED','Empty diff does not match canonical snapshot');
+  }
   const changes: PolicyChange[] = rawChanges.map(row => ({
     id: row.id, canonicalKey: row.canonical_key, changeType: row.change_type,
     fieldPath: row.field_path, fieldRole: row.field_role ?? 'UNCLASSIFIED',
