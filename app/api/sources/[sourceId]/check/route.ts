@@ -6,7 +6,8 @@ import { after } from 'next/server';
 import { advancePipeline } from '@/lib/pipeline/runner';
 
 export const runtime = 'nodejs';
-export const maxDuration = 30;
+// Ingestion and the post-response pipeline share this function's lifetime.
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest, context: { params: Promise<{ sourceId: string }> }) {
   if (!requireControl(request)) return NextResponse.json({error:{code:'UNAUTHORIZED',message:'Demo control required'}},{status:401});
