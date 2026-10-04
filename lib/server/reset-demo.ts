@@ -6,11 +6,11 @@ export async function resetDemo() {
     const baseline=await tx`SELECT id FROM source_versions WHERE source_id=${SANDBOX_ID} AND upstream_version_label='v13' AND revision_number=1`;
     if (!baseline.length) throw new Error('Seed baseline first');
     const id=baseline[0].id;
+    await tx`DELETE FROM regression_runs WHERE incident_id IN (SELECT id FROM incidents WHERE source_id=${SANDBOX_ID})`;
     await tx`DELETE FROM pipeline_steps WHERE run_id IN (SELECT id FROM pipeline_runs WHERE source_version_id IN (SELECT id FROM source_versions WHERE source_id=${SANDBOX_ID} AND id<>${id}))`;
     await tx`DELETE FROM pipeline_runs WHERE source_version_id IN (SELECT id FROM source_versions WHERE source_id=${SANDBOX_ID} AND id<>${id})`;
     await tx`DELETE FROM incident_asset_impacts WHERE incident_id IN (SELECT id FROM incidents WHERE source_id=${SANDBOX_ID})`;
     await tx`DELETE FROM review_decisions WHERE incident_id IN (SELECT id FROM incidents WHERE source_id=${SANDBOX_ID})`;
-    await tx`DELETE FROM regression_runs WHERE incident_id IN (SELECT id FROM incidents WHERE source_id=${SANDBOX_ID})`;
     await tx`DELETE FROM policy_evaluations WHERE source_version_id IN (SELECT id FROM source_versions WHERE source_id=${SANDBOX_ID})`;
     await tx`DELETE FROM analyses WHERE incident_id IN (SELECT id FROM incidents WHERE source_id=${SANDBOX_ID})`;
     await tx`DELETE FROM incidents WHERE source_id=${SANDBOX_ID}`;
