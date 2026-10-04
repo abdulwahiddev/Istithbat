@@ -67,14 +67,16 @@ export async function computeAndPersistBlastRadiusTx(tx: postgres.TransactionSql
     const input = await loadInput(tx, incidentId);
     if (!input || !input.changes.length) throw new PipelineStepError('BLAST_RADIUS_FAILED','Changed record evidence missing');
     const graph = buildBlastRadius(input);
-    for (const node of graph.nodes.filter(node => node.id.startsWith('asset:'))) {
-      const assetId = node.id.slice('asset:'.length);
-      await tx`INSERT INTO incident_asset_impacts (incident_id,asset_id,impact,dependency_path_json,regression_run_ids)
-        VALUES (${incidentId},${assetId},${node.impact},${tx.json(node.dependencyPaths as JsonValue)},${tx.json(node.regressionRunIds)})
+    const assetNodes = graph.nodes.filter(node => node.id.startsWith('asset:'));
+    if (assetNodes.length) {
+      const impactRows = assetNodes.map(node => ({incident_id:incidentId,asset_id:node.id.slice('asset:'.length),
+        impact:node.impact,dependency_path_json:tx.json(node.dependencyPaths as JsonValue),
+        regression_run_ids:tx.json(node.regressionRunIds as JsonValue)}));
+      await tx`INSERT INTO incident_asset_impacts ${tx(impactRows,'incident_id','asset_id','impact','dependency_path_json','regression_run_ids')}
         ON CONFLICT (incident_id,asset_id) DO UPDATE SET impact=EXCLUDED.impact,
           dependency_path_json=EXCLUDED.dependency_path_json,regression_run_ids=EXCLUDED.regression_run_ids,updated_at=now()`;
     }
-    const assetIds = graph.nodes.filter(node => node.id.startsWith('asset:')).map(node => node.id.slice('asset:'.length));
+    const assetIds = assetNodes.map(node => node.id.slice('asset:'.length));
     await tx`DELETE FROM incident_asset_impacts WHERE incident_id=${incidentId} AND asset_id NOT IN ${tx(assetIds.length ? assetIds : [''])}`;
     await tx`INSERT INTO audit_events (event_type,entity_type,entity_id,actor,metadata_json,idempotency_key)
       VALUES ('BLAST_RADIUS_COMPUTED','incident',${incidentId},'system:blast-radius',
