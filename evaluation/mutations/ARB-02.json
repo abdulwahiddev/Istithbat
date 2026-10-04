@@ -1,0 +1,49 @@
+{
+  "id": "ARB-02",
+  "category": "Arabic / deletion / edge",
+  "base": "had-4821.v13.json",
+  "basePatch": [
+    {
+      "op": "replace",
+      "path": "/records/0/content/arabic_text",
+      "value": "نص تجريبي — خَلَقَ (عبارة اختبارية فقط)."
+    }
+  ],
+  "mutation": [
+    {
+      "op": "replace",
+      "path": "/records/0/content/arabic_text",
+      "value": "نص تجريبي — خُلِقَ (عبارة اختبارية فقط)."
+    },
+    {
+      "op": "replace",
+      "path": "/upstreamVersionLabel",
+      "value": "eval-arb-02"
+    }
+  ],
+  "expected": {
+    "changes": [
+      {
+        "canonicalKey": "HAD-4821",
+        "changeType": "FIELD_MODIFIED",
+        "fieldPath": "arabic_text",
+        "fieldRole": "AUTHORITATIVE_TEXT",
+        "flags": [
+          "HARAKAT_ONLY"
+        ]
+      }
+    ],
+    "field_roles": [
+      "AUTHORITATIVE_TEXT"
+    ],
+    "flags": [
+      "HARAKAT_ONLY"
+    ],
+    "silent_mutation": false,
+    "analysis_type": "CANONICAL_TEXT_CHANGE",
+    "material": true,
+    "min_risk": "HIGH",
+    "max_risk": "CRITICAL",
+    "policy_action": "QUARANTINE"
+  }
+}

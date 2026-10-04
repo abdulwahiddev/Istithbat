@@ -1,0 +1,42 @@
+{
+  "id": "FMT-04",
+  "category": "Benign / formatting / metadata",
+  "base": "had-4821.v13.json",
+  "mutation": [
+    {
+      "op": "replace",
+      "path": "/records/0/content/judgment",
+      "value": "إسناده صحيح"
+    },
+    {
+      "op": "replace",
+      "path": "/upstreamVersionLabel",
+      "value": "eval-fmt-04"
+    }
+  ],
+  "expected": {
+    "changes": [
+      {
+        "canonicalKey": "HAD-4821",
+        "changeType": "FIELD_MODIFIED",
+        "fieldPath": "judgment",
+        "fieldRole": "SCHOLAR_JUDGMENT",
+        "flags": [
+          "UNICODE_EQUIVALENT"
+        ]
+      }
+    ],
+    "field_roles": [
+      "SCHOLAR_JUDGMENT"
+    ],
+    "flags": [
+      "UNICODE_EQUIVALENT"
+    ],
+    "silent_mutation": false,
+    "analysis_type": "EVIDENCE_DRIFT",
+    "material": false,
+    "min_risk": "LOW",
+    "max_risk": "LOW",
+    "policy_action": "ALLOW"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "id": "SM-03",
+  "category": "Silent Mutation",
+  "base": "had-4821.v14.json",
+  "mutation": [
+    {
+      "op": "replace",
+      "path": "/records/0/content/judgment",
+      "value": "ضعيف"
+    }
+  ],
+  "expected": {
+    "changes": [
+      {
+        "canonicalKey": "HAD-4821",
+        "changeType": "FIELD_MODIFIED",
+        "fieldPath": "judgment",
+        "fieldRole": "SCHOLAR_JUDGMENT",
+        "flags": []
+      }
+    ],
+    "field_roles": [
+      "SCHOLAR_JUDGMENT"
+    ],
+    "flags": [],
+    "silent_mutation": true,
+    "analysis_type": "EVIDENCE_DRIFT",
+    "material": true,
+    "min_risk": "HIGH",
+    "max_risk": "CRITICAL",
+    "policy_action": "QUARANTINE"
+  }
+}

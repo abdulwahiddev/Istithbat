@@ -1,0 +1,37 @@
+{
+  "id": "DEL-01",
+  "category": "Arabic / deletion / edge",
+  "base": "had-4821.v13.json",
+  "mutation": [
+    {
+      "op": "remove",
+      "path": "/records/0/content/translation"
+    },
+    {
+      "op": "replace",
+      "path": "/upstreamVersionLabel",
+      "value": "eval-del-01"
+    }
+  ],
+  "expected": {
+    "changes": [
+      {
+        "canonicalKey": "HAD-4821",
+        "changeType": "FIELD_DELETED",
+        "fieldPath": "translation",
+        "fieldRole": "TRANSLATION",
+        "flags": []
+      }
+    ],
+    "field_roles": [
+      "TRANSLATION"
+    ],
+    "flags": [],
+    "silent_mutation": false,
+    "analysis_type": "TRANSLATION_DRIFT",
+    "material": true,
+    "min_risk": "MEDIUM",
+    "max_risk": "CRITICAL",
+    "policy_action": "REVIEW"
+  }
+}

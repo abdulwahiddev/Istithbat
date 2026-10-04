@@ -1,0 +1,19 @@
+{
+  "id": "FMT-03",
+  "category": "Benign / formatting / metadata",
+  "base": "had-4821.v13.json",
+  "mutation": [],
+  "rawTransform": "reverse-key-order",
+  "expected": {
+    "changes": [],
+    "field_roles": [],
+    "flags": [],
+    "silent_mutation": true,
+    "analysis_type": "METADATA_CHANGE",
+    "material": false,
+    "min_risk": "LOW",
+    "max_risk": "LOW",
+    "policy_action": "ALLOW",
+    "serialization_only": true
+  }
+}

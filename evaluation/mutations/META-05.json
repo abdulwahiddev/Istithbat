@@ -1,0 +1,38 @@
+{
+  "id": "META-05",
+  "category": "Benign / formatting / metadata",
+  "base": "had-4821.v13.json",
+  "mutation": [
+    {
+      "op": "replace",
+      "path": "/records/0/content/description",
+      "value": "Corrected description of the controlled synthetic record."
+    },
+    {
+      "op": "replace",
+      "path": "/upstreamVersionLabel",
+      "value": "eval-meta-05"
+    }
+  ],
+  "expected": {
+    "changes": [
+      {
+        "canonicalKey": "HAD-4821",
+        "changeType": "FIELD_MODIFIED",
+        "fieldPath": "description",
+        "fieldRole": "OPERATIONAL_METADATA",
+        "flags": []
+      }
+    ],
+    "field_roles": [
+      "OPERATIONAL_METADATA"
+    ],
+    "flags": [],
+    "silent_mutation": false,
+    "analysis_type": "METADATA_CHANGE",
+    "material": false,
+    "min_risk": "LOW",
+    "max_risk": "LOW",
+    "policy_action": "ALLOW"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "id": "HAD-05",
+  "category": "Hadith / Evidence Drift",
+  "base": "had-4821.v13.json",
+  "basePatch": [
+    {
+      "op": "replace",
+      "path": "/records/0/content/judgment",
+      "value": "صحيح"
+    }
+  ],
+  "mutation": [
+    {
+      "op": "replace",
+      "path": "/records/0/content/judgment",
+      "value": "ضعيف"
+    },
+    {
+      "op": "replace",
+      "path": "/upstreamVersionLabel",
+      "value": "eval-had-05"
+    }
+  ],
+  "expected": {
+    "changes": [
+      {
+        "canonicalKey": "HAD-4821",
+        "changeType": "FIELD_MODIFIED",
+        "fieldPath": "judgment",
+        "fieldRole": "SCHOLAR_JUDGMENT",
+        "flags": []
+      }
+    ],
+    "field_roles": [
+      "SCHOLAR_JUDGMENT"
+    ],
+    "flags": [],
+    "silent_mutation": false,
+    "analysis_type": "EVIDENCE_DRIFT",
+    "material": true,
+    "min_risk": "HIGH",
+    "max_risk": "CRITICAL",
+    "policy_action": "QUARANTINE"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "id": "TRN-05",
+  "category": "Translation + provenance",
+  "base": "had-4821.v13.json",
+  "basePatch": [
+    {
+      "op": "replace",
+      "path": "/records/0/content/translation",
+      "value": "A sentence used for a synthetic test."
+    }
+  ],
+  "mutation": [
+    {
+      "op": "replace",
+      "path": "/records/0/content/translation",
+      "value": "A synthetic test sentence."
+    },
+    {
+      "op": "replace",
+      "path": "/upstreamVersionLabel",
+      "value": "eval-trn-05"
+    }
+  ],
+  "expected": {
+    "changes": [
+      {
+        "canonicalKey": "HAD-4821",
+        "changeType": "FIELD_MODIFIED",
+        "fieldPath": "translation",
+        "fieldRole": "TRANSLATION",
+        "flags": []
+      }
+    ],
+    "field_roles": [
+      "TRANSLATION"
+    ],
+    "flags": [],
+    "silent_mutation": false,
+    "analysis_type": "TRANSLATION_DRIFT",
+    "material": false,
+    "min_risk": "MEDIUM",
+    "max_risk": "CRITICAL",
+    "policy_action": "REVIEW"
+  }
+}

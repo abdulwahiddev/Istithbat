@@ -1,0 +1,42 @@
+{
+  "id": "HAD-10",
+  "category": "Hadith / Evidence Drift",
+  "base": "had-4821.v13.json",
+  "mutation": [
+    {
+      "op": "replace",
+      "path": "/records/0/content/judgment",
+      "value": "إسناده\tصحيح"
+    },
+    {
+      "op": "replace",
+      "path": "/upstreamVersionLabel",
+      "value": "eval-had-10"
+    }
+  ],
+  "expected": {
+    "changes": [
+      {
+        "canonicalKey": "HAD-4821",
+        "changeType": "FIELD_MODIFIED",
+        "fieldPath": "judgment",
+        "fieldRole": "SCHOLAR_JUDGMENT",
+        "flags": [
+          "WHITESPACE_ONLY"
+        ]
+      }
+    ],
+    "field_roles": [
+      "SCHOLAR_JUDGMENT"
+    ],
+    "flags": [
+      "WHITESPACE_ONLY"
+    ],
+    "silent_mutation": false,
+    "analysis_type": "EVIDENCE_DRIFT",
+    "material": false,
+    "min_risk": "LOW",
+    "max_risk": "LOW",
+    "policy_action": "ALLOW"
+  }
+}

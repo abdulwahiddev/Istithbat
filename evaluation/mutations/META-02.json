@@ -1,0 +1,38 @@
+{
+  "id": "META-02",
+  "category": "Benign / formatting / metadata",
+  "base": "had-4821.v13.json",
+  "mutation": [
+    {
+      "op": "replace",
+      "path": "/records/0/content/internal_id",
+      "value": "SBX-004821"
+    },
+    {
+      "op": "replace",
+      "path": "/upstreamVersionLabel",
+      "value": "eval-meta-02"
+    }
+  ],
+  "expected": {
+    "changes": [
+      {
+        "canonicalKey": "HAD-4821",
+        "changeType": "FIELD_MODIFIED",
+        "fieldPath": "internal_id",
+        "fieldRole": "OPERATIONAL_METADATA",
+        "flags": []
+      }
+    ],
+    "field_roles": [
+      "OPERATIONAL_METADATA"
+    ],
+    "flags": [],
+    "silent_mutation": false,
+    "analysis_type": "METADATA_CHANGE",
+    "material": false,
+    "min_risk": "LOW",
+    "max_risk": "LOW",
+    "policy_action": "ALLOW"
+  }
+}

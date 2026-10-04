@@ -1,0 +1,37 @@
+{
+  "id": "HAD-08",
+  "category": "Hadith / Evidence Drift",
+  "base": "had-4821.v13.json",
+  "mutation": [
+    {
+      "op": "remove",
+      "path": "/records/0/content/narrators/0"
+    },
+    {
+      "op": "replace",
+      "path": "/upstreamVersionLabel",
+      "value": "eval-had-08"
+    }
+  ],
+  "expected": {
+    "changes": [
+      {
+        "canonicalKey": "HAD-4821",
+        "changeType": "ARRAY_ITEM_REMOVED",
+        "fieldPath": "narrators[0]",
+        "fieldRole": "PROVENANCE",
+        "flags": []
+      }
+    ],
+    "field_roles": [
+      "PROVENANCE"
+    ],
+    "flags": [],
+    "silent_mutation": false,
+    "analysis_type": "PROVENANCE_DRIFT",
+    "material": false,
+    "min_risk": "LOW",
+    "max_risk": "HIGH",
+    "policy_action": "REVIEW"
+  }
+}

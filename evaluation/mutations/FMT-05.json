@@ -1,0 +1,42 @@
+{
+  "id": "FMT-05",
+  "category": "Benign / formatting / metadata",
+  "base": "had-4821.v13.json",
+  "mutation": [
+    {
+      "op": "replace",
+      "path": "/records/0/content/display_label",
+      "value": "Sandbox record HAD-4821 (synthetic)!"
+    },
+    {
+      "op": "replace",
+      "path": "/upstreamVersionLabel",
+      "value": "eval-fmt-05"
+    }
+  ],
+  "expected": {
+    "changes": [
+      {
+        "canonicalKey": "HAD-4821",
+        "changeType": "FIELD_MODIFIED",
+        "fieldPath": "display_label",
+        "fieldRole": "OPERATIONAL_METADATA",
+        "flags": [
+          "PUNCTUATION_ONLY"
+        ]
+      }
+    ],
+    "field_roles": [
+      "OPERATIONAL_METADATA"
+    ],
+    "flags": [
+      "PUNCTUATION_ONLY"
+    ],
+    "silent_mutation": false,
+    "analysis_type": "METADATA_CHANGE",
+    "material": false,
+    "min_risk": "LOW",
+    "max_risk": "LOW",
+    "policy_action": "ALLOW"
+  }
+}

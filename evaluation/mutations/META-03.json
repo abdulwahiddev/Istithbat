@@ -1,0 +1,45 @@
+{
+  "id": "META-03",
+  "category": "Benign / formatting / metadata",
+  "base": "had-4821.v13.json",
+  "basePatch": [
+    {
+      "op": "replace",
+      "path": "/records/0/content/source_url",
+      "value": "http://sandbox.istithbat.invalid/records/HAD-4821"
+    }
+  ],
+  "mutation": [
+    {
+      "op": "replace",
+      "path": "/records/0/content/source_url",
+      "value": "https://sandbox.istithbat.invalid/records/HAD-4821"
+    },
+    {
+      "op": "replace",
+      "path": "/upstreamVersionLabel",
+      "value": "eval-meta-03"
+    }
+  ],
+  "expected": {
+    "changes": [
+      {
+        "canonicalKey": "HAD-4821",
+        "changeType": "FIELD_MODIFIED",
+        "fieldPath": "source_url",
+        "fieldRole": "OPERATIONAL_METADATA",
+        "flags": []
+      }
+    ],
+    "field_roles": [
+      "OPERATIONAL_METADATA"
+    ],
+    "flags": [],
+    "silent_mutation": false,
+    "analysis_type": "METADATA_CHANGE",
+    "material": false,
+    "min_risk": "LOW",
+    "max_risk": "LOW",
+    "policy_action": "ALLOW"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "id": "HAD-07",
+  "category": "Hadith / Evidence Drift",
+  "base": "had-4821.v13.json",
+  "mutation": [
+    {
+      "op": "replace",
+      "path": "/records/0/content/reference/book",
+      "value": "Istithbat Sandbox Citation B"
+    },
+    {
+      "op": "replace",
+      "path": "/upstreamVersionLabel",
+      "value": "eval-had-07"
+    }
+  ],
+  "expected": {
+    "changes": [
+      {
+        "canonicalKey": "HAD-4821",
+        "changeType": "FIELD_MODIFIED",
+        "fieldPath": "reference.book",
+        "fieldRole": "PROVENANCE",
+        "flags": []
+      }
+    ],
+    "field_roles": [
+      "PROVENANCE"
+    ],
+    "flags": [],
+    "silent_mutation": false,
+    "analysis_type": "PROVENANCE_DRIFT",
+    "material": false,
+    "min_risk": "LOW",
+    "max_risk": "HIGH",
+    "policy_action": "REVIEW"
+  }
+}

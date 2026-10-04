@@ -31,6 +31,7 @@ export const sourceChecks = pgTable('source_checks', {
 export const sourceVersions = pgTable('source_versions', {
   id: uuid('id').primaryKey().defaultRandom(),
   source_id: text('source_id').notNull(),
+  previous_version_id: uuid('previous_version_id'),
   upstream_version_label: text('upstream_version_label').notNull(),
   revision_number: integer('revision_number').notNull(),
   upstream_published_at: timestamp('upstream_published_at', { withTimezone: true }),
@@ -38,6 +39,7 @@ export const sourceVersions = pgTable('source_versions', {
   canonical_sha256: text('canonical_sha256').notNull(),
   status: text('status').notNull(),
   silent_mutation: boolean('silent_mutation').notNull().default(false),
+  change_class: text('change_class'),
   raw_snapshot_path: text('raw_snapshot_path').notNull(),
   canonical_snapshot_path: text('canonical_snapshot_path').notNull(),
   record_count: integer('record_count').notNull(),
