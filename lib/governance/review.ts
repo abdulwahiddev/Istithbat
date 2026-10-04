@@ -20,9 +20,10 @@ export async function reviewIncidentTx(tx: postgres.TransactionSql, input: Revie
     // The source lock serializes reviews with ALLOW promotions and other reviews.
     await tx`SELECT id FROM sources WHERE id=${incident.source_id} FOR UPDATE`;
     const lockedIncident = (await tx`SELECT * FROM incidents WHERE id=${input.incidentId} FOR UPDATE`)[0];
-    const candidate = (await tx`SELECT id,status FROM source_versions WHERE id=${lockedIncident.candidate_version_id} FOR UPDATE`)[0];
+    const candidate = (await tx`SELECT id,source_id,status FROM source_versions WHERE id=${lockedIncident.candidate_version_id} FOR UPDATE`)[0];
     const evaluation = (await tx`SELECT id,action FROM policy_evaluations WHERE source_version_id=${lockedIncident.candidate_version_id} AND incident_id=${input.incidentId} AND is_effective=true FOR UPDATE`)[0];
-    if (!candidate || !evaluation || !canReview(input.decision,candidate.status,lockedIncident.status,lockedIncident.effective_policy_action as PolicyAction | null)) throw new InvalidReviewTransition();
+    if (!candidate || candidate.source_id !== incident.source_id || !evaluation || evaluation.action !== lockedIncident.effective_policy_action
+      || !canReview(input.decision,candidate.status,lockedIncident.status,lockedIncident.effective_policy_action as PolicyAction | null)) throw new InvalidReviewTransition();
     if (input.decision === 'APPROVE') {
       const promotion = await promoteCandidateTx(tx,{sourceId:incident.source_id,candidateVersionId:lockedIncident.candidate_version_id,incidentId:input.incidentId,evaluationId:evaluation.id,reviewer:input.reviewer.trim(),reason:input.reason?.trim()});
       return { decision: input.decision, incidentId: input.incidentId, ...promotion };
