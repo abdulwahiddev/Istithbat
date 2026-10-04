@@ -1,4 +1,5 @@
 import { createAnthropicAdapter } from './anthropic';
+import { createGeminiAdapter } from './gemini';
 import { createOpenAiAdapter } from './openai';
 import type { ProviderAdapter } from './types';
 
@@ -12,6 +13,8 @@ export function createProvider(name: string, apiKey: string): ProviderAdapter | 
       return createAnthropicAdapter(apiKey);
     case 'openai':
       return createOpenAiAdapter(apiKey);
+    case 'gemini':
+      return createGeminiAdapter(apiKey);
     default:
       return null;
   }
