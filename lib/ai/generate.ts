@@ -84,13 +84,29 @@ export async function generateStructured<S extends z.ZodType>(
     effort: null,
   };
 
-  const fail = (reason: AiFailureReason, detail: string): AiResult<z.output<S>> => ({
-    ok: false,
-    errorCode: spec.errorCode,
-    reason,
-    detail,
-    meta: { ...meta, latencyMs: now() - started },
-  });
+  const fail = (reason: AiFailureReason, detail: string): AiResult<z.output<S>> => {
+    // One structured server-log line so live failures are diagnosable. Never the input, prompt
+    // or config: provider details are already redacted by the adapters (no keys, no headers).
+    console.warn(
+      JSON.stringify({
+        event: 'AI_CALL_FAILED',
+        task: req.task,
+        reason,
+        mode: meta.mode,
+        provider: meta.provider,
+        model: meta.model,
+        attempts: meta.attempts,
+        detail: detail.slice(0, 500),
+      }),
+    );
+    return {
+      ok: false,
+      errorCode: spec.errorCode,
+      reason,
+      detail,
+      meta: { ...meta, latencyMs: now() - started },
+    };
+  };
   const succeed = (data: z.output<S>): AiResult<z.output<S>> => ({
     ok: true,
     data,

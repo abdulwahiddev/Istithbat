@@ -167,6 +167,18 @@ describe('OpenAI responses through generateStructured', () => {
     }
   });
 
+  it('logs one sanitized failure line with the reason, never the key or the input', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    stubFetch(() => jsonResponse({ error: { type: 'invalid_request_error', code: 'invalid_api_key', message: `Incorrect API key provided: ${KEY}` } }, 401));
+    await generateStructured({ task: 'QA_ANSWER', schema: QaAnswerSchema, input: v13 }, { config: liveOpenAi });
+    expect(warn).toHaveBeenCalledTimes(1);
+    const line = String(warn.mock.calls[0][0]);
+    expect(JSON.parse(line)).toMatchObject({ event: 'AI_CALL_FAILED', task: 'QA_ANSWER', reason: 'PROVIDER_ERROR', provider: 'openai' });
+    expect(line).not.toContain(KEY);
+    expect(line).not.toContain('إسناده');
+    warn.mockRestore();
+  });
+
   it('fails safely on a network error', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError(`fetch failed (Authorization: Bearer ${KEY})`); }));
     const res = await generateStructured({ task: 'QA_ANSWER', schema: QaAnswerSchema, input: v13 }, { config: liveOpenAi });
