@@ -1,6 +1,6 @@
-import { createAnthropicAdapter } from './anthropic';
+import { acceptsTemperature, createAnthropicAdapter } from './anthropic';
 import { createGeminiAdapter } from './gemini';
-import { createOpenAiAdapter } from './openai';
+import { createOpenAiAdapter, isOpenAiReasoningModel } from './openai';
 import type { ProviderAdapter } from './types';
 
 export type { ProviderAdapter, ProviderRequest, ProviderResponse, ProviderMessage } from './types';
@@ -17,5 +17,23 @@ export function createProvider(name: string, apiKey: string): ProviderAdapter | 
       return createGeminiAdapter(apiKey);
     default:
       return null;
+  }
+}
+
+/**
+ * The temperature a live adapter will actually send for this provider/model (null = omitted),
+ * i.e. what `meta.temperature` will record. Lets callers that pre-compute a matched configuration
+ * (Packet 04 regression) stay provider-neutral. Must agree with each adapter's own rule.
+ */
+export function sentTemperature(provider: string, model: string, requested: number): number | null {
+  switch (provider) {
+    case 'anthropic':
+      return acceptsTemperature(model) ? requested : null;
+    case 'openai':
+      return isOpenAiReasoningModel(model) ? null : requested;
+    case 'gemini':
+      return null;
+    default:
+      return requested;
   }
 }

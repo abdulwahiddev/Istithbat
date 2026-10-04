@@ -2,8 +2,7 @@ import 'server-only';
 import { readAiConfig } from '@/lib/ai/config';
 import { TASK_SPECS } from '@/lib/ai';
 import { getPrompt } from '@/lib/ai/prompts';
-import { acceptsTemperature } from '@/lib/ai/providers/anthropic';
-import { toProviderJsonSchema } from '@/lib/ai/providers';
+import { sentTemperature, toProviderJsonSchema } from '@/lib/ai/providers';
 import { QaAnswerSchema } from '@/lib/ai';
 import type { AiMeta } from '@/lib/ai';
 import { hashJson, sha256, type JsonValue } from '@/lib/hashing/canonicalize';
@@ -15,7 +14,7 @@ export function qaConfig(retrievalConfig:RetrievalConfig) {
   if(!prompt) throw new Error('REGRESSION_FAILED');
   const provider=ai.mode==='mock'?'mock':ai.provider??'unconfigured';
   const model=ai.mode==='mock'?'mock-v1':ai.model??'unconfigured';
-  const temperature=ai.mode==='live'&&ai.provider==='anthropic'&&!acceptsTemperature(model)?null:0;
+  const temperature=ai.mode==='live'?sentTemperature(provider,model,0):0;
   return {mode:ai.mode,provider,model,temperature,max_tokens:TASK_SPECS.QA_ANSWER.maxTokens,
     system_prompt_hash:sha256(prompt.system),prompt_version:prompt.promptVersion,prompt_id:prompt.promptId,
     retrieval_config:retrievalConfig,output_schema_hash:hashJson(toProviderJsonSchema(QaAnswerSchema) as JsonValue),
