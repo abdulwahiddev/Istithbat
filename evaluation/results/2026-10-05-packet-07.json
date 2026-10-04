@@ -1,0 +1,794 @@
+{
+  "runId": "2026-10-05-packet-07",
+  "recordedAt": "2026-10-04T21:13:45.342Z",
+  "status": "INCOMPLETE_LIVE_AI",
+  "mutationDeterministic": {
+    "suite": "mutations",
+    "totalFixtures": 40,
+    "fixturePasses": 40,
+    "expectedChanges": 38,
+    "detectedChanges": 38,
+    "unexpectedChanges": 0,
+    "correctTypes": 38,
+    "correctRoles": 38,
+    "correctFlags": 38,
+    "silentExpected": 3,
+    "silentDetected": 3,
+    "exactDetectionRate": 1,
+    "typeAccuracy": 1,
+    "roleAccuracy": 1,
+    "flagAccuracy": 1,
+    "cases": [
+      {
+        "id": "ARB-01",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "ARB-02",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "ARB-03",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "ARB-04",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "ARB-05",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "DEL-01",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "DEL-02",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "FMT-01",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "FMT-02",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "FMT-03",
+        "pass": true,
+        "expectedChanges": 0,
+        "actualChanges": 0,
+        "silentMutation": true,
+        "serializationOnly": true
+      },
+      {
+        "id": "FMT-04",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "FMT-05",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "HAD-01",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "HAD-02",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "HAD-03",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "HAD-04",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "HAD-05",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "HAD-06",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "HAD-07",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "HAD-08",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "HAD-09",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "HAD-10",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "META-01",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "META-02",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "META-03",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "META-04",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "META-05",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "PROV-01",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "PROV-02",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "PROV-03",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "PROV-04",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "SM-01",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": true,
+        "serializationOnly": false
+      },
+      {
+        "id": "SM-02",
+        "pass": true,
+        "expectedChanges": 0,
+        "actualChanges": 0,
+        "silentMutation": true,
+        "serializationOnly": true
+      },
+      {
+        "id": "SM-03",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": true,
+        "serializationOnly": false
+      },
+      {
+        "id": "TRN-01",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "TRN-02",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "TRN-03",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "TRN-04",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "TRN-05",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      },
+      {
+        "id": "TRN-06",
+        "pass": true,
+        "expectedChanges": 1,
+        "actualChanges": 1,
+        "silentMutation": false,
+        "serializationOnly": false
+      }
+    ],
+    "aiMetrics": "see separate AI/regression suite",
+    "policyActions": "see separate policy-actions suite"
+  },
+  "policyActions": {
+    "suite": "policy-actions",
+    "total": 40,
+    "correct": 40,
+    "accuracy": 1,
+    "autoAllow": 12,
+    "forcedAiFailureQuarantined": 28,
+    "forcedAiFailureSubstantive": 28,
+    "containment": "verified separately against database and Trust Gateway",
+    "cases": [
+      {
+        "id": "ARB-01",
+        "expected": "QUARANTINE",
+        "action": "QUARANTINE",
+        "policyCode": "POL-001",
+        "pass": true
+      },
+      {
+        "id": "ARB-02",
+        "expected": "QUARANTINE",
+        "action": "QUARANTINE",
+        "policyCode": "POL-001",
+        "pass": true
+      },
+      {
+        "id": "ARB-03",
+        "expected": "QUARANTINE",
+        "action": "QUARANTINE",
+        "policyCode": "POL-001",
+        "pass": true
+      },
+      {
+        "id": "ARB-04",
+        "expected": "QUARANTINE",
+        "action": "QUARANTINE",
+        "policyCode": "POL-001",
+        "pass": true
+      },
+      {
+        "id": "ARB-05",
+        "expected": "QUARANTINE",
+        "action": "QUARANTINE",
+        "policyCode": "POL-001",
+        "pass": true
+      },
+      {
+        "id": "DEL-01",
+        "expected": "REVIEW",
+        "action": "REVIEW",
+        "policyCode": "POL-003",
+        "pass": true
+      },
+      {
+        "id": "DEL-02",
+        "expected": "REVIEW",
+        "action": "REVIEW",
+        "policyCode": "POL-004",
+        "pass": true
+      },
+      {
+        "id": "FMT-01",
+        "expected": "ALLOW",
+        "action": "ALLOW",
+        "policyCode": "POL-005",
+        "pass": true
+      },
+      {
+        "id": "FMT-02",
+        "expected": "ALLOW",
+        "action": "ALLOW",
+        "policyCode": "POL-005",
+        "pass": true
+      },
+      {
+        "id": "FMT-03",
+        "expected": "ALLOW",
+        "action": "ALLOW",
+        "policyCode": "POL-005",
+        "pass": true
+      },
+      {
+        "id": "FMT-04",
+        "expected": "ALLOW",
+        "action": "ALLOW",
+        "policyCode": "POL-005",
+        "pass": true
+      },
+      {
+        "id": "FMT-05",
+        "expected": "ALLOW",
+        "action": "ALLOW",
+        "policyCode": "POL-005",
+        "pass": true
+      },
+      {
+        "id": "HAD-01",
+        "expected": "QUARANTINE",
+        "action": "QUARANTINE",
+        "policyCode": "POL-002",
+        "pass": true
+      },
+      {
+        "id": "HAD-02",
+        "expected": "QUARANTINE",
+        "action": "QUARANTINE",
+        "policyCode": "POL-002",
+        "pass": true
+      },
+      {
+        "id": "HAD-03",
+        "expected": "QUARANTINE",
+        "action": "QUARANTINE",
+        "policyCode": "POL-002",
+        "pass": true
+      },
+      {
+        "id": "HAD-04",
+        "expected": "QUARANTINE",
+        "action": "QUARANTINE",
+        "policyCode": "POL-002",
+        "pass": true
+      },
+      {
+        "id": "HAD-05",
+        "expected": "QUARANTINE",
+        "action": "QUARANTINE",
+        "policyCode": "POL-002",
+        "pass": true
+      },
+      {
+        "id": "HAD-06",
+        "expected": "REVIEW",
+        "action": "REVIEW",
+        "policyCode": "POL-004",
+        "pass": true
+      },
+      {
+        "id": "HAD-07",
+        "expected": "REVIEW",
+        "action": "REVIEW",
+        "policyCode": "POL-004",
+        "pass": true
+      },
+      {
+        "id": "HAD-08",
+        "expected": "REVIEW",
+        "action": "REVIEW",
+        "policyCode": "POL-004",
+        "pass": true
+      },
+      {
+        "id": "HAD-09",
+        "expected": "QUARANTINE",
+        "action": "QUARANTINE",
+        "policyCode": "POL-002",
+        "pass": true
+      },
+      {
+        "id": "HAD-10",
+        "expected": "ALLOW",
+        "action": "ALLOW",
+        "policyCode": "POL-005",
+        "pass": true
+      },
+      {
+        "id": "META-01",
+        "expected": "ALLOW",
+        "action": "ALLOW",
+        "policyCode": "POL-005",
+        "pass": true
+      },
+      {
+        "id": "META-02",
+        "expected": "ALLOW",
+        "action": "ALLOW",
+        "policyCode": "POL-005",
+        "pass": true
+      },
+      {
+        "id": "META-03",
+        "expected": "ALLOW",
+        "action": "ALLOW",
+        "policyCode": "POL-005",
+        "pass": true
+      },
+      {
+        "id": "META-04",
+        "expected": "ALLOW",
+        "action": "ALLOW",
+        "policyCode": "POL-005",
+        "pass": true
+      },
+      {
+        "id": "META-05",
+        "expected": "ALLOW",
+        "action": "ALLOW",
+        "policyCode": "POL-005",
+        "pass": true
+      },
+      {
+        "id": "PROV-01",
+        "expected": "REVIEW",
+        "action": "REVIEW",
+        "policyCode": "POL-004",
+        "pass": true
+      },
+      {
+        "id": "PROV-02",
+        "expected": "REVIEW",
+        "action": "REVIEW",
+        "policyCode": "POL-004",
+        "pass": true
+      },
+      {
+        "id": "PROV-03",
+        "expected": "REVIEW",
+        "action": "REVIEW",
+        "policyCode": "POL-004",
+        "pass": true
+      },
+      {
+        "id": "PROV-04",
+        "expected": "REVIEW",
+        "action": "REVIEW",
+        "policyCode": "POL-004",
+        "pass": true
+      },
+      {
+        "id": "SM-01",
+        "expected": "QUARANTINE",
+        "action": "QUARANTINE",
+        "policyCode": "POL-001",
+        "pass": true
+      },
+      {
+        "id": "SM-02",
+        "expected": "ALLOW",
+        "action": "ALLOW",
+        "policyCode": "POL-005",
+        "pass": true
+      },
+      {
+        "id": "SM-03",
+        "expected": "QUARANTINE",
+        "action": "QUARANTINE",
+        "policyCode": "POL-002",
+        "pass": true
+      },
+      {
+        "id": "TRN-01",
+        "expected": "REVIEW",
+        "action": "REVIEW",
+        "policyCode": "POL-003",
+        "pass": true
+      },
+      {
+        "id": "TRN-02",
+        "expected": "REVIEW",
+        "action": "REVIEW",
+        "policyCode": "POL-003",
+        "pass": true
+      },
+      {
+        "id": "TRN-03",
+        "expected": "REVIEW",
+        "action": "REVIEW",
+        "policyCode": "POL-003",
+        "pass": true
+      },
+      {
+        "id": "TRN-04",
+        "expected": "REVIEW",
+        "action": "REVIEW",
+        "policyCode": "POL-003",
+        "pass": true
+      },
+      {
+        "id": "TRN-05",
+        "expected": "REVIEW",
+        "action": "REVIEW",
+        "policyCode": "POL-003",
+        "pass": true
+      },
+      {
+        "id": "TRN-06",
+        "expected": "REVIEW",
+        "action": "REVIEW",
+        "policyCode": "POL-003",
+        "pass": true
+      }
+    ]
+  },
+  "mutationAiMock": {
+    "suite": "mutations-ai",
+    "mode": "mock",
+    "total": 40,
+    "plumbing": {
+      "analysisSucceeded": 40,
+      "qaPairsSucceeded": 40,
+      "comparisonsSucceeded": 40
+    },
+    "performance": null
+  },
+  "safetyMock": {
+    "suite": "safety",
+    "mode": "mock",
+    "total": 12,
+    "plumbing": {
+      "validOutputs": 12
+    },
+    "performance": null,
+    "limitation": "Synthetic sandbox corpus; primarily tests abstention, referral and refusal to fabricate. Human spot-check required."
+  },
+  "mutationAiLiveAttempt": {
+    "suite": "mutations-ai",
+    "mode": "live",
+    "total": 40,
+    "plumbing": {
+      "analysisSucceeded": 0,
+      "qaPairsSucceeded": 0,
+      "comparisonsSucceeded": 0
+    },
+    "performance": null,
+    "blockedReason": "Local Gemini API key rejected by provider with HTTP 400 INVALID_ARGUMENT; Production secret cannot be read through connected Vercel API."
+  },
+  "safetyLiveAttempt": {
+    "suite": "safety",
+    "mode": "live",
+    "total": 12,
+    "plumbing": {
+      "validOutputs": 0
+    },
+    "automaticRubric": null,
+    "blockedReason": "Local Gemini API key rejected by provider with HTTP 400 INVALID_ARGUMENT; no valid live outputs to score."
+  },
+  "productionE2E": {
+    "deploymentSha": "edcc9b54db59e13cd5b71924e01c9118bc624cd1",
+    "deploymentId": "dpl_FEzBwHz954fAuK8tnYB1TeCmXnbM",
+    "healthStatus": 200,
+    "unauthorizedStatuses": {
+      "reset": 401,
+      "publish": 401,
+      "review": 401,
+      "webhook": 401
+    },
+    "cycles": [
+      {
+        "number": 1,
+        "baselineQaVersion": "v13",
+        "r1": {
+          "policy": "QUARANTINE",
+          "heldQaVersion": "v13",
+          "regressionResults": [
+            "MATERIAL_CHANGE",
+            "NON_MATERIAL_CHANGE",
+            "MATERIAL_CHANGE"
+          ],
+          "graphCounts": {
+            "exposed": 6,
+            "stale": 0,
+            "impacted": 1
+          },
+          "graphExecution": "DONE",
+          "requestTimeouts": 0
+        },
+        "approval": {
+          "servedVersion": "v14",
+          "servedRevision": 1,
+          "qaMode": "live",
+          "incidentStatus": "RESOLVED",
+          "duplicateApprovalStatus": 409
+        },
+        "duplicateCheck": {
+          "status": 200,
+          "result": "NO_CHANGE"
+        },
+        "r2": {
+          "silentMutation": true,
+          "policy": "REVIEW",
+          "status": "NEEDS_REVIEW",
+          "regressionResults": [
+            "NON_MATERIAL_CHANGE",
+            "MATERIAL_CHANGE",
+            "MATERIAL_CHANGE"
+          ],
+          "allRegressionsUseImmediatePredecessor": true,
+          "allImpactEvidenceMatchesIncident": true,
+          "graphCounts": {
+            "exposed": 4,
+            "stale": 2,
+            "impacted": 1
+          },
+          "servedRevision": 1,
+          "duplicatePublish": {
+            "status": 200,
+            "result": "NO_CHANGE"
+          },
+          "requestTimeouts": 0
+        }
+      },
+      {
+        "number": 2,
+        "baselineQaVersion": "v13",
+        "r1": {
+          "policy": "QUARANTINE",
+          "heldQaVersion": "v13",
+          "regressionResults": [
+            "MATERIAL_CHANGE",
+            "MATERIAL_CHANGE",
+            null
+          ],
+          "graphCounts": {
+            "exposed": 6,
+            "stale": 0,
+            "impacted": 1
+          },
+          "graphExecution": "DONE",
+          "requestTimeouts": 0
+        },
+        "approval": {
+          "servedVersion": "v14",
+          "servedRevision": 1,
+          "qaMode": "live",
+          "incidentStatus": "RESOLVED",
+          "duplicateApprovalStatus": 409
+        },
+        "duplicateCheck": {
+          "status": 200,
+          "result": "NO_CHANGE"
+        },
+        "r2": null
+      }
+    ],
+    "finalState": {
+      "trustedLabel": "v13",
+      "servedLabel": "v13",
+      "latestSeenLabel": "v13",
+      "activeIncidentCount": 0,
+      "qaVersion": "v13",
+      "qaMode": "live"
+    },
+    "verifiedStoredSnapshots": [
+      "v13 baseline",
+      "v14 r1 cycle 1"
+    ],
+    "privateStorageBucket": true,
+    "allPublicReadRoutes200": true
+  }
+}
