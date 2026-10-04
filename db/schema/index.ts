@@ -89,6 +89,8 @@ export const incidents = pgTable('incidents', {
   effective_policy_action: text('effective_policy_action'),
   title: text('title').notNull(),
   summary: text('summary'),
+  context_packet_json: jsonb('context_packet_json'),
+  context_packet_hash: text('context_packet_hash'),
   escalated: boolean('escalated').notNull().default(false),
   opened_at: timestamp('opened_at', { withTimezone: true }).notNull().defaultNow(),
   resolved_at: timestamp('resolved_at', { withTimezone: true }),
@@ -106,6 +108,7 @@ export const analyses = pgTable('analyses', {
   model: text('model'),
   prompt_version: text('prompt_version'),
   meta_json: jsonb('meta_json').notNull(),
+  identity_hash: text('identity_hash'),
   created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -221,6 +224,7 @@ export const auditEvents = pgTable('audit_events', {
   entity_id: text('entity_id').notNull(),
   actor: text('actor').notNull(),
   metadata_json: jsonb('metadata_json').notNull(),
+  idempotency_key: text('idempotency_key'),
   created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -229,6 +233,7 @@ export const pipelineRuns = pgTable('pipeline_runs', {
   source_version_id: uuid('source_version_id').notNull(),
   incident_id: uuid('incident_id'),
   status: text('status').notNull(),
+  fast_path: boolean('fast_path').notNull().default(false),
   lease_until: timestamp('lease_until', { withTimezone: true }),
   lease_owner: text('lease_owner'),
   created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -244,6 +249,8 @@ export const pipelineSteps = pgTable('pipeline_steps', {
   attempts: integer('attempts').notNull().default(0),
   error_code: text('error_code'),
   output_ref: text('output_ref'),
+  started_at: timestamp('started_at', { withTimezone: true }),
+  completed_at: timestamp('completed_at', { withTimezone: true }),
 });
 
 export const pinnedQuestions = pgTable('pinned_questions', {

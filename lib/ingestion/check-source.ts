@@ -8,6 +8,8 @@ import { prepareSnapshot } from '@/lib/hashing/snapshot';
 import { sha256 } from '@/lib/hashing/canonicalize';
 import { downloadSnapshot, uploadImmutable } from '@/lib/server/storage';
 import { classifyObservation } from './classify';
+import { enqueuePipeline } from '@/lib/pipeline/enqueue';
+import { needsIncident } from '@/lib/pipeline/model';
 
 export type CheckTrigger = 'MANUAL' | 'WEBHOOK';
 export type CheckResult = {
@@ -21,6 +23,7 @@ export type CheckResult = {
   silentMutation: boolean;
   changeClass: 'SERIALIZATION_ONLY' | null;
   changes: DiffChange[];
+  runId: string | null;
 };
 
 class IntegrityError extends Error {
@@ -50,7 +53,13 @@ export async function checkSource(sourceId: string, trigger: CheckTrigger, origi
       if (classification.status === 'NO_CHANGE') {
         await tx`INSERT INTO source_checks (source_id,trigger_type,status,raw_sha256,source_version_id) VALUES (${sourceId},${trigger},'NO_CHANGE',${incoming.rawSha256},${previous.id})`;
         await tx`UPDATE sources SET last_checked_at=now(),connector_health='HEALTHY' WHERE id=${sourceId}`;
-        return {status:'NO_CHANGE',sourceId,versionId:previous.id,upstreamLabel:previous.upstream_version_label,revisionNumber:previous.revision_number,rawSha256:incoming.rawSha256,canonicalSha256:previous.canonical_sha256,silentMutation:Boolean(previous.silent_mutation),changeClass:previous.change_class,changes:[]} as CheckResult;
+        let runId: string | null = null;
+        if (previous.status !== 'TRUSTED') {
+          const storedChanges = await tx`SELECT id,canonical_key,change_type,field_path,field_role,diff_flags,diff_json FROM changes WHERE to_version_id=${previous.id}`;
+          const meaningful = needsIncident(storedChanges.map(row => ({id:row.id,canonicalKey:row.canonical_key,changeType:row.change_type,fieldPath:row.field_path,fieldRole:row.field_role,flags:row.diff_flags,rolesPresent:row.diff_json?.rolesPresent??[]})));
+          runId = await enqueuePipeline(tx, previous.id, !meaningful);
+        }
+        return {status:'NO_CHANGE',sourceId,versionId:previous.id,upstreamLabel:previous.upstream_version_label,revisionNumber:previous.revision_number,rawSha256:incoming.rawSha256,canonicalSha256:previous.canonical_sha256,silentMutation:Boolean(previous.silent_mutation),changeClass:previous.change_class,changes:[],runId} as CheckResult;
       }
       let changes: DiffChange[] = [];
       if (previous) {
@@ -92,7 +101,9 @@ export async function checkSource(sourceId: string, trigger: CheckTrigger, origi
       await tx`UPDATE sources SET last_checked_at=now(),connector_health='HEALTHY' WHERE id=${sourceId}`;
       await tx`INSERT INTO source_checks (source_id,trigger_type,status,raw_sha256,source_version_id) VALUES (${sourceId},${trigger},'NEW_VERSION',${incoming.rawSha256},${versionId})`;
       await tx`INSERT INTO audit_events (event_type,entity_type,entity_id,actor,metadata_json) VALUES ('SOURCE_VERSION_DETECTED','source_version',${versionId},'system:integrity',${tx.json({sourceId,previousVersionId:previous?.id??null,rawSha256:incoming.rawSha256,canonicalSha256:incoming.canonicalSha256,silentMutation,changeClass,changeCount:changes.length})})`;
-      return {status:'NEW_VERSION',sourceId,versionId,upstreamLabel:label,revisionNumber,rawSha256:incoming.rawSha256,canonicalSha256:incoming.canonicalSha256,silentMutation,changeClass,changes};
+      const meaningful = needsIncident(changes.map((change,index) => ({id:String(index),canonicalKey:change.canonicalKey,changeType:change.changeType,fieldPath:change.fieldPath,fieldRole:change.fieldRole,flags:change.flags,rolesPresent:change.rolesPresent??[]})));
+      const runId = await enqueuePipeline(tx, versionId, !meaningful);
+      return {status:'NEW_VERSION',sourceId,versionId,upstreamLabel:label,revisionNumber,rawSha256:incoming.rawSha256,canonicalSha256:incoming.canonicalSha256,silentMutation,changeClass,changes,runId};
     });
   } catch (error) {
     const code = error instanceof IntegrityError ? error.code : error instanceof Error && error.message==='SOURCE_FETCH_FAILED' ? 'SOURCE_FETCH_FAILED' : 'DIFF_FAILED';

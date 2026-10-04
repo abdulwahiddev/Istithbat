@@ -15,6 +15,13 @@
       "when": 1791110335099,
       "tag": "0001_integrity",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791113294761,
+      "tag": "0002_incident_pipeline",
+      "breakpoints": true
     }
   ]
 }

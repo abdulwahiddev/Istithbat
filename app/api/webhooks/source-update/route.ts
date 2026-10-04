@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyWebhook } from '@/lib/server/webhook-signature';
 import { SANDBOX_ID } from '@/lib/connectors/sandbox';
 import { checkSource } from '@/lib/ingestion/check-source';
+import { after } from 'next/server';
+import { advancePipeline } from '@/lib/pipeline/runner';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -17,6 +19,7 @@ export async function POST(request: NextRequest) {
   }
   try {
     const result = await checkSource(SANDBOX_ID, 'WEBHOOK', request.url);
+    if (result.runId) after(() => advancePipeline(result.runId!));
     return NextResponse.json(result, {status:result.status === 'NEW_VERSION' ? 202 : 200});
   } catch (error) {
     const code = error instanceof Error ? error.message : 'DIFF_FAILED';
