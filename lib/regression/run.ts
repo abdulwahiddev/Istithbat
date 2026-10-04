@@ -83,9 +83,13 @@ async function runSide(row:Record<string,any>,side:'old'|'new'):Promise<string> 
   const [version]=await sql`SELECT id,source_id,upstream_version_label,revision_number,status FROM source_versions WHERE id=${versionId}`;
   if(!version||version.source_id!==row.source_id) throw failure('version/source mismatch');
   const config=row.config_json as QaConfig;
+  const currentConfig=qaConfig(config.retrieval_config);
+  if(currentConfig.system_prompt_hash!==config.system_prompt_hash||
+    currentConfig.output_schema_hash!==config.output_schema_hash||
+    currentConfig.prompt_version!==config.prompt_version) throw failure('QA prompt or schema changed since pair creation');
   const records=row.question_origin==='pinned'
     ? [await resolvePinnedRecord(row.source_id,row.canonical_key,versionId)].filter((r):r is RetrievedRecord=>r!==null)
-    : await retrieve(versionId,row.question,LEXICAL_CONFIG);
+    : await retrieve(versionId,row.question,config.retrieval_config as typeof LEXICAL_CONFIG);
   if(row.question_origin==='pinned'&&records.length!==1) throw failure('pinned record missing');
   const evidence=retrievalEvidence(records,config.retrieval_config);
   const input=qaInput(row.question,version,records);

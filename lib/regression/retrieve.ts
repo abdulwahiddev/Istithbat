@@ -23,8 +23,8 @@ function tokens(text:string):string[] {
     .match(/[\p{L}\p{N}]+/gu)??[];
 }
 
-function fieldText(content:Record<string,JsonValue>):string {
-  return LEXICAL_CONFIG.fields.map(field=>JSON.stringify(content[field]??'')).join(' ');
+function fieldText(content:Record<string,JsonValue>,fields:readonly string[]):string {
+  return fields.map(field=>JSON.stringify(content[field]??'')).join(' ');
 }
 
 export async function retrieve(versionId:string, question:string, config:typeof LEXICAL_CONFIG=LEXICAL_CONFIG):Promise<RetrievedRecord[]> {
@@ -38,7 +38,7 @@ export async function retrieve(versionId:string, question:string, config:typeof 
 export function rankRecords(records:readonly RetrievedRecord[],question:string,config:typeof LEXICAL_CONFIG=LEXICAL_CONFIG):RetrievedRecord[] {
   const query=new Set(tokens(question));
   return records.map(record=>{
-    const terms=new Set(tokens(fieldText(record.content)));
+    const terms=new Set(tokens(fieldText(record.content,config.fields)));
     const score=[...query].filter(term=>terms.has(term)).length+(question.trim()===record.canonical_key?10:0);
     return {record,score};
   }).filter(entry=>entry.score>0).sort((a,b)=>b.score-a.score||a.record.canonical_key.localeCompare(b.record.canonical_key))
