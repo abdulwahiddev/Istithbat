@@ -1,6 +1,7 @@
 import 'server-only';
 import { getSql } from '@/lib/db/client';
 import { SourceDetail, SourceSummary, type SourceSummary as SourceSummaryType } from '@/lib/contracts';
+import { getConnectorDefinition } from '@/lib/connectors/registry';
 
 export async function listSources(): Promise<SourceSummaryType[]> {
   const rows = await getSql()`SELECT s.*,COALESCE(seen_binding.upstream_version_label,seen_fallback.upstream_version_label) AS latest_seen_label,trusted.upstream_version_label AS trusted_label,served.upstream_version_label AS served_label
@@ -14,6 +15,8 @@ export async function listSources(): Promise<SourceSummaryType[]> {
     id:row.id,name:row.name,provider:row.provider,sourceType:row.source_type,connectorHealth:row.connector_health,
     isDemoFixture:row.is_demo_fixture,contentLevel:row.content_level,latestSeenLabel:row.latest_seen_label,
     trustedLabel:row.trusted_label,servedLabel:row.served_label,lastCheckedAt:row.last_checked_at?.toISOString()??null,
+    connectorType:row.connector_type,rightsNote:row.rights_note??null,
+    versionLabelPublished:getConnectorDefinition(row.id)?.publishesVersionLabel??true,
   }));
 }
 

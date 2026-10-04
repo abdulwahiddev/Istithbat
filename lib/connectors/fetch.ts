@@ -1,7 +1,15 @@
 import 'server-only';
 import { SANDBOX_ID } from './sandbox';
+import { fetchBundle } from './http-bundle';
+import { getHttpConnector } from './registry';
 
 export async function fetchSourceSnapshot(sourceId:string, configuredEndpoint:string, origin:string):Promise<Buffer> {
+  const http = getHttpConnector(sourceId);
+  if (http) {
+    // The stored endpoint must be the connector's official API base; nothing else is ever fetched.
+    if (configuredEndpoint !== http.source.endpoint) throw new Error('SOURCE_FETCH_FAILED');
+    return fetchBundle(sourceId, http.requestUrls());
+  }
   if(sourceId!==SANDBOX_ID) throw new Error('SOURCE_FETCH_FAILED');
   const target=new URL(configuredEndpoint,origin);
   const expected=new URL('/api/sandbox/current',process.env.APP_BASE_URL??origin);

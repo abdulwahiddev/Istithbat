@@ -1,7 +1,7 @@
 import 'server-only';
 import { getSql } from '@/lib/db/client';
 import { getConnectorDefinition } from '@/lib/connectors/registry';
-import { prepareSnapshot } from '@/lib/hashing/snapshot';
+import { prepareSourceEvidence } from '@/lib/connectors/evidence';
 import { sha256 } from '@/lib/hashing/canonicalize';
 import { diffPayloads } from '@/lib/diff/engine';
 import { downloadSnapshot } from '@/lib/server/storage';
@@ -14,7 +14,7 @@ export async function verifyStoredEvidence(sourceId:string, versionId:string) {
   if(!versions.length) return null;
   const version=versions[0];
   const [rawBytes,canonicalBytes]=await Promise.all([downloadSnapshot(version.raw_snapshot_path),downloadSnapshot(version.canonical_snapshot_path)]);
-  const evidence=prepareSnapshot(rawBytes);
+  const evidence=prepareSourceEvidence(sourceId,rawBytes);
   const rawMatch=sha256(rawBytes)===version.raw_sha256;
   const canonicalMatch=sha256(canonicalBytes)===version.canonical_sha256 && evidence.canonicalSha256===version.canonical_sha256 && canonicalBytes.equals(evidence.canonicalBytes);
   const records=await sql`SELECT canonical_key,record_hash,field_hashes FROM records WHERE source_version_id=${versionId}`;
@@ -29,7 +29,7 @@ export async function verifyStoredEvidence(sourceId:string, versionId:string) {
     const older=await sql`SELECT raw_snapshot_path FROM source_versions WHERE id=${version.previous_version_id}`;
     if(!older.length) changeMatches=false;
     else {
-      const oldEvidence=prepareSnapshot(await downloadSnapshot(older[0].raw_snapshot_path));
+      const oldEvidence=prepareSourceEvidence(sourceId,await downloadSnapshot(older[0].raw_snapshot_path));
       const expected=diffPayloads(oldEvidence.payload,evidence.payload,connector.fieldRoles);
       const persisted=await sql`SELECT canonical_key,change_type,field_path,field_role,old_field_hash,new_field_hash,diff_flags FROM changes WHERE to_version_id=${versionId}`;
       changeCount=persisted.length;
