@@ -1,54 +1,55 @@
 import { notFound } from 'next/navigation';
 import { PageTopbar } from '@/components/shell/AppShell';
-import { PreviewDataBanner, SyntheticSourceBanner } from '@/components/banners/Banners';
+import { SyntheticSourceBanner } from '@/components/banners/Banners';
 import { ProvenanceBlock } from '@/components/provenance/Provenance';
 import { ReleaseState } from '@/components/release/ReleaseState';
 import {
   FieldRoleMap,
   SilentMutationEvidence,
+  SourceChecks,
   SourceHeaderTags,
   TransitionChanges,
   VersionTimeline,
-  silentMutationPairs,
 } from '@/components/sources/SourceViews';
-import { loadSourceDetail, parseScenario, type VersionView } from '../../_data/sources';
-import { PreviewSwitcher } from '../../_data/PreviewSwitcher';
+import { releaseRefs, silentMutationPairs, transitions } from '@/components/sources/derive';
+import { ErrorState } from '@/components/states/States';
+import { readIncidentIndex, readSourceDetail } from '../../_data/read';
 
 export const metadata = { title: 'Source detail · Istithbat' };
+export const dynamic = 'force-dynamic';
 
-function ref(v: VersionView | undefined) {
-  return v ? { label: v.upstreamLabel, revision: v.revisionNumber } : null;
-}
-
-export default async function SourceDetailPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ sourceId: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
+export default async function SourceDetailPage({ params }: { params: Promise<{ sourceId: string }> }) {
   const { sourceId } = await params;
-  const scenario = parseScenario((await searchParams).preview);
-  const view = await loadSourceDetail(decodeURIComponent(sourceId), scenario);
-  if (!view) notFound();
+  const id = decodeURIComponent(sourceId);
+  const [result, incidents] = await Promise.all([readSourceDetail(id), readIncidentIndex()]);
 
-  const { source, versions, transitions } = view;
-  const byTime = [...versions].sort((a, b) => b.detectedAt.localeCompare(a.detectedAt));
-  const latestSeen = byTime[0];
-  const trusted = versions.find((v) => v.status === 'TRUSTED');
-  // Served comes from the gateway's label; resolve to the trusted revision with that label.
-  const served = versions.find((v) => v.status === 'TRUSTED' && v.upstreamLabel === source.servedLabel);
+  const crumbs = [
+    { label: 'Istithbat', href: '/sources' },
+    { label: 'Sources', href: '/sources' },
+  ];
+
+  if (!result.ok) {
+    return (
+      <>
+        <PageTopbar crumbs={[...crumbs, { label: id }]} />
+        <main className="ist-content">
+          <ErrorState title="This source is unavailable" message={result.error.message} code={result.error.code} />
+        </main>
+      </>
+    );
+  }
+  const detail = result.data;
+  if (!detail) notFound();
+
+  const { source, versions } = detail;
+  const refs = releaseRefs(detail);
   const pairs = silentMutationPairs(versions);
-  const newestFirst = [...transitions].reverse();
+  const steps = transitions(detail);
 
   return (
     <>
       <PageTopbar
-        crumbs={[
-          { label: 'Istithbat', href: '/sources' },
-          { label: 'Sources', href: view.origin === 'preview' ? `/sources?preview=${scenario}` : '/sources' },
-          { label: source.name },
-        ]}
+        crumbs={[...crumbs, { label: source.name }]}
         right={
           <button className="ist-btn" type="button" disabled title="Requires demo controls (DEMO_CONTROL_SECRET)">
             Check now
@@ -57,11 +58,6 @@ export default async function SourceDetailPage({
       />
       <main className="ist-content">
         {source.isDemoFixture && <SyntheticSourceBanner />}
-        {view.origin === 'preview' && (
-          <PreviewDataBanner reason="The source-detail read endpoint is not available yet. Hashes are computed from the fixture files for display; the canonical hash here is a preview, not lib/hashing output.">
-            <PreviewSwitcher current={scenario} basePath={`/sources/${encodeURIComponent(source.id)}`} />
-          </PreviewDataBanner>
-        )}
 
         <div className="ist-page-head">
           <div>
@@ -72,28 +68,34 @@ export default async function SourceDetailPage({
           </div>
         </div>
 
-        <ReleaseState seen={ref(latestSeen)} trusted={ref(trusted)} served={ref(served)} />
+        <ReleaseState seen={refs.seen} trusted={refs.trusted} served={refs.served} />
 
         <section className="ist-section" style={{ marginBlockStart: 32 }} aria-labelledby="h-history">
           <div className="ist-grid-2">
             <div>
               <div className="ist-section__head">
-                <h2 className="ist-h2" id="h-history">Version history</h2>
+                <h2 className="ist-h2" id="h-history">
+                  Version history
+                </h2>
                 <span className="ist-meta">Immutable snapshots · newest first</span>
               </div>
               <ProvenanceBlock kind="deterministic" label="Snapshots and hashes">
-                <VersionTimeline versions={versions} />
+                {versions.length ? (
+                  <VersionTimeline versions={versions} incidents={incidents} />
+                ) : (
+                  <p className="ist-meta">No version has been stored yet.</p>
+                )}
               </ProvenanceBlock>
             </div>
             <div className="ist-stack" style={{ gap: 24 }}>
               {pairs.map((p) => (
-                <SilentMutationEvidence key={p.after.id} before={p.before} after={p.after} />
+                <SilentMutationEvidence key={p.after.id} before={p.before} after={p.after} changes={detail.changes} />
               ))}
               <ProvenanceBlock kind="deterministic" label="Declared field roles">
                 <p className="ist-meta" style={{ margin: '0 0 12px' }}>
                   Declared by the connector, never inferred or assigned by AI (D-02). Policy triggers read these roles.
                 </p>
-                <FieldRoleMap roles={view.fieldRoles} />
+                <FieldRoleMap roles={detail.fieldRoles} />
               </ProvenanceBlock>
             </div>
           </div>
@@ -101,16 +103,18 @@ export default async function SourceDetailPage({
 
         <section className="ist-section" aria-labelledby="h-changes">
           <div className="ist-section__head">
-            <h2 className="ist-h2" id="h-changes">Exact record changes</h2>
-            <span className="ist-meta">Keyed by stable canonical_key · harakat and punctuation preserved</span>
+            <h2 className="ist-h2" id="h-changes">
+              Exact record changes
+            </h2>
+            <span className="ist-meta">Keyed by stable canonical_key · values shown exactly as stored</span>
           </div>
-          {newestFirst.length === 0 ? (
+          {steps.length === 0 ? (
             <p className="ist-meta">No version transitions yet. The trusted baseline is the only version seen.</p>
           ) : (
             <ProvenanceBlock kind="deterministic" label="Deterministic diff">
               <div className="ist-stack" style={{ gap: 28 }}>
-                {newestFirst.map((t) => (
-                  <TransitionChanges key={`${t.fromVersionId}-${t.toVersionId}`} transition={t} versions={versions} />
+                {steps.map((t) => (
+                  <TransitionChanges key={t.to.id} transition={t} />
                 ))}
               </div>
             </ProvenanceBlock>
@@ -118,12 +122,24 @@ export default async function SourceDetailPage({
           <div style={{ marginBlockStart: 24 }}>
             <ProvenanceBlock kind="analysis" label="Machine analysis">
               <p className="ist-meta" style={{ margin: 0 }}>
-                None on this page. Interpretation of a change (what it may mean, and whether answers shift) is shown in Incident
-                Review, labelled as advisory. It never alters the evidence above and never rules on which grading is correct.
+                None on this page. Interpretation of a change is shown on its incident, labelled as advisory. It never alters the evidence
+                above and never rules on which grading is correct.
               </p>
             </ProvenanceBlock>
           </div>
         </section>
+
+        {detail.checks && detail.checks.length > 0 && (
+          <section className="ist-section" aria-labelledby="h-checks">
+            <div className="ist-section__head">
+              <h2 className="ist-h2" id="h-checks">
+                Source checks
+              </h2>
+              <span className="ist-meta">Most recent {detail.checks.length} · a webhook only triggers a fetch; it is never the source</span>
+            </div>
+            <SourceChecks checks={detail.checks} versions={versions} />
+          </section>
+        )}
       </main>
     </>
   );

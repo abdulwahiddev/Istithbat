@@ -13,7 +13,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { href: '/overview', label: 'Overview', ready: false },
   { href: '/sources', label: 'Sources', ready: true },
-  { href: '/review-queue', label: 'Review Queue', ready: false },
+  { href: '/incidents', label: 'Incidents', ready: true },
   { href: '/blast-radius', label: 'Blast Radius', ready: false },
   { href: '/trust-gateway', label: 'Trust Gateway', ready: false },
   { href: '/audit-log', label: 'Audit Log', ready: false },

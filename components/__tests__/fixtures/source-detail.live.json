@@ -1,0 +1,141 @@
+{
+ "source": {
+  "id": "hadith-evidence-sandbox",
+  "name": "Hadith Evidence Sandbox",
+  "provider": "Istithbat synthetic demo infrastructure",
+  "sourceType": "HADITH_EVIDENCE",
+  "connectorHealth": "HEALTHY",
+  "isDemoFixture": true,
+  "contentLevel": "A",
+  "latestSeenLabel": "v14",
+  "trustedLabel": "v13",
+  "servedLabel": "v13",
+  "lastCheckedAt": "2026-10-04T11:42:58.676Z"
+ },
+ "fieldRoles": {
+  "scholar": "PROVENANCE",
+  "judgment": "SCHOLAR_JUDGMENT",
+  "source_url": "OPERATIONAL_METADATA",
+  "updated_at": "OPERATIONAL_METADATA",
+  "arabic_text": "AUTHORITATIVE_TEXT",
+  "description": "OPERATIONAL_METADATA",
+  "internal_id": "OPERATIONAL_METADATA",
+  "narrators[]": "PROVENANCE",
+  "translation": "TRANSLATION",
+  "display_label": "OPERATIONAL_METADATA",
+  "reference.book": "PROVENANCE",
+  "reference.page": "PROVENANCE",
+  "reference.volume": "PROVENANCE"
+ },
+ "versions": [
+  {
+   "id": "1bf7ed48-391a-44d0-b637-e8ea52bd7cbc",
+   "previousVersionId": null,
+   "upstreamLabel": "v13",
+   "revisionNumber": 1,
+   "upstreamPublishedAt": "2026-09-01T00:00:00.000Z",
+   "status": "TRUSTED",
+   "rawSha256": "9bc91d4e230c4941e7856b8d8a8eaa2dccbcd268e468be0848159f904b3981d6",
+   "canonicalSha256": "c9385758b78f3c9b79a7814bff85506c9f9dbff75e900e3e6f065ba3021249cf",
+   "silentMutation": false,
+   "changeClass": null,
+   "rawSnapshotPath": "snapshots/hadith-evidence-sandbox/v13/r1/raw.json",
+   "canonicalSnapshotPath": "snapshots/hadith-evidence-sandbox/v13/r1/canonical.json",
+   "recordCount": 1,
+   "detectedAt": "2026-10-04T08:27:58.500Z"
+  },
+  {
+   "id": "21813a6e-7f16-4d96-939a-6a28c3e69628",
+   "previousVersionId": "1bf7ed48-391a-44d0-b637-e8ea52bd7cbc",
+   "upstreamLabel": "v14",
+   "revisionNumber": 1,
+   "upstreamPublishedAt": "2026-10-04T00:00:00.000Z",
+   "status": "ANALYZING",
+   "rawSha256": "8c161f54de223c490244188d5639134352e9d67d313f28df37bcccc280555f57",
+   "canonicalSha256": "403d3ea1fa7ff069b6b400ef3aca55ab3a3b139f6411464dc9a090d603126b96",
+   "silentMutation": false,
+   "changeClass": null,
+   "rawSnapshotPath": "snapshots/hadith-evidence-sandbox/v14/r1/raw.json",
+   "canonicalSnapshotPath": "snapshots/hadith-evidence-sandbox/v14/r1/canonical.json",
+   "recordCount": 1,
+   "detectedAt": "2026-10-04T11:42:17.036Z"
+  },
+  {
+   "id": "3b157e28-3d7a-4e4a-9451-4e26870a963b",
+   "previousVersionId": "21813a6e-7f16-4d96-939a-6a28c3e69628",
+   "upstreamLabel": "v14",
+   "revisionNumber": 2,
+   "upstreamPublishedAt": "2026-10-04T00:00:00.000Z",
+   "status": "ANALYZING",
+   "rawSha256": "009901591fed88c2da771024f97ebc19f5de25c3847518c5258482e508b7c3f3",
+   "canonicalSha256": "06d98fe6c7943a241a75e677929d9aea297ff651e3f19b22f0be7558a86034d9",
+   "silentMutation": true,
+   "changeClass": null,
+   "rawSnapshotPath": "snapshots/hadith-evidence-sandbox/v14/r2/raw.json",
+   "canonicalSnapshotPath": "snapshots/hadith-evidence-sandbox/v14/r2/canonical.json",
+   "recordCount": 1,
+   "detectedAt": "2026-10-04T11:43:03.122Z"
+  }
+ ],
+ "changes": [
+  {
+   "id": "953ca078-6812-42a7-a343-ead3db886b2c",
+   "canonicalKey": "HAD-4821",
+   "changeType": "FIELD_MODIFIED",
+   "fieldPath": "judgment",
+   "fieldRole": "SCHOLAR_JUDGMENT",
+   "oldValue": "إسناده صحيح",
+   "newValue": "صحيح",
+   "flags": [],
+   "fromVersionId": "1bf7ed48-391a-44d0-b637-e8ea52bd7cbc",
+   "toVersionId": "21813a6e-7f16-4d96-939a-6a28c3e69628",
+   "oldFieldHash": "930289f9b8d5bce5785156bc5e1c3748df631cb51b4e0b0cf63e49e4d6de6f58",
+   "newFieldHash": "d3908502420b0dbd7e6057e3038fd015317e66471651668aba7d1c3032b28410",
+   "rolesPresent": []
+  },
+  {
+   "id": "a1fd1195-5293-4fcb-ba86-b8b0c58e6998",
+   "canonicalKey": "HAD-4821",
+   "changeType": "FIELD_MODIFIED",
+   "fieldPath": "reference.page",
+   "fieldRole": "PROVENANCE",
+   "oldValue": 12,
+   "newValue": 13,
+   "flags": [],
+   "fromVersionId": "21813a6e-7f16-4d96-939a-6a28c3e69628",
+   "toVersionId": "3b157e28-3d7a-4e4a-9451-4e26870a963b",
+   "oldFieldHash": "6b51d431df5d7f141cbececcf79edf3dd861c3b4069f0b11661a3eefacbba918",
+   "newFieldHash": "3fdba35f04dc8c462986c992bcf875546257113072a909c162f7e470e581e278",
+   "rolesPresent": []
+  }
+ ],
+ "checks": [
+  {
+   "id": "7cd8fc6b-ab4a-4a95-a109-3bdf164945bd",
+   "triggerType": "WEBHOOK",
+   "status": "NEW_VERSION",
+   "errorCode": null,
+   "rawSha256": "009901591fed88c2da771024f97ebc19f5de25c3847518c5258482e508b7c3f3",
+   "sourceVersionId": "3b157e28-3d7a-4e4a-9451-4e26870a963b",
+   "checkedAt": "2026-10-04T11:42:58.676Z"
+  },
+  {
+   "id": "0c46bdc4-108b-43f0-97bf-e0c160b566a9",
+   "triggerType": "MANUAL",
+   "status": "NO_CHANGE",
+   "errorCode": null,
+   "rawSha256": "8c161f54de223c490244188d5639134352e9d67d313f28df37bcccc280555f57",
+   "sourceVersionId": "21813a6e-7f16-4d96-939a-6a28c3e69628",
+   "checkedAt": "2026-10-04T11:42:51.239Z"
+  },
+  {
+   "id": "ea48d9a5-4cf1-4cff-83af-5846ddd03a88",
+   "triggerType": "WEBHOOK",
+   "status": "NEW_VERSION",
+   "errorCode": null,
+   "rawSha256": "8c161f54de223c490244188d5639134352e9d67d313f28df37bcccc280555f57",
+   "sourceVersionId": "21813a6e-7f16-4d96-939a-6a28c3e69628",
+   "checkedAt": "2026-10-04T11:42:12.793Z"
+  }
+ ]
+}

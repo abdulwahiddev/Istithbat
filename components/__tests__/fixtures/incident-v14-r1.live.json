@@ -1,0 +1,543 @@
+{
+ "id": "6b66aa65-87ab-488f-978f-7c65ca18e88e",
+ "sourceId": "hadith-evidence-sandbox",
+ "status": "NEEDS_REVIEW",
+ "riskLevel": "HIGH",
+ "effectivePolicyAction": null,
+ "title": "Source change: Hadith Evidence Sandbox — v14 r1",
+ "summary": "[Mock] Deterministic placeholder analysis for pipeline testing. No model was called.",
+ "candidateVersion": {
+  "id": "21813a6e-7f16-4d96-939a-6a28c3e69628",
+  "previousVersionId": "1bf7ed48-391a-44d0-b637-e8ea52bd7cbc",
+  "upstreamLabel": "v14",
+  "revisionNumber": 1,
+  "upstreamPublishedAt": "2026-10-04T00:00:00.000Z",
+  "status": "ANALYZING",
+  "rawSha256": "8c161f54de223c490244188d5639134352e9d67d313f28df37bcccc280555f57",
+  "canonicalSha256": "403d3ea1fa7ff069b6b400ef3aca55ab3a3b139f6411464dc9a090d603126b96",
+  "silentMutation": false,
+  "changeClass": null,
+  "rawSnapshotPath": "snapshots/hadith-evidence-sandbox/v14/r1/raw.json",
+  "canonicalSnapshotPath": "snapshots/hadith-evidence-sandbox/v14/r1/canonical.json",
+  "recordCount": 1,
+  "detectedAt": "2026-10-04T11:42:17.036Z"
+ },
+ "previousVersion": {
+  "id": "1bf7ed48-391a-44d0-b637-e8ea52bd7cbc",
+  "previousVersionId": null,
+  "upstreamLabel": "v13",
+  "revisionNumber": 1,
+  "upstreamPublishedAt": "2026-09-01T00:00:00.000Z",
+  "status": "TRUSTED",
+  "rawSha256": "9bc91d4e230c4941e7856b8d8a8eaa2dccbcd268e468be0848159f904b3981d6",
+  "canonicalSha256": "c9385758b78f3c9b79a7814bff85506c9f9dbff75e900e3e6f065ba3021249cf",
+  "silentMutation": false,
+  "changeClass": null,
+  "rawSnapshotPath": "snapshots/hadith-evidence-sandbox/v13/r1/raw.json",
+  "canonicalSnapshotPath": "snapshots/hadith-evidence-sandbox/v13/r1/canonical.json",
+  "recordCount": 1,
+  "detectedAt": "2026-10-04T08:27:58.500Z"
+ },
+ "changes": [
+  {
+   "id": "953ca078-6812-42a7-a343-ead3db886b2c",
+   "canonicalKey": "HAD-4821",
+   "changeType": "FIELD_MODIFIED",
+   "fieldPath": "judgment",
+   "fieldRole": "SCHOLAR_JUDGMENT",
+   "oldValue": "إسناده صحيح",
+   "newValue": "صحيح",
+   "flags": [],
+   "fromVersionId": "1bf7ed48-391a-44d0-b637-e8ea52bd7cbc",
+   "toVersionId": "21813a6e-7f16-4d96-939a-6a28c3e69628",
+   "oldFieldHash": "930289f9b8d5bce5785156bc5e1c3748df631cb51b4e0b0cf63e49e4d6de6f58",
+   "newFieldHash": "d3908502420b0dbd7e6057e3038fd015317e66471651668aba7d1c3032b28410",
+   "rolesPresent": []
+  }
+ ],
+ "contextPacket": {
+  "source": {
+   "id": "hadith-evidence-sandbox",
+   "name": "Hadith Evidence Sandbox",
+   "provider": "Istithbat synthetic demo infrastructure",
+   "synthetic": true,
+   "source_type": "HADITH_EVIDENCE",
+   "content_level": "A"
+  },
+  "changes": [
+   {
+    "id": "953ca078-6812-42a7-a343-ead3db886b2c",
+    "flags": [],
+    "new_value": "صحيح",
+    "old_value": "إسناده صحيح",
+    "field_path": "judgment",
+    "field_role": "SCHOLAR_JUDGMENT",
+    "change_type": "FIELD_MODIFIED",
+    "canonical_key": "HAD-4821",
+    "roles_present": [],
+    "new_field_hash": "d3908502420b0dbd7e6057e3038fd015317e66471651668aba7d1c3032b28410",
+    "old_field_hash": "930289f9b8d5bce5785156bc5e1c3748df631cb51b4e0b0cf63e49e4d6de6f58"
+   }
+  ],
+  "records": [
+   {
+    "new_content": {
+     "scholar": {
+      "id": "synthetic_evaluator_a",
+      "role": "demo_grader",
+      "display": "Synthetic Evaluator A",
+      "display_ar": "المُقيِّم التجريبي (أ)"
+     },
+     "judgment": "صحيح",
+     "narrators": [
+      {
+       "id": "synthetic_narrator_a",
+       "role": "demo_narrator",
+       "display": "Synthetic Narrator A"
+      }
+     ],
+     "reference": {
+      "book": "Istithbat Sandbox Reference Collection",
+      "page": 12,
+      "volume": 1
+     },
+     "source_url": "https://sandbox.istithbat.invalid/records/HAD-4821",
+     "updated_at": "2026-09-01T00:00:00Z",
+     "arabic_text": "نص تجريبي — هذه جملة اختبارية محايدة لأغراض العرض فقط، وليست من الحديث ولا منقولة عن أي مصدر.",
+     "description": "Controlled synthetic record for the Istithbat evidence-scope drift demo.",
+     "internal_id": "SBX-4821",
+     "translation": "Test text — a neutral test sentence for demonstration purposes only; it is not hadith and is not quoted from any source.",
+     "display_label": "Sandbox record HAD-4821 (synthetic)"
+    },
+    "old_content": {
+     "scholar": {
+      "id": "synthetic_evaluator_a",
+      "role": "demo_grader",
+      "display": "Synthetic Evaluator A",
+      "display_ar": "المُقيِّم التجريبي (أ)"
+     },
+     "judgment": "إسناده صحيح",
+     "narrators": [
+      {
+       "id": "synthetic_narrator_a",
+       "role": "demo_narrator",
+       "display": "Synthetic Narrator A"
+      }
+     ],
+     "reference": {
+      "book": "Istithbat Sandbox Reference Collection",
+      "page": 12,
+      "volume": 1
+     },
+     "source_url": "https://sandbox.istithbat.invalid/records/HAD-4821",
+     "updated_at": "2026-09-01T00:00:00Z",
+     "arabic_text": "نص تجريبي — هذه جملة اختبارية محايدة لأغراض العرض فقط، وليست من الحديث ولا منقولة عن أي مصدر.",
+     "description": "Controlled synthetic record for the Istithbat evidence-scope drift demo.",
+     "internal_id": "SBX-4821",
+     "translation": "Test text — a neutral test sentence for demonstration purposes only; it is not hadith and is not quoted from any source.",
+     "display_label": "Sandbox record HAD-4821 (synthetic)"
+    },
+    "new_metadata": {
+     "synthetic": true,
+     "fixture_family": "HAD-4821 evidence-scope drift demo"
+    },
+    "old_metadata": {
+     "synthetic": true,
+     "fixture_family": "HAD-4821 evidence-scope drift demo"
+    },
+    "canonical_key": "HAD-4821"
+   }
+  ],
+  "trusted": {
+   "id": "1bf7ed48-391a-44d0-b637-e8ea52bd7cbc",
+   "label": "v13",
+   "revision": 1
+  },
+  "elements": [
+   {
+    "kind": "SYNTHETIC_MUTATION",
+    "value": "Controlled synthetic source; not a real hadith or provider mutation.",
+    "field_path": null,
+    "canonical_key": null
+   },
+   {
+    "kind": "SCHOLAR_JUDGMENT",
+    "value": {
+     "new": "صحيح",
+     "old": "إسناده صحيح",
+     "flags": [],
+     "change_type": "FIELD_MODIFIED"
+    },
+    "field_path": "judgment",
+    "canonical_key": "HAD-4821"
+   },
+   {
+    "kind": "SURROUNDING_CONTEXT",
+    "value": {
+     "new_content": {
+      "scholar": {
+       "id": "synthetic_evaluator_a",
+       "role": "demo_grader",
+       "display": "Synthetic Evaluator A",
+       "display_ar": "المُقيِّم التجريبي (أ)"
+      },
+      "judgment": "صحيح",
+      "narrators": [
+       {
+        "id": "synthetic_narrator_a",
+        "role": "demo_narrator",
+        "display": "Synthetic Narrator A"
+       }
+      ],
+      "reference": {
+       "book": "Istithbat Sandbox Reference Collection",
+       "page": 12,
+       "volume": 1
+      },
+      "source_url": "https://sandbox.istithbat.invalid/records/HAD-4821",
+      "updated_at": "2026-09-01T00:00:00Z",
+      "arabic_text": "نص تجريبي — هذه جملة اختبارية محايدة لأغراض العرض فقط، وليست من الحديث ولا منقولة عن أي مصدر.",
+      "description": "Controlled synthetic record for the Istithbat evidence-scope drift demo.",
+      "internal_id": "SBX-4821",
+      "translation": "Test text — a neutral test sentence for demonstration purposes only; it is not hadith and is not quoted from any source.",
+      "display_label": "Sandbox record HAD-4821 (synthetic)"
+     },
+     "old_content": {
+      "scholar": {
+       "id": "synthetic_evaluator_a",
+       "role": "demo_grader",
+       "display": "Synthetic Evaluator A",
+       "display_ar": "المُقيِّم التجريبي (أ)"
+      },
+      "judgment": "إسناده صحيح",
+      "narrators": [
+       {
+        "id": "synthetic_narrator_a",
+        "role": "demo_narrator",
+        "display": "Synthetic Narrator A"
+       }
+      ],
+      "reference": {
+       "book": "Istithbat Sandbox Reference Collection",
+       "page": 12,
+       "volume": 1
+      },
+      "source_url": "https://sandbox.istithbat.invalid/records/HAD-4821",
+      "updated_at": "2026-09-01T00:00:00Z",
+      "arabic_text": "نص تجريبي — هذه جملة اختبارية محايدة لأغراض العرض فقط، وليست من الحديث ولا منقولة عن أي مصدر.",
+      "description": "Controlled synthetic record for the Istithbat evidence-scope drift demo.",
+      "internal_id": "SBX-4821",
+      "translation": "Test text — a neutral test sentence for demonstration purposes only; it is not hadith and is not quoted from any source.",
+      "display_label": "Sandbox record HAD-4821 (synthetic)"
+     },
+     "new_metadata": {
+      "synthetic": true,
+      "fixture_family": "HAD-4821 evidence-scope drift demo"
+     },
+     "old_metadata": {
+      "synthetic": true,
+      "fixture_family": "HAD-4821 evidence-scope drift demo"
+     }
+    },
+    "field_path": null,
+    "canonical_key": "HAD-4821"
+   }
+  ],
+  "previous": {
+   "id": "1bf7ed48-391a-44d0-b637-e8ea52bd7cbc",
+   "label": "v13",
+   "revision": 1,
+   "raw_sha256": "9bc91d4e230c4941e7856b8d8a8eaa2dccbcd268e468be0848159f904b3981d6",
+   "canonical_sha256": "c9385758b78f3c9b79a7814bff85506c9f9dbff75e900e3e6f065ba3021249cf",
+   "upstream_published_at": "2026-09-01T00:00:00.000Z"
+  },
+  "candidate": {
+   "id": "21813a6e-7f16-4d96-939a-6a28c3e69628",
+   "label": "v14",
+   "revision": 1,
+   "raw_sha256": "8c161f54de223c490244188d5639134352e9d67d313f28df37bcccc280555f57",
+   "silent_mutation": false,
+   "canonical_sha256": "403d3ea1fa7ff069b6b400ef3aca55ab3a3b139f6411464dc9a090d603126b96",
+   "upstream_published_at": "2026-10-04T00:00:00.000Z"
+  },
+  "primary_change_id": "953ca078-6812-42a7-a343-ead3db886b2c"
+ },
+ "contextPacketHash": "827f516f39155e42a6fb84b005b5715c66dcb7d5d7033723d10f55138f9cdfcf",
+ "primaryChangeId": "953ca078-6812-42a7-a343-ead3db886b2c",
+ "analysis": {
+  "id": "411ee8ba-dd37-42a9-bce2-cdadec3ea634",
+  "analysisType": "EVIDENCE_DRIFT",
+  "riskLevel": "HIGH",
+  "output": {
+   "confidence": "LOW",
+   "risk_level": "HIGH",
+   "what_changed": "[Mock] See the deterministic diff; this mock does not read it.",
+   "analysis_type": "EVIDENCE_DRIFT",
+   "uncertainties": [
+    "[Mock] No model analysis was performed."
+   ],
+   "why_it_matters": "[Mock] A change to a grading or canonical field can alter what a downstream answer claims.",
+   "domain_analysis": {
+    "linguistic": "[Mock] Not analysed.",
+    "evidence_scope": "[Mock] Not analysed. This is not a ruling on any grading.",
+    "provenance_effect": "[Mock] Not analysed."
+   },
+   "meaning_changed": true,
+   "executive_summary": "[Mock] Deterministic placeholder analysis for pipeline testing. No model was called.",
+   "recommended_action": "QUARANTINE",
+   "requires_specialist_review": true,
+   "potential_downstream_effects": [
+    "[Mock] Q&A answers citing this record may change."
+   ],
+   "recommended_regression_tests": [
+    "[Mock] Ask what the source's changed field says."
+   ]
+  },
+  "contextPacketHash": "827f516f39155e42a6fb84b005b5715c66dcb7d5d7033723d10f55138f9cdfcf",
+  "meta": {
+   "provider": "mock",
+   "model": "mock-v1",
+   "promptVersion": "v1",
+   "mode": "mock",
+   "recordedAt": null,
+   "effort": null,
+   "attempts": 0,
+   "promptId": "incident-analysis",
+   "inputHash": "827f516f39155e42a6fb84b005b5715c66dcb7d5d7033723d10f55138f9cdfcf",
+   "latencyMs": 4,
+   "maxTokens": 8000,
+   "mockMatch": "default",
+   "temperature": 0
+  },
+  "createdAt": "2026-10-04T11:42:36.323Z"
+ },
+ "regressions": [],
+ "pipeline": {
+  "id": "cc123a07-2193-4c2e-b9e5-9c300e50551c",
+  "sourceVersionId": "21813a6e-7f16-4d96-939a-6a28c3e69628",
+  "incidentId": "6b66aa65-87ab-488f-978f-7c65ca18e88e",
+  "status": "RUNNING",
+  "fastPath": false,
+  "leaseUntil": null,
+  "nextStep": "REGRESSION_QUESTIONS",
+  "steps": [
+   {
+    "step": "INCIDENT",
+    "itemKey": "",
+    "status": "DONE",
+    "attempts": 1,
+    "errorCode": null,
+    "outputRef": "6b66aa65-87ab-488f-978f-7c65ca18e88e",
+    "startedAt": "2026-10-04T11:42:23.716Z",
+    "completedAt": "2026-10-04T11:42:31.873Z"
+   },
+   {
+    "step": "ANALYSIS",
+    "itemKey": "",
+    "status": "DONE",
+    "attempts": 1,
+    "errorCode": null,
+    "outputRef": "411ee8ba-dd37-42a9-bce2-cdadec3ea634",
+    "startedAt": "2026-10-04T11:42:33.724Z",
+    "completedAt": "2026-10-04T11:42:38.175Z"
+   },
+   {
+    "step": "REGRESSION_QUESTIONS",
+    "itemKey": "",
+    "status": "PENDING",
+    "attempts": 0,
+    "errorCode": null,
+    "outputRef": null,
+    "startedAt": null,
+    "completedAt": null
+   },
+   {
+    "step": "BLAST_RADIUS",
+    "itemKey": "",
+    "status": "PENDING",
+    "attempts": 0,
+    "errorCode": null,
+    "outputRef": null,
+    "startedAt": null,
+    "completedAt": null
+   },
+   {
+    "step": "POLICY",
+    "itemKey": "",
+    "status": "PENDING",
+    "attempts": 0,
+    "errorCode": null,
+    "outputRef": null,
+    "startedAt": null,
+    "completedAt": null
+   }
+  ],
+  "createdAt": "2026-10-04T11:42:12.793Z",
+  "updatedAt": "2026-10-04T11:42:56.121Z"
+ },
+ "pipelineSteps": [
+  {
+   "step": "INCIDENT",
+   "itemKey": "",
+   "status": "DONE",
+   "attempts": 1,
+   "errorCode": null,
+   "outputRef": "6b66aa65-87ab-488f-978f-7c65ca18e88e",
+   "startedAt": "2026-10-04T11:42:23.716Z",
+   "completedAt": "2026-10-04T11:42:31.873Z"
+  },
+  {
+   "step": "ANALYSIS",
+   "itemKey": "",
+   "status": "DONE",
+   "attempts": 1,
+   "errorCode": null,
+   "outputRef": "411ee8ba-dd37-42a9-bce2-cdadec3ea634",
+   "startedAt": "2026-10-04T11:42:33.724Z",
+   "completedAt": "2026-10-04T11:42:38.175Z"
+  },
+  {
+   "step": "REGRESSION_QUESTIONS",
+   "itemKey": "",
+   "status": "PENDING",
+   "attempts": 0,
+   "errorCode": null,
+   "outputRef": null,
+   "startedAt": null,
+   "completedAt": null
+  },
+  {
+   "step": "BLAST_RADIUS",
+   "itemKey": "",
+   "status": "PENDING",
+   "attempts": 0,
+   "errorCode": null,
+   "outputRef": null,
+   "startedAt": null,
+   "completedAt": null
+  },
+  {
+   "step": "POLICY",
+   "itemKey": "",
+   "status": "PENDING",
+   "attempts": 0,
+   "errorCode": null,
+   "outputRef": null,
+   "startedAt": null,
+   "completedAt": null
+  }
+ ],
+ "policyEvaluation": null,
+ "reviews": [],
+ "audit": [
+  {
+   "id": "3c7641f4-fa56-4de8-b8a7-45eba2d93c2d",
+   "eventType": "PIPELINE_STARTED",
+   "entityType": "pipeline_run",
+   "entityId": "cc123a07-2193-4c2e-b9e5-9c300e50551c",
+   "actor": "system:pipeline",
+   "metadata": {
+    "fastPath": false,
+    "versionId": "21813a6e-7f16-4d96-939a-6a28c3e69628"
+   },
+   "createdAt": "2026-10-04T11:42:12.793Z"
+  },
+  {
+   "id": "bfb8e4fb-55c4-4622-9d2b-4f0783fae800",
+   "eventType": "PIPELINE_STEP_STARTED",
+   "entityType": "pipeline_step",
+   "entityId": "bc70eb4d-ef86-42e5-9aa6-0d9820e6c63d",
+   "actor": "system:pipeline",
+   "metadata": {
+    "step": "INCIDENT",
+    "runId": "cc123a07-2193-4c2e-b9e5-9c300e50551c",
+    "attempt": 1
+   },
+   "createdAt": "2026-10-04T11:42:23.716Z"
+  },
+  {
+   "id": "a9cf150e-20b1-4e3b-8e27-78e25597464d",
+   "eventType": "INCIDENT_CREATED",
+   "entityType": "incident",
+   "entityId": "6b66aa65-87ab-488f-978f-7c65ca18e88e",
+   "actor": "system:pipeline",
+   "metadata": {
+    "versionId": "21813a6e-7f16-4d96-939a-6a28c3e69628",
+    "silentMutation": false,
+    "primaryChangeId": "953ca078-6812-42a7-a343-ead3db886b2c",
+    "previousVersionId": "1bf7ed48-391a-44d0-b637-e8ea52bd7cbc"
+   },
+   "createdAt": "2026-10-04T11:42:28.906Z"
+  },
+  {
+   "id": "bbafd78c-c4fe-4142-a5ff-4ccc54a7163e",
+   "eventType": "CONTEXT_PACKET_ATTACHED",
+   "entityType": "incident",
+   "entityId": "6b66aa65-87ab-488f-978f-7c65ca18e88e",
+   "actor": "system:pipeline",
+   "metadata": {
+    "changeCount": 1,
+    "contextPacketHash": "827f516f39155e42a6fb84b005b5715c66dcb7d5d7033723d10f55138f9cdfcf"
+   },
+   "createdAt": "2026-10-04T11:42:28.906Z"
+  },
+  {
+   "id": "f2f2b2ff-073c-4aa7-bc86-adba7281cf78",
+   "eventType": "PIPELINE_STEP_COMPLETED",
+   "entityType": "pipeline_step",
+   "entityId": "bc70eb4d-ef86-42e5-9aa6-0d9820e6c63d",
+   "actor": "system:pipeline",
+   "metadata": {
+    "step": "INCIDENT",
+    "runId": "cc123a07-2193-4c2e-b9e5-9c300e50551c",
+    "attempt": 1,
+    "outputRef": "6b66aa65-87ab-488f-978f-7c65ca18e88e"
+   },
+   "createdAt": "2026-10-04T11:42:31.873Z"
+  },
+  {
+   "id": "cffb3d5f-c3a2-4bc3-a16f-73ede77d660a",
+   "eventType": "PIPELINE_STEP_STARTED",
+   "entityType": "pipeline_step",
+   "entityId": "89480e05-d455-406e-8442-0c2d264257c5",
+   "actor": "system:pipeline",
+   "metadata": {
+    "step": "ANALYSIS",
+    "runId": "cc123a07-2193-4c2e-b9e5-9c300e50551c",
+    "attempt": 1
+   },
+   "createdAt": "2026-10-04T11:42:33.724Z"
+  },
+  {
+   "id": "c67195d6-7220-44c6-b1fc-dd0dbbd8b74e",
+   "eventType": "ANALYSIS_SUCCEEDED",
+   "entityType": "incident",
+   "entityId": "6b66aa65-87ab-488f-978f-7c65ca18e88e",
+   "actor": "system:pipeline",
+   "metadata": {
+    "mode": "mock",
+    "model": "mock-v1",
+    "provider": "mock",
+    "analysisId": "411ee8ba-dd37-42a9-bce2-cdadec3ea634",
+    "recordedAt": null,
+    "promptVersion": "v1",
+    "contextPacketHash": "827f516f39155e42a6fb84b005b5715c66dcb7d5d7033723d10f55138f9cdfcf"
+   },
+   "createdAt": "2026-10-04T11:42:36.323Z"
+  },
+  {
+   "id": "1dafd054-3261-42b2-9d84-7dcbd6a37066",
+   "eventType": "PIPELINE_STEP_COMPLETED",
+   "entityType": "pipeline_step",
+   "entityId": "89480e05-d455-406e-8442-0c2d264257c5",
+   "actor": "system:pipeline",
+   "metadata": {
+    "step": "ANALYSIS",
+    "runId": "cc123a07-2193-4c2e-b9e5-9c300e50551c",
+    "attempt": 1,
+    "outputRef": "411ee8ba-dd37-42a9-bce2-cdadec3ea634"
+   },
+   "createdAt": "2026-10-04T11:42:38.175Z"
+  }
+ ]
+}

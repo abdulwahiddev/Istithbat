@@ -20,21 +20,6 @@ export function SyntheticSourceBanner({ children }: { children?: ReactNode }) {
   );
 }
 
-/** Shown whenever a screen renders data that did not come from the live backend. */
-export function PreviewDataBanner({ reason, children }: { reason: string; children?: ReactNode }) {
-  return (
-    <div className="ist-banner ist-banner--preview" role="note">
-      <div className="ist-banner__body">
-        <strong className="ist-eyebrow" style={{ color: 'var(--text-secondary)' }}>
-          Preview data · not produced by the integrity engine
-        </strong>
-        <span className="ist-banner__meta">{reason}</span>
-        {children}
-      </div>
-    </div>
-  );
-}
-
 /** D-15: whenever AI_MODE=replay, the UI must say so with the recording time. Never silent. */
 export function ReplayedResponseLabel({ recordedAt }: { recordedAt: string | null }) {
   return (
@@ -49,9 +34,9 @@ export function AiModeLabel({ mode, recordedAt }: { mode: 'live' | 'mock' | 'rep
   if (mode === 'replay') return <ReplayedResponseLabel recordedAt={recordedAt ?? null} />;
   if (mode === 'mock')
     return (
-      <span className="ist-badge ist-badge--muted ist-badge--dashed" title="AI_MODE=mock: deterministic canned output for testing">
-        Mock output · no model called
+      <span className="ist-badge ist-badge--muted ist-badge--dashed" title="AI_MODE=mock: deterministic placeholder output; no model was called">
+        AI analysis · mock mode
       </span>
     );
-  return <span className="ist-badge ist-badge--analysis">Live model output</span>;
+  return <span className="ist-badge ist-badge--analysis" title="AI_MODE=live: produced by the configured provider">AI analysis · live model</span>;
 }
