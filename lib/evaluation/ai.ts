@@ -11,6 +11,13 @@ export type EvalMode='mock'|'live'|'replay';
 function deps(mode:EvalMode) {return {config:readAiConfig({...process.env,AI_MODE:mode})};}
 const riskRank:Record<string,number>={LOW:0,MEDIUM:1,HIGH:2,CRITICAL:3};
 
+async function paceLiveCall(mode:EvalMode) {
+  if(mode!=='live') return;
+  const delay=Number(process.env.AI_EVAL_PACE_MS??0);
+  if(!Number.isInteger(delay)||delay<0||delay>60_000) throw new Error('AI_EVAL_PACE_MS must be an integer from 0 to 60000');
+  if(delay) await new Promise(resolve=>setTimeout(resolve,delay));
+}
+
 export async function measureAiRegressions(fixtures:MutationFixture[],mode:EvalMode) {
   const cases=[];
   for(const fixture of fixtures) {
@@ -34,6 +41,7 @@ export async function measureAiRegressions(fixtures:MutationFixture[],mode:EvalM
         old_content:baseByKey.get(key)?.content??null,new_content:changedByKey.get(key)?.content??null,
         old_metadata:baseByKey.get(key)?.metadata??null,new_metadata:changedByKey.get(key)?.metadata??null})),
     });
+    await paceLiveCall(mode);
     const analysis=await analyze(packet,deps(mode));
     const key=changes[0]?.canonicalKey??base.payload.records[0]?.canonical_key;
     const oldRecord=baseByKey.get(key),newRecord=changedByKey.get(key);
@@ -41,8 +49,11 @@ export async function measureAiRegressions(fixtures:MutationFixture[],mode:EvalM
     const qaInput=(version:string,record:typeof oldRecord)=>({question,knowledge_version:{id:version,label:version,revision:1},
       retrieved_records:record?[{canonical_key:record.canonical_key,content:record.content,metadata:record.metadata,
         record_hash:hashJson(record as JsonValue)}]:[]});
+    await paceLiveCall(mode);
     const old=await generateStructured({task:'QA_ANSWER',schema:QaAnswerSchema,input:qaInput('base',oldRecord),promptVersion:'v1'},deps(mode));
+    await paceLiveCall(mode);
     const candidate=await generateStructured({task:'QA_ANSWER',schema:QaAnswerSchema,input:qaInput('candidate',newRecord),promptVersion:'v1'},deps(mode));
+    if(old.ok&&candidate.ok) await paceLiveCall(mode);
     const comparison=old.ok&&candidate.ok?await generateStructured({task:'BEHAVIOR_DELTA',schema:BehaviorDeltaSchema,
       input:{question,old_answer:old.data.answer,new_answer:candidate.data.answer,old_output:old.data,new_output:candidate.data,
         deterministic:{answer_text_changed:old.data.answer!==candidate.data.answer}},promptVersion:'v1'},deps(mode)):null;
@@ -61,9 +72,9 @@ export async function measureAiRegressions(fixtures:MutationFixture[],mode:EvalM
   return {suite:'mutations-ai',mode,total:cases.length,plumbing:{analysisSucceeded:classificationCases.length,
     qaPairsSucceeded:cases.filter(c=>c.qaSucceeded).length,comparisonsSucceeded:cases.filter(c=>c.comparisonSucceeded).length},
     performance:mode==='live' && cases.every(c=>c.analysisSucceeded&&c.qaSucceeded&&c.comparisonSucceeded)?{classificationAccuracy:classificationCases.length?classificationCases.filter(c=>c.actualAnalysisType===c.expectedAnalysisType).length/classificationCases.length:null,
-      falseCriticalRate:benign.length?benign.filter(c=>riskRank[c.risk!]>=riskRank.CRITICAL).length/benign.length:null,
+      falseCriticalRate:benign.length?benign.filter(c=>riskRank[c.risk!]>=riskRank.HIGH).length/benign.length:null,
       materialChangeRecall:positive.length?positive.filter(c=>c.observedMaterial===true).length/positive.length:null,
-      regressionDetection:cases.filter(c=>c.observedResult==='MATERIAL_CHANGE').length}:null,
+      regressionDetection:cases.length?cases.filter(c=>c.observedMaterial===c.expectedMaterial).length/cases.length:null}:null,
     cases};
 }
 
@@ -73,6 +84,7 @@ export async function measureSafety(mode:EvalMode) {
   if(prompts.length!==12||new Set(prompts.map(p=>p.id)).size!==12) throw new Error('Expected 12 unique safety prompts');
   const cases=[];
   for(const prompt of prompts) {
+    await paceLiveCall(mode);
     const result=await generateStructured({task:'SAFETY_ANSWER',schema:SafetyAnswerSchema,
       input:{question:prompt.question,request_level:prompt.requestLevel,knowledge_version:'synthetic-sandbox-v13',
         retrieved_records:[]},promptVersion:'v1'},deps(mode));
