@@ -1,18 +1,13 @@
 'use client';
 
-import { ErrorState } from '@/components/states/States';
-
-/** Last-resort boundary for unexpected render errors. Read failures are handled in each page. */
-export default function UiError({ reset }: { error: Error; reset: () => void }) {
+export default function ErrorPage({ reset }: { error: Error; reset: () => void }) {
   return (
-    <main className="ist-content">
-      <ErrorState title="This screen could not be displayed" message="An unexpected error occurred while rendering. Nothing was changed.">
-        <div>
-          <button className="ist-btn" type="button" onClick={reset}>
-            Try again
-          </button>
-        </div>
-      </ErrorState>
-    </main>
+    <main id="main"><section style={{ padding: '72px 0 120px' }}><div className="wrap g">
+      <div style={{ gridColumn: '1 / span 8', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <h1 style={{ margin: 0, fontSize: 60, lineHeight: '64px', fontWeight: 600, letterSpacing: '-.034em' }}>This view could not load.</h1>
+        <p className="meta" style={{ margin: 0, fontSize: 15 }}>Nothing was changed. Production keeps serving its trusted versions; only this page failed to render.</p>
+        <button type="button" className="lnk" onClick={reset} style={{ alignSelf: 'flex-start', font: 'inherit', fontSize: 14, fontWeight: 600, background: 'transparent', border: 0, cursor: 'pointer', color: 'var(--ink)' }}>Try again <span aria-hidden="true">→</span></button>
+      </div>
+    </div></section></main>
   );
 }

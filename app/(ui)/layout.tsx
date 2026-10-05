@@ -1,34 +1,40 @@
 import type { ReactNode } from 'react';
-import { IBM_Plex_Mono, IBM_Plex_Sans, IBM_Plex_Sans_Arabic, Noto_Naskh_Arabic } from 'next/font/google';
-import { AppShell } from '@/components/shell/AppShell';
-import { readAiConfig } from '@/lib/ai/config';
-import './istithbat.css';
+import { Amiri, Instrument_Sans, JetBrains_Mono, Newsreader } from 'next/font/google';
+import { Chrome } from '@/components/strata/Chrome';
+import { ThemeRoot } from '@/components/strata/theme';
+import { lockReviewer, unlockReviewer } from './_actions/reviewer';
+import { chromeData } from './_data/chrome';
+import { readGatewayInventory, readIncidents, readSources } from './_data/read';
+import { readReviewer, readTheme } from './_data/session';
+import './strata/strata-shared.css';
+import './strata/strata-screens.css';
+import './strata/strata-app.css';
 
-// Four faces, four jobs (Design System §03): Plex Sans for UI, Plex Sans Arabic for Arabic UI,
-// Plex Mono for hashes/IDs/versions only, Noto Naskh Arabic for quoting source text only.
-const plexSans = IBM_Plex_Sans({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-plex-sans', display: 'swap' });
-const plexArabic = IBM_Plex_Sans_Arabic({ subsets: ['arabic'], weight: ['400', '500', '600'], variable: '--font-plex-arabic', display: 'swap' });
-const plexMono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-plex-mono', display: 'swap' });
-const naskh = Noto_Naskh_Arabic({ subsets: ['arabic'], weight: ['400', '500'], variable: '--font-naskh', display: 'swap' });
+// Strata type roles (handoff §5): Instrument Sans for UI, Newsreader italic only for the AI's own
+// statement, JetBrains Mono only for hashes / IDs / versions, Amiri for Arabic source text.
+const instrument = Instrument_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-instrument', display: 'swap' });
+const newsreader = Newsreader({ subsets: ['latin'], style: ['italic'], axes: ['opsz'], variable: '--font-newsreader', display: 'swap' });
+const jetbrains = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-jetbrains', display: 'swap' });
+const amiri = Amiri({ subsets: ['arabic', 'latin'], weight: ['400', '700'], variable: '--font-amiri', display: 'swap' });
 
 export const metadata = {
   title: 'Istithbat | استثبات',
   description: 'Integrity and release governance for trusted Islamic knowledge in AI systems.',
   icons: { icon: '/brand/istithbat-icon.png' },
 };
+export const dynamic = 'force-dynamic';
 
-export default function UiLayout({ children }: { children: ReactNode }) {
-  // Only the mode is read here (server-side); no provider credential reaches the client.
-  const mode = readAiConfig().mode;
+export default async function StrataLayout({ children }: { children: ReactNode }) {
+  const theme = await readTheme();
+  const reviewer = await readReviewer();
+  const incidents = await readIncidents();
+  const sources = await readSources();
+  const gateway = await readGatewayInventory();
   return (
-    <div className={`ist-fonts ${plexSans.variable} ${plexArabic.variable} ${plexMono.variable} ${naskh.variable}`}>
-      <AppShell
-        aiModeLabel={
-          <span className="ist-badge ist-badge--muted" title="Server AI_MODE: live, mock (canned, for tests) or replay (recorded, always labelled)">
-            AI mode: {mode}
-          </span>
-        }
-      >{children}</AppShell>
-    </div>
+    <ThemeRoot initial={theme} className={`${instrument.variable} ${newsreader.variable} ${jetbrains.variable} ${amiri.variable}`}>
+      <a href="#main" className="sr-only">Skip to content</a>
+      <Chrome data={chromeData(incidents, sources, gateway, reviewer)} actions={{ unlock: unlockReviewer, lock: lockReviewer }} />
+      {children}
+    </ThemeRoot>
   );
 }

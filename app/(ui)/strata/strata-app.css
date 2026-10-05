@@ -1,0 +1,68 @@
+/* Application layer on top of the frozen Strata CSS. Nothing here changes a token or a frozen rule;
+   it adds what the static boards could not express: theme root on the page, purposeful motion,
+   screen-reader text and the reviewer unlock popover (chrome, so it may use glass). */
+
+/* The page root carries .s / .s.dark (identical markup in both themes). Keep overscroll and the
+   area outside the root on the active ground instead of the Light body colour. */
+body:has(.s.dark){background:#0B0F17}
+
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* ---- motion: short, causal, never ambient (the trusted-lane packets stay the only loop) ---- */
+@keyframes strata-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes strata-fade{from{opacity:0}to{opacity:1}}
+.enter{animation:strata-in .2s var(--ease) both}
+.fade{animation:strata-fade .2s var(--ease) both}
+
+/* Navigation: the selected glass pill travels to the new destination. */
+.seg{position:relative}
+.seg .seg-ind{position:absolute;top:5px;bottom:5px;left:0;border-radius:999px;background:var(--glass-sel);box-shadow:var(--glass-sel-shadow);pointer-events:none;transition:transform .24s var(--ease),width .24s var(--ease)}
+.seg.moving a[aria-current="page"]{background:transparent;box-shadow:none}
+.seg a{z-index:1}
+
+/* Theme switch: the selected pill slides; the palette itself switches instantly (Strata §2). */
+.tsw{position:relative}
+.tsw .tsw-ind{position:absolute;top:3px;left:3px;width:36px;height:36px;border-radius:999px;background:var(--glass-sel);box-shadow:var(--glass-sel-shadow);transition:transform .2s var(--ease);pointer-events:none}
+.tsw[data-theme="dark"] .tsw-ind{transform:translateX(38px)}
+.tsw button{position:relative;z-index:1}
+.tsw button[aria-pressed="true"]{background:transparent;box-shadow:none}
+
+/* Disclosures open with a short reveal of their content. */
+details[open]>summary~*{animation:strata-in .2s var(--ease) both}
+
+/* Search has no backend contract yet: rendered, not operable. */
+.cmdk[aria-disabled="true"]{cursor:not-allowed;opacity:.72}
+.cmdk[aria-disabled="true"]:hover{border-color:var(--glass-line);color:var(--ink-3)}
+
+/* Reviewer unlock popover — interactive chrome. */
+.whobox{position:relative}
+.unlock{position:absolute;right:0;top:calc(100% + 10px);z-index:7;width:320px;box-sizing:border-box;padding:18px;border-radius:18px;background:var(--float-bg);border:1px solid var(--plate-line);box-shadow:var(--float-shadow);display:flex;flex-direction:column;gap:12px;animation:strata-in .18s var(--ease) both}
+.unlock label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500;color:var(--ink-3)}
+.unlock input{font:inherit;font-size:15px;padding:10px 12px;border-radius:10px;border:1px solid var(--line-2);background:var(--well);color:var(--ink)}
+.unlock input:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 3px var(--line)}
+.unlock .ubtn{font:inherit;font-size:14px;font-weight:600;height:40px;border:0;border-radius:999px;background:var(--cta-bg);color:var(--cta-ink);cursor:pointer}
+.unlock .ubtn:disabled{opacity:.6;cursor:not-allowed}
+.unlock .ulink{font:inherit;font-size:13px;background:transparent;border:0;color:var(--ink-3);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px 0;align-self:flex-start}
+.unlock p{margin:0;font-size:13px;line-height:20px;color:var(--ink-3)}
+.unlock .err{color:var(--co-ink)}
+.sr-only:focus-visible{position:fixed;left:16px;top:16px;width:auto;height:auto;margin:0;clip:auto;z-index:10;padding:10px 16px;border-radius:999px;background:var(--cta-bg);color:var(--cta-ink);font-size:14px;font-weight:600;text-decoration:none}
+
+/* Fallbacks below the approved widths (handoff §10: ≤1100 / ≤760 are functional, not visually approved).
+   Nothing here applies at 1280 and above. The page must never scroll sideways. */
+@media(max-width:1100px){
+  .ph-lead,.ph-status{grid-column:1 / -1 !important}
+  .kv{flex-wrap:wrap}.kv>:last-child{margin-left:auto}
+  h1{font-size:48px !important;line-height:52px !important}
+}
+@media(max-width:760px){
+  nav[aria-label="Primary"]{max-width:100%;overflow-x:auto;scrollbar-width:none}
+  header .wrap>div:last-child{flex-wrap:wrap}
+  .cmdk{display:none}
+  h1{font-size:40px !important;line-height:44px !important}
+  .desk h3{font-size:28px !important;line-height:36px !important}
+  /* panels bleed 24px but the page edge is 20px here: bleed 16px so frames stay on screen */
+  .plate,.desk,.plate.l,.plate.r,.plate.in.l,.plate.in.r{margin-left:-16px !important;margin-right:-16px !important;padding-left:16px !important;padding-right:16px !important}
+  .scr-blast .insp{margin:0 -16px;padding-left:16px;padding-right:16px}
+  .handoff{flex-wrap:wrap}.handoff .chip{white-space:normal}
+  .verdict{margin-right:-16px !important;padding:16px !important}
+}
