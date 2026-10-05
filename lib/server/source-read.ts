@@ -4,17 +4,24 @@ import { SourceDetail, SourceSummary, type SourceSummary as SourceSummaryType } 
 import { getConnectorDefinition } from '@/lib/connectors/registry';
 
 export async function listSources(): Promise<SourceSummaryType[]> {
-  const rows = await getSql()`SELECT s.*,COALESCE(seen_binding.upstream_version_label,seen_fallback.upstream_version_label) AS latest_seen_label,trusted.upstream_version_label AS trusted_label,served.upstream_version_label AS served_label
+  const rows = await getSql()`SELECT s.*,
+    COALESCE(seen_binding.upstream_version_label,seen_fallback.upstream_version_label) AS latest_seen_label,
+    COALESCE(seen_binding.revision_number,seen_fallback.revision_number) AS latest_seen_revision,
+    COALESCE(seen_binding.record_count,seen_fallback.record_count) AS monitored_record_count,
+    trusted.upstream_version_label AS trusted_label,trusted.revision_number AS trusted_revision,
+    served.upstream_version_label AS served_label,served.revision_number AS served_revision
     FROM sources s
-    LEFT JOIN LATERAL (SELECT v.upstream_version_label FROM gateway_bindings g JOIN source_versions v ON v.id=g.latest_seen_version_id WHERE g.source_id=s.id ORDER BY g.updated_at DESC LIMIT 1) seen_binding ON true
-    LEFT JOIN LATERAL (SELECT v.upstream_version_label FROM source_versions v WHERE v.source_id=s.id ORDER BY v.detected_at DESC,v.id DESC LIMIT 1) seen_fallback ON true
-    LEFT JOIN LATERAL (SELECT v.upstream_version_label FROM source_versions v WHERE v.source_id=s.id AND v.status='TRUSTED' LIMIT 1) trusted ON true
-    LEFT JOIN LATERAL (SELECT v.upstream_version_label FROM gateway_bindings g JOIN source_versions v ON v.id=g.served_version_id WHERE g.source_id=s.id ORDER BY g.updated_at DESC LIMIT 1) served ON true
+    LEFT JOIN LATERAL (SELECT v.upstream_version_label,v.revision_number,v.record_count FROM gateway_bindings g JOIN source_versions v ON v.id=g.latest_seen_version_id WHERE g.source_id=s.id ORDER BY g.updated_at DESC LIMIT 1) seen_binding ON true
+    LEFT JOIN LATERAL (SELECT v.upstream_version_label,v.revision_number,v.record_count FROM source_versions v WHERE v.source_id=s.id ORDER BY v.detected_at DESC,v.id DESC LIMIT 1) seen_fallback ON true
+    LEFT JOIN LATERAL (SELECT v.upstream_version_label,v.revision_number FROM source_versions v WHERE v.source_id=s.id AND v.status='TRUSTED' LIMIT 1) trusted ON true
+    LEFT JOIN LATERAL (SELECT v.upstream_version_label,v.revision_number FROM gateway_bindings g JOIN source_versions v ON v.id=g.served_version_id WHERE g.source_id=s.id ORDER BY g.updated_at DESC LIMIT 1) served ON true
     ORDER BY s.id`;
   return rows.map(row => SourceSummary.parse({
     id:row.id,name:row.name,provider:row.provider,sourceType:row.source_type,connectorHealth:row.connector_health,
     isDemoFixture:row.is_demo_fixture,contentLevel:row.content_level,latestSeenLabel:row.latest_seen_label,
-    trustedLabel:row.trusted_label,servedLabel:row.served_label,lastCheckedAt:row.last_checked_at?.toISOString()??null,
+    latestSeenRevision:row.latest_seen_revision??null,monitoredRecordCount:row.monitored_record_count??null,
+    trustedLabel:row.trusted_label,trustedRevision:row.trusted_revision??null,
+    servedLabel:row.served_label,servedRevision:row.served_revision??null,lastCheckedAt:row.last_checked_at?.toISOString()??null,
     connectorType:row.connector_type,rightsNote:row.rights_note??null,
     versionLabelPublished:getConnectorDefinition(row.id)?.publishesVersionLabel??true,
   }));

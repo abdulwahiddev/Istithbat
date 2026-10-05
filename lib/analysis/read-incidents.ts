@@ -6,6 +6,7 @@ import { getPipelineRun } from '@/lib/pipeline/read';
 import { nextPendingStep, type StepName } from '@/lib/pipeline/model';
 import { STEP_HANDLERS } from '@/lib/pipeline/steps';
 import { readBlastRadius } from '@/lib/blast-radius/service';
+import { mapAuditEvent } from '@/lib/governance/read-audit';
 
 export async function listIncidents() {
   const sql=getSql();
@@ -65,10 +66,12 @@ export async function getIncidentDetail(incidentId:string) {
     sql`SELECT * FROM regression_runs WHERE incident_id=${incidentId} ORDER BY created_at`,
     sql`SELECT * FROM policy_evaluations WHERE incident_id=${incidentId} AND is_effective=true LIMIT 1`,
     sql`SELECT * FROM review_decisions WHERE incident_id=${incidentId} ORDER BY created_at`,
-    sql`SELECT * FROM audit_events WHERE (entity_type='incident' AND entity_id=${incidentId}) OR
-      (entity_type='pipeline_run' AND entity_id IN (SELECT id::text FROM pipeline_runs WHERE incident_id=${incidentId})) OR
-      (entity_type='pipeline_step' AND entity_id IN (SELECT s.id::text FROM pipeline_steps s JOIN pipeline_runs r ON r.id=s.run_id WHERE r.incident_id=${incidentId}))
-      ORDER BY created_at,id`,
+    sql`SELECT e.* FROM audit_events e WHERE (e.entity_type='incident' AND e.entity_id=${incidentId}) OR
+      (e.entity_type='source_version' AND e.entity_id IN (${incident.candidate_version_id},${incident.previous_version_id??''})) OR
+      (e.entity_type='regression_run' AND e.entity_id IN (SELECT id::text FROM regression_runs WHERE incident_id=${incidentId})) OR
+      (e.entity_type='pipeline_run' AND e.entity_id IN (SELECT id::text FROM pipeline_runs WHERE incident_id=${incidentId})) OR
+      (e.entity_type='pipeline_step' AND e.entity_id IN (SELECT s.id::text FROM pipeline_steps s JOIN pipeline_runs r ON r.id=s.run_id WHERE r.incident_id=${incidentId}))
+      ORDER BY e.created_at,e.id`,
   ]);
   const run=runRows[0]?await getPipelineRun(runRows[0].id):null;
   const blastRadius=await readBlastRadius(incidentId);
@@ -91,7 +94,6 @@ export async function getIncidentDetail(incidentId:string) {
     }:null,reviews:reviews.map(row=>({id:row.id,incidentId:row.incident_id,decision:row.decision,reviewer:row.reviewer,
       reason:row.reason,previousVersionId:row.previous_version_id,candidateVersionId:row.candidate_version_id,
       createdAt:row.created_at.toISOString()})),
-    blastRadius,audit:auditRows.map(row=>({id:row.id,eventType:row.event_type,entityType:row.entity_type,entityId:row.entity_id,
-      actor:row.actor,metadata:row.metadata_json,createdAt:row.created_at.toISOString()})),
+    blastRadius,audit:auditRows.map(mapAuditEvent),
   });
 }
