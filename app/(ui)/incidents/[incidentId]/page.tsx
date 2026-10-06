@@ -8,7 +8,7 @@ import { ExactDiff } from '@/components/strata/ExactDiff';
 import { DecisionDock } from '@/components/incident/DecisionDock';
 import { ExposureTrack, GateMini } from '@/components/incident/Instruments';
 import { atPath, isArabic, sameJson } from '@/components/strata/diff';
-import { cap, dayTime, dayYear, plural, shortHash } from '@/components/strata/format';
+import { cap, dayTime, dayYear, plural, shortHash, versionHint, versionText } from '@/components/strata/format';
 import { incidentFacts } from '@/components/strata/incident-model';
 import { Band, Chip, HandedToYou, HeadRow, HeldBy, Kv, Lnk, Mk, Mono, Rail, ReadError, SyntheticRow } from '@/components/strata/primitives';
 import { aiSuggestion, analysisText, deltaText, incidentSem, policyFacts, RESULT_TEXT, ROLE_TEXT, twoLines } from '@/components/strata/semantics';
@@ -41,8 +41,8 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
   const out = f.analysis;
   const synthetic = source?.source.isDemoFixture ?? false;
   const level = source?.source.contentLevel ?? null;
-  const cand = inc.candidateVersion.upstreamLabel, prev = inc.previousVersion?.upstreamLabel ?? 'the previous version';
-  const served = g?.served?.label ?? source?.source.servedLabel ?? '—';
+  const cand = versionText(inc.candidateVersion.upstreamLabel, inc.candidateVersion.revisionNumber, 'label'), prev = inc.previousVersion ? versionText(inc.previousVersion.upstreamLabel, inc.previousVersion.revisionNumber, 'label') : 'the previous version';
+  const served = g?.served ? versionText(g.served.label, g.served.revisionNumber, 'label') : source?.source.servedLabel ? versionText(source.source.servedLabel, source.source.servedRevision, 'label') : '—';
   const appName = g?.appName ?? 'the protected app';
   const sem = incidentSem({ status: inc.status, pipelineStatus: inc.pipeline?.status });
   const running = inc.pipeline?.status === 'RUNNING';
@@ -214,7 +214,7 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
               <div className="c6-10">
                 <Kv k="Content level"><Mono>{level ?? '—'}</Mono></Kv>
                 <Kv k="Silent mutation">{inc.candidateVersion.silentMutation ? 'Yes, same label, different bytes' : source?.source.versionLabelPublished === false ? 'Not claimed: no label published' : 'No, label changed'}</Kv>
-                <Kv k="Revision"><Mono>{cand} · r{inc.candidateVersion.revisionNumber}</Mono></Kv>
+                <Kv k="Revision"><span title={versionHint(inc.candidateVersion.upstreamLabel)}><Mono>{versionText(inc.candidateVersion.upstreamLabel, inc.candidateVersion.revisionNumber)}</Mono></span></Kv>
               </div>
             </div>
           </div>
@@ -272,11 +272,11 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
             <div className="plate"><b>No matched regression is recorded yet.</b><p className="body">{inc.pipeline?.status === 'RUNNING' ? 'The regression steps are still running.' : 'Behavior was not tested for this candidate.'}</p></div>
           ) : (
             <Behavior questions={questions} recordKey={f.recordKey}
-              oldLabel={batch[0] ? (batch[0].oldVersion.revisionNumber > 1 ? `${batch[0].oldVersion.label} r${batch[0].oldVersion.revisionNumber}` : batch[0].oldVersion.label) : prev}
-              newLabel={batch[0] ? (batch[0].newVersion.revisionNumber > 1 ? `${batch[0].newVersion.label} r${batch[0].newVersion.revisionNumber}` : batch[0].newVersion.label) : cand} />
+              oldLabel={batch[0] ? versionText(batch[0].oldVersion.label, batch[0].oldVersion.revisionNumber, 'needed') : prev}
+              newLabel={batch[0] ? versionText(batch[0].newVersion.label, batch[0].newVersion.revisionNumber, 'needed') : cand} />
           )}
           {fallback && questions.length > 0 && <span className="prov" role="note"><Mk layer="ai" />Answers and results are from the incident record. The advisory verdict, batch and config hash could not be read: <Mono>{`GET /api/incidents/${inc.id.slice(0, 8)}…/regressions`}</Mono> returned an error.</span>}
-          {batch[0] && <span className="prov"><Mk layer="det" />Batch <Mono>{batch[0].batchId.slice(0, 8)}</Mono> against the protected app <Mono>{batch[0].protectedAppId}</Mono>, comparing <Mono>{batch[0].oldVersion.label} r{batch[0].oldVersion.revisionNumber}</Mono> → <Mono>{batch[0].newVersion.label} r{batch[0].newVersion.revisionNumber}</Mono>. Answers and retrieved records are stored for both runs.</span>}
+          {batch[0] && <span className="prov"><Mk layer="det" />Batch <Mono>{batch[0].batchId.slice(0, 8)}</Mono> against the protected app <Mono>{batch[0].protectedAppId}</Mono>, comparing <Mono>{versionText(batch[0].oldVersion.label, batch[0].oldVersion.revisionNumber)}</Mono> → <Mono>{versionText(batch[0].newVersion.label, batch[0].newVersion.revisionNumber)}</Mono>. Answers and retrieved records are stored for both runs.</span>}
         </div>
       </Band>
 

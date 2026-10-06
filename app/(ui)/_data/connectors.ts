@@ -53,7 +53,7 @@ export function connectorFacts(source: SourceSummary): ConnectorFacts {
       recordsPhrase: () => `${HADEETHENC_HADITH_IDS.length} hadiths, ${HADEETHENC_LANGUAGES.join(' + ')}`,
       scope: () => `Hadith ${HADEETHENC_HADITH_IDS.join(', ')} · ${HADEETHENC_LANGUAGES.join(' + ')}`,
       keys: 'hadeethenc:{id}', upstream: { main: host(http?.source.endpoint ?? 'hadeethenc.com'), sub: 'No version label' },
-      strategy: 'Provider publishes no label; literal unversioned', revisionRule: 'A new raw fingerprint becomes a new revision', endpointLines,
+      strategy: 'Provider publishes no label; Istithbat numbers each observed state r1, r2, …', revisionRule: 'A new raw fingerprint becomes a new revision', endpointLines,
     };
   }
   if (source.id === QURANENC_ID) {
@@ -69,6 +69,6 @@ export function connectorFacts(source: SourceSummary): ConnectorFacts {
     ...base, subtitle, tab: title, kindShort: `${base.kind} · level ${source.contentLevel}`,
     recordsPhrase: (n) => (n == null ? 'records' : `${n} records`), scope: (n) => (n == null ? '—' : `${n} records`), keys: '—',
     upstream: { main: http ? host(http.source.endpoint) : source.provider, sub: labelled ? 'Publishes version' : 'No version label' },
-    strategy: labelled ? 'Provider publishes a label' : 'Provider publishes no label; literal unversioned', revisionRule: 'A new raw fingerprint becomes a new revision', endpointLines,
+    strategy: labelled ? 'Provider publishes a label' : 'Provider publishes no label; Istithbat numbers each observed state r1, r2, …', revisionRule: 'A new raw fingerprint becomes a new revision', endpointLines,
   };
 }

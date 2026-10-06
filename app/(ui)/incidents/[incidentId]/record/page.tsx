@@ -1,3 +1,4 @@
+import { versionText } from '@/components/strata/format';
 import { AutoRefresh } from '@/components/strata/AutoRefresh';
 import { notFound } from 'next/navigation';
 import { canReview } from '@/lib/governance/transitions';
@@ -24,11 +25,11 @@ export default async function RecordPage({ params }: { params: Promise<{ inciden
   const sum = await summarizeIncident(inc);
   const g = gateway.ok ? gateway.data.find((x) => x.sourceId === inc.sourceId && x.binding) ?? null : null;
   const versions = src.ok && src.data ? src.data.versions : [];
-  const versionLabel = Object.fromEntries(versions.map((v) => [v.id, `${v.upstreamLabel} · r${v.revisionNumber}`]));
+  const versionLabel = Object.fromEntries(versions.map((v) => [v.id, versionText(v.upstreamLabel, v.revisionNumber)]));
   const candV = versions.find((v) => v.id === inc.candidateVersionId) ?? null;
   const prevV = candV?.previousVersionId ? versions.find((v) => v.id === candV.previousVersionId) ?? null : null;
   const open = inc.status !== 'RESOLVED';
-  const cand = inc.candidateLabel;
+  const cand = versionText(inc.candidateLabel, inc.candidateRevision, 'label');
   const latest = audit.ok ? audit.data.events.find((e) => !/^PIPELINE_STEP_/.test(e.eventType)) ?? null : null;
   const policy = (sum.policyAction ?? null) as 'ALLOW' | 'REVIEW' | 'QUARANTINE' | 'ESCALATE' | null;
   const approveAllowed = candV ? canReview('APPROVE', candV.status, inc.status, policy) : false;
@@ -57,8 +58,8 @@ export default async function RecordPage({ params }: { params: Promise<{ inciden
           {!audit.ok ? <ReadError {...audit.error} /> : (
             <RecordLedger initial={audit.data} ctx={{
               incidentId: inc.id, recordKey: sum.recordKey, candidateId: inc.candidateVersionId, candidateLabel: cand,
-              previousId: prevV?.id ?? null, previousLabel: inc.previousLabel,
-              servedLabel: g?.served?.label ?? null, appName: g?.appName ?? null, open, approveAllowed, versionLabel,
+              previousId: prevV?.id ?? null, previousLabel: inc.previousLabel ? versionText(inc.previousLabel, inc.previousRevision, 'label') : null,
+              servedLabel: g?.served ? versionText(g.served.label, g.served.revisionNumber, 'label') : null, appName: g?.appName ?? null, open, approveAllowed, versionLabel,
               change: sum.diff ? { field: sum.fieldPath, old: oldV, new: newV, arabic: !!oldV && isArabic(oldV) } : null,
               analysisMode: inc.analysisMode,
               links: { source: `${base}#source`, facts: `${base}#facts`, advisory: `${base}#advisory`, behavior: `${base}#behavior`, exposure: `${base}#exposure`, containment: `${base}#containment`, decision: `${base}#decision`, blast: `${base}/blast-radius`, gateway: g?.appId ? `/gateway/${g.appId}` : '/gateway', sources: `/sources/${inc.sourceId}` },

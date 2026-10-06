@@ -4,7 +4,7 @@ import type { SourceView } from '@/components/sources/types';
 import { plural, word } from '@/components/strata/format';
 import { Chip, Dk, HandedToYou, PageHeader, ReadError, Sep, SummaryDock } from '@/components/strata/primitives';
 import { readGatewayInventory, readSourceDetail, readSources } from '../_data/read';
-import { sourceModel } from '../_data/source-model';
+import { sourceModel, vl } from '../_data/source-model';
 import { sourceView } from '../_data/source-view';
 
 /** Shared by /sources and /sources/{id}: the same screen with that source selected (handoff §2). */
@@ -55,7 +55,7 @@ export async function SourcesPage({ selectedId }: { selectedId?: string }) {
       {leadHeld ? (
         <SummaryDock
           railText={`Sources never decide. The held ${leadHeld.facts.title} candidate waits for a signature.`}
-          left={<Chip tone="co">{leadHeld.facts.title} <span className="mono">{leadHeld.latest?.label}</span> held</Chip>}
+          left={<Chip tone="co">{leadHeld.facts.title} <span className="mono">{vl(leadHeld.latest)}</span> held</Chip>}
           right={<HandedToYou />}
           question={held.length === 1 ? 'One source has a candidate waiting.' : `${word(held.length)} sources have candidates waiting.`}
           body={models.filter((m) => m.state === 'agreement').length ? `${models.filter((m) => m.state === 'agreement').map((m) => m.facts.title).join(' and ')} need nothing: they match their trusted baselines.` : 'Every other source needs a look as well.'}

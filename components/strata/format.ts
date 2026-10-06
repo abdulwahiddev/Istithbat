@@ -66,3 +66,26 @@ export const humanize = (value: string) => {
 
 /** "HIGH" → "High" */
 export const cap = (value: string) => value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+
+/**
+ * Version labels. A provider that publishes no version label is stored with the literal upstream
+ * label 'unversioned' (lib/connectors UNVERSIONED_LABEL); Istithbat still numbers each observed state
+ * r1, r2, … For those sources the revision alone is the label, at the same weight as `v13` or
+ * `1.1.2 · r1`, and `REVISION_NOTE` explains it in a tooltip / accessible name. Provider labels are
+ * never replaced. Presentation only: the stored label, revision and Silent Mutation rules are unchanged.
+ */
+export const UNVERSIONED = 'unversioned';
+export const isUnversioned = (label: string | null | undefined) => label === UNVERSIONED;
+export const REVISION_NOTE = 'Istithbat revision · upstream publishes no version label';
+/**
+ * `always`: provider label · rN (lineage, record). `needed`: label rN only from r2 (graph, regression).
+ * `label`: the provider label alone (badges, sentences). Unversioned providers show rN in every mode.
+ */
+export function versionText(label: string | null | undefined, revision: number | null | undefined, rev: 'always' | 'needed' | 'label' = 'always'): string {
+  if (label == null) return '—';
+  if (isUnversioned(label)) return revision != null ? `r${revision}` : '—';
+  if (rev === 'label' || revision == null || (rev === 'needed' && revision <= 1)) return label;
+  return rev === 'needed' ? `${label} r${revision}` : `${label} · r${revision}`;
+}
+/** Tooltip / aria text for a displayed version, only where the label is an Istithbat revision. */
+export const versionHint = (label: string | null | undefined) => (isUnversioned(label) ? REVISION_NOTE : undefined);

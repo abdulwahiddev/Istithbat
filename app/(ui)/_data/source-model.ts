@@ -1,4 +1,5 @@
 import 'server-only';
+import { versionText } from '@/components/strata/format';
 import type { SourceDetail, SourceSummary } from '@/lib/contracts';
 import { connectorFacts, type ConnectorFacts } from './connectors';
 import type { GatewayItem } from './read';
@@ -56,4 +57,7 @@ export function sourceModel(summary: SourceSummary, gateway: GatewayItem[], deta
 }
 
 /** "v14 · r1" */
-export const vr = (x: { label: string; revision: number } | null | undefined) => (x ? `${x.label} · r${x.revision}` : null);
+/** Lineage label: provider label · rN, or rN alone when the provider publishes no label. */
+export const vr = (x: { label: string; revision: number } | null | undefined) => (x ? versionText(x.label, x.revision) : null);
+/** Compact label (badges, sentences): the provider label, or rN when the provider publishes none. */
+export const vl = (x: { label: string; revision: number } | null | undefined) => (x ? versionText(x.label, x.revision, 'label') : '—');

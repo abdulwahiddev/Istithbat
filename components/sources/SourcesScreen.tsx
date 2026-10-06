@@ -43,7 +43,7 @@ export function SourcesScreen({ views, initialId }: { views: SourceView[]; initi
                     {v.stages.map((g, i) => (
                       <span key={i} className="stg" style={css(i < 3 ? `--ln:${g.line};--ls:${g.lineStyle}` : '--ln:transparent;--ls:solid')}>
                         <span className={`sdot${g.dot.startsWith('background') ? ' fill' : ''}`} style={css(g.dot)}><Icon name={STAGE_ICON[i] ?? 'link'} size={13} /></span>
-                        <b className={g.mono ? 'mono' : ''}>{g.main}</b>
+                        <b className={g.mono ? 'mono' : ''} title={g.hint} aria-label={g.hint ? `${g.main}, ${g.hint}` : undefined}>{g.main}</b>
                         <span>{g.sub}</span>
                       </span>
                     ))}
@@ -86,8 +86,8 @@ export function SourcesScreen({ views, initialId }: { views: SourceView[]; initi
                   <p style={{ margin: 0, fontSize: 18, lineHeight: '28px', maxWidth: '34em' }}>{sel.sentence}</p>
                 </div>
                 <div className="c7-10">
-                  <div className="kv"><span>Latest snapshot</span><span className="mono">{sel.latest}</span></div>
-                  <div className="kv"><span>Trusted baseline</span><span className="mono">{sel.trusted}</span></div>
+                  <div className="kv"><span>Latest snapshot</span><span className="mono" title={sel.revisionHint}>{sel.latest}</span></div>
+                  <div className="kv"><span>Trusted baseline</span><span className="mono" title={sel.revisionHint}>{sel.trusted}</span></div>
                   <div className="kv"><span>Served</span><span>{sel.served}</span></div>
                   <div className="kv"><span>Changed since baseline</span><span>{sel.changed}</span></div>
                 </div>

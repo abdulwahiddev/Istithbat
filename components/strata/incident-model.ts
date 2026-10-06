@@ -1,6 +1,7 @@
 import type { IncidentAggregate } from '@/lib/contracts';
 import { valueText, wordDiff } from './diff';
 import { changeHeadline } from './semantics';
+import { versionText } from './format';
 
 /** Facts about an incident that several screens state the same way. Pure. */
 export type AnalysisOut = {
@@ -25,9 +26,9 @@ export function incidentFacts(inc: IncidentAggregate) {
     primary, oldV, newV, diff,
     headline: changeHeadline(primary?.fieldRole, primary?.changeType, diff),
     recordKey: primary?.canonicalKey ?? inc.sourceId,
-    candidate: `${inc.candidateVersion.upstreamLabel}`,
+    candidate: versionText(inc.candidateVersion.upstreamLabel, inc.candidateVersion.revisionNumber, 'label'),
     candidateRev: inc.candidateVersion.revisionNumber,
-    previous: inc.previousVersion?.upstreamLabel ?? null,
+    previous: inc.previousVersion ? versionText(inc.previousVersion.upstreamLabel, inc.previousVersion.revisionNumber, 'label') : null,
     analysis: out, analysisMode: inc.analysis?.meta.mode ?? null,
     regressionCount: regs.length, materialCount: material,
     counts: br?.counts ?? null, downstream: br ? br.nodes.filter((n) => n.assetType !== 'SOURCE' && n.assetType !== 'RECORD').length : null,

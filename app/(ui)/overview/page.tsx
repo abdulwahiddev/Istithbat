@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { IncidentAggregate } from '@/lib/contracts';
 type PipelineStepState = IncidentAggregate['pipelineSteps'][number];
 import { FOLDED, LANE_MARK, narrate } from '@/components/strata/events';
-import { evTime, word } from '@/components/strata/format';
+import { evTime, versionHint, versionText, word } from '@/components/strata/format';
 import type { IncidentSummary } from '@/components/strata/incident-model';
 import { summarizeIncident } from '../_data/incident-summary';
 import { Band, Chip, Dk, Ev, HandedToYou, HeadRow, HeldBy, Lnk, Mk, Mono, PageHeader, Rail, ReadError, Sep, SummaryDock } from '@/components/strata/primitives';
@@ -35,7 +35,7 @@ export default async function OverviewPage() {
   const quarantined = held.filter((i) => i.status === 'QUARANTINED').length;
   const records = models.reduce((n, m) => n + (m.recordCount ?? 0), 0);
   const versionLabel = new Map(models.flatMap((m) => [m.latest, m.trusted]).filter(Boolean).map((v) => [v!.id, vr(v)!]));
-  for (const d of summaries) { versionLabel.set(d.item.candidateVersionId, `${d.item.candidateLabel} · r${d.item.candidateRevision}`); }
+  for (const d of summaries) { versionLabel.set(d.item.candidateVersionId, versionText(d.item.candidateLabel, d.item.candidateRevision)); }
   const servingTrusted = bindingList.length > 0 && bindingList.every((b) => b.served?.status === 'TRUSTED');
 
   return (
@@ -113,7 +113,7 @@ export default async function OverviewPage() {
           railText={held.length === 1 ? 'One case is waiting. Everything else is serving trusted knowledge.' : `${word(held.length)} cases are waiting.`}
           left={leadSum.policyCode ? <HeldBy code={leadSum.policyCode} /> : <Chip tone="am">Held for review</Chip>}
           right={<HandedToYou />}
-          question={<>Should <span className="mono" style={{ fontSize: 25 }}>{lead.candidateLabel}</span> of {leadSum.sourceTitle} replace <span className="mono" style={{ fontSize: 25 }}>{lead.previousLabel ?? 'the trusted version'}</span>?</>}
+          question={<>Should <span className="mono" style={{ fontSize: 25 }}>{versionText(lead.candidateLabel, lead.candidateRevision, 'label')}</span> of {leadSum.sourceTitle} replace <span className="mono" style={{ fontSize: 25 }}>{lead.previousLabel ?? 'the trusted version'}</span>?</>}
           body="The evidence, the AI reading and the regression are on the incident."
           href={`/incidents/${lead.id}#decision`} cta="Review the evidence and decide"
           helper={leadSum.policyAction === 'QUARANTINE' ? 'Policy requires a human for this change' : 'Held until a person decides'}
@@ -144,12 +144,12 @@ function SourceRow({ m, incidentId }: { m: SourceModel; incidentId: string | nul
         {s.isDemoFixture ? <span className="pill" style={{ alignSelf: 'flex-start', padding: '2px 10px', border: '1px solid var(--am-soft)', background: 'var(--am-soft)', color: 'var(--am-ink)', fontSize: 12 }}><span className="dot" style={{ background: 'var(--am)' }} />Controlled synthetic source</span>
           : m.facts.subtitle && <span className="meta" style={{ fontSize: 12 }}>{m.facts.subtitle}</span>}
       </div>
-      <div className="vc"><span className="v mono">{latest?.label ?? s.latestSeenLabel ?? '—'}</span><span className="vs">{latestNote}</span></div>
+      <div className="vc"><span className="v mono" title={versionHint(latest?.label ?? s.latestSeenLabel)}>{latest ? versionText(latest.label, latest.revision, 'label') : versionText(s.latestSeenLabel, s.latestSeenRevision, 'label')}</span><span className="vs">{latestNote}</span></div>
       <span className="op" aria-label={m.changed ? 'is not' : 'equals'}>{m.changed ? '≠' : '='}</span>
-      <div className="vc"><span className="v mono">{trusted?.label ?? '—'}</span><span className="vs">{trusted ? <><span className="dot" style={{ background: 'var(--tq)' }} />{m.facts.real ? 'Baseline' : 'Trusted'}</> : 'No trusted version'}</span></div>
+      <div className="vc"><span className="v mono" title={versionHint(trusted?.label)}>{trusted ? versionText(trusted.label, trusted.revision, 'label') : '—'}</span><span className="vs">{trusted ? <><span className="dot" style={{ background: 'var(--tq)' }} />{m.facts.real ? 'Baseline' : 'Trusted'}</> : 'No trusted version'}</span></div>
       {m.bound ? <span className="op" aria-label={m.served?.id === trusted?.id ? 'equals' : 'is not'}>{m.served?.id === trusted?.id ? '=' : '≠'}</span> : <span className="op" aria-hidden="true">·</span>}
       <div className="vc">
-        {m.bound ? <><span className="v mono">{m.served?.label ?? '—'}</span><span className="vs">to {m.appName}</span></>
+        {m.bound ? <><span className="v mono" title={versionHint(m.served?.label)}>{m.served ? versionText(m.served.label, m.served.revision, 'label') : '—'}</span><span className="vs">to {m.appName}</span></>
           : <><span className="v" style={{ color: 'var(--ink-3)' }}>—</span><span className="vs">No protected app</span></>}
       </div>
       <div className="sstate">

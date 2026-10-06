@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { GatewayLanes, type GateLane } from '@/components/gateway/GateInstrument';
 import { FOLDED, LANE_MARK, narrate } from '@/components/strata/events';
-import { dayTime, evTime } from '@/components/strata/format';
+import { dayTime, evTime, versionText } from '@/components/strata/format';
 import { Band, Chip, Dk, Ev, HandedToYou, HeadRow, HeldBy, Lnk, Mk, Mono, PageHeader, Rail, ReadError, Sep, SummaryDock } from '@/components/strata/primitives';
 import { summarizeIncident } from '../../_data/incident-summary';
 import { readAudit, readGatewayInventory, readGatewayState, readIncidentItem, readSources, readShell } from '../../_data/read';
@@ -9,7 +9,9 @@ import { readAudit, readGatewayInventory, readGatewayState, readIncidentItem, re
 export const metadata = { title: 'Trust Gateway · Istithbat' };
 export const dynamic = 'force-dynamic';
 
-const vr = (v: { label: string; revisionNumber: number } | null | undefined) => (v ? `${v.label} · r${v.revisionNumber}` : '—');
+const vr = (v: { label: string; revisionNumber: number } | null | undefined) => (v ? versionText(v.label, v.revisionNumber) : '—');
+/** Badge / sentence label: the provider label, or rN when the provider publishes none. */
+const vb = (v: { label: string; revisionNumber: number } | null | undefined) => (v ? versionText(v.label, v.revisionNumber, 'label') : '—');
 
 export default async function GatewayPage({ params }: { params: Promise<{ appId: string }> }) {
   const appId = decodeURIComponent((await params).appId);
@@ -35,15 +37,15 @@ export default async function GatewayPage({ params }: { params: Promise<{ appId:
     ? ['SOURCE_VERSION_DETECTED', 'POLICY_EVALUATED', 'VERSION_QUARANTINED', 'VERSION_PROMOTED', 'REVIEW_DECISION', 'BASELINE_SEEDED', 'BASELINE_ESTABLISHED'].includes(e.eventType)
     : (e.entityType === 'source_version' && versionIds.has(e.entityId)) || (e.entityType === 'source' && e.entityId === g.sourceId))).slice(0, 6) : [];
   const held = g.heldCandidate;
-  const candidateLabel = held ? held.version.label : null;
+  const candidateLabel = held ? vb(held.version) : null;
   const policyCode = f?.policyCode ?? null;
   const allowCase = policyCode === 'POL-005';
   const synthetic = source?.isDemoFixture ?? false;
   const stateText = (st: string) => (st === 'QUARANTINED' ? 'Quarantined' : st === 'ANALYZING' ? 'Investigating' : 'Held for review');
   // Every source bound to this app, each with its own trusted/served versions and held candidate.
   const lanes: GateLane[] = rows.map((r) => ({
-    sourceId: r.sourceId, sourceName: r.sourceName.split(' — ')[0], trusted: r.latestTrusted?.label ?? '—', served: r.served?.label ?? '—',
-    candidate: r.heldCandidate ? { label: r.heldCandidate.version.label, state: stateText(r.heldCandidate.incidentStatus), policyCode: r.sourceId === g.sourceId ? policyCode : null } : null,
+    sourceId: r.sourceId, sourceName: r.sourceName.split(' — ')[0], trusted: vb(r.latestTrusted), served: vb(r.served),
+    candidate: r.heldCandidate ? { label: vb(r.heldCandidate.version), state: stateText(r.heldCandidate.incidentStatus), policyCode: r.sourceId === g.sourceId ? policyCode : null } : null,
   }));
   const heldCount = lanes.filter((l) => l.candidate).length;
 
@@ -52,7 +54,7 @@ export default async function GatewayPage({ params }: { params: Promise<{ appId:
       <PageHeader
         crumbs={<><span>Trust Gateway</span><Sep /><span>{g.appName}</span></>}
         synthetic={synthetic}
-        title={heldCount > 1 ? <>{heldCount} candidates are held.<br />Trusted versions keep serving.</> : held ? <>{held.version.label} is held.<br />{g.served.label} keeps serving.</> : heldCount ? <>One candidate is held.<br />Trusted versions keep serving.</> : <>Nothing is held.<br />{lanes.length > 1 ? 'Trusted versions are serving.' : `${g.served.label} is serving.`}</>}
+        title={heldCount > 1 ? <>{heldCount} candidates are held.<br />Trusted versions keep serving.</> : held ? <>{vb(held.version)} is held.<br />{vb(g.served)} keeps serving.</> : heldCount ? <>One candidate is held.<br />Trusted versions keep serving.</> : <>Nothing is held.<br />{lanes.length > 1 ? 'Trusted versions are serving.' : `${vb(g.served)} is serving.`}</>}
         lede={held ? 'Production reads only the trusted version. The newest upstream version waits at the gate until a person signs.' : 'Production reads only the trusted version. Any new upstream version will wait at the gate until policy or a person releases it.'}
         status={<>
           <Dk k="Gateway"><Chip tone={g.served.status === 'TRUSTED' ? 'tq' : 'co'}>{g.served.status === 'TRUSTED' ? 'Serving trusted' : 'Not serving trusted'}</Chip></Dk>
@@ -119,7 +121,7 @@ export default async function GatewayPage({ params }: { params: Promise<{ appId:
             </div>
             <div className="c6-10 plate in r" style={{ marginRight: -24, padding: '20px 24px 20px 20px', display: 'flex', flexDirection: 'column', gap: 10, background: 'transparent', border: '1px dashed var(--line-2)', boxShadow: 'none' }}>
               <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}><b style={{ fontSize: 17, fontWeight: 600 }}><span className="mono">POL-005</span> allow</b><Chip tone="n4" small>{held ? 'Not applicable' : 'Not in use'}</Chip></span>
-              <p className="body">Deterministic fast path for metadata, whitespace, Unicode or serialization-only changes.{held && inc?.primaryChange?.fieldRole ? ` ${held.version.label} changed a ${inc.primaryChange.fieldRole === 'SCHOLAR_JUDGMENT' ? 'judgment' : inc.primaryChange.fieldRole.toLowerCase().replace(/_/g, ' ')}, so it cannot use it.` : ''}</p>
+              <p className="body">Deterministic fast path for metadata, whitespace, Unicode or serialization-only changes.{held && inc?.primaryChange?.fieldRole ? ` ${vb(held.version)} changed a ${inc.primaryChange.fieldRole === 'SCHOLAR_JUDGMENT' ? 'judgment' : inc.primaryChange.fieldRole.toLowerCase().replace(/_/g, ' ')}, so it cannot use it.` : ''}</p>
               <span className="meta"><span className="mono">ALLOW · no incident</span></span>
             </div>
           </div>
@@ -128,7 +130,7 @@ export default async function GatewayPage({ params }: { params: Promise<{ appId:
             <ol className="steps">
               <li><span className="n">1</span><span className="t">Lock the source, its bindings, the candidate, the trusted version and the policy evaluation</span><span className="m mono">FOR UPDATE</span></li>
               <li><span className="n">2</span><span className="t">Assert the transition is legal: every binding still serves the trusted version</span><span className="m mono">INVALID_REVIEW_TRANSITION</span></li>
-              <li><span className="n">3</span><span className="t">Supersede {g.latestTrusted ? <span className="mono">{g.latestTrusted.label}</span> : 'the trusted version'}</span><span className="m mono">TRUSTED → SUPERSEDED</span></li>
+              <li><span className="n">3</span><span className="t">Supersede {g.latestTrusted ? <span className="mono">{vb(g.latestTrusted)}</span> : 'the trusted version'}</span><span className="m mono">TRUSTED → SUPERSEDED</span></li>
               <li><span className="n">4</span><span className="t">Trust {candidateLabel ? <span className="mono">{candidateLabel}</span> : 'the candidate'}</span><span className="m mono">{held ? `${held.version.status} → TRUSTED` : '→ TRUSTED'}</span></li>
               <li><span className="n">5</span><span className="t">Re-point the gateway binding for {g.appName}</span><span className="m mono">served → {candidateLabel ?? 'candidate'}</span></li>
               <li><span className="n">6</span><span className="t">Re-point gateway-resolved derivations</span><span className="m mono">GATEWAY_RESOLVED</span></li>
@@ -137,7 +139,7 @@ export default async function GatewayPage({ params }: { params: Promise<{ appId:
             </ol>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--line-2)' }}>
               <span className="chip" style={{ color: 'var(--ink)' }}><span className="dot" style={{ background: 'var(--tq)' }} />All or nothing</span>
-              <span className="body" style={{ color: 'var(--ink-3)' }}>If any step fails, the whole transaction rolls back and <span className="mono">{g.served.label}</span> keeps serving.</span>
+              <span className="body" style={{ color: 'var(--ink-3)' }}>If any step fails, the whole transaction rolls back and <span className="mono">{vb(g.served)}</span> keeps serving.</span>
             </div>
           </div>
         </div>
@@ -149,9 +151,9 @@ export default async function GatewayPage({ params }: { params: Promise<{ appId:
           <HeadRow title="Binding history" right={inc ? <Lnk href={`/incidents/${inc.id}/record`}>Full record</Lnk> : undefined} />
           {!audit.ok ? <ReadError {...audit.error} /> : (
             <div className="plate tight">
-              {held && <Ev mark={<Mk layer="hum" style={{ background: 'var(--ink-4)' }} />} time="pending" title={`Decision on ${held.version.label}`} note="Not yet signed. The gate stays locked." code={<span style={{ fontFamily: 'inherit' }}>Reviewer</span>} />}
+              {held && <Ev mark={<Mk layer="hum" style={{ background: 'var(--ink-4)' }} />} time="pending" title={`Decision on ${vb(held.version)}`} note="Not yet signed. The gate stays locked." code={<span style={{ fontFamily: 'inherit' }}>Reviewer</span>} />}
               {history.map((e) => {
-                const n = narrate(e, { versionLabel: (id) => (id ? labelOf.get(id) ?? null : null), servedLabel: g.served.label, appName: g.appName });
+                const n = narrate(e, { versionLabel: (id) => (id ? labelOf.get(id) ?? null : null), servedLabel: vb(g.served), appName: g.appName });
                 return <Ev key={e.id} mark={<Mk layer={LANE_MARK[n.lane]} />} time={evTime(e.createdAt)} title={n.title} note={n.line} code={e.eventType} />;
               })}
               {!held && history.length === 0 && <p className="body" style={{ padding: '16px 0' }}>No recent entry for this binding in the latest page of the record.</p>}
@@ -165,7 +167,7 @@ export default async function GatewayPage({ params }: { params: Promise<{ appId:
           railText="The gateway never decides. It waits for a signature."
           left={policyCode ? <HeldBy code={policyCode} verb="Locked by" /> : <Chip tone="am">Held for review</Chip>}
           right={<HandedToYou>Opens only on your signature</HandedToYou>}
-          question={<>Should <span className="mono" style={{ fontSize: 25 }}>{held.version.label}</span> replace <span className="mono" style={{ fontSize: 25 }}>{g.served.label}</span> in production?</>}
+          question={<>Should <span className="mono" style={{ fontSize: 25 }}>{vb(held.version)}</span> replace <span className="mono" style={{ fontSize: 25 }}>{vb(g.served)}</span> in production?</>}
           body="Review the evidence and sign on the incident. Approving runs the transaction above."
           href={`/incidents/${inc.id}#decision`} cta="Review the evidence and decide"
           helper={f?.policyAction === 'QUARANTINE' ? 'Policy requires a human for this change' : 'Held until a person decides'}
@@ -173,7 +175,7 @@ export default async function GatewayPage({ params }: { params: Promise<{ appId:
       ) : (
         <SummaryDock
           railText="The gateway never decides. Nothing is waiting at the gate."
-          left={<Chip tone="tq">Serving trusted <span className="mono">{g.served.label}</span></Chip>} right={<HandedToYou>Nothing to sign</HandedToYou>}
+          left={<Chip tone="tq">Serving trusted <span className="mono">{vb(g.served)}</span></Chip>} right={<HandedToYou>Nothing to sign</HandedToYou>}
           question="Nothing is waiting at the gate." body="A held candidate appears here, and opens only on a reviewer’s signature."
           href="/incidents" cta="Open the incidents" helper="Only POL-005 or a signed approval can move a version to trusted"
         />

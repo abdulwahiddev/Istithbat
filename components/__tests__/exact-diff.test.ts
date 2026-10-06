@@ -62,3 +62,22 @@ describe('blast layout adapts to the graph', () => {
     expect(Math.max(...ys)).toBeLessThan(g.height);
   });
 });
+
+describe('version labels (presentation only)', () => {
+  it('shows the Istithbat revision alone when the provider publishes no label', async () => {
+    const { versionText, versionHint } = await import('../strata/format');
+    expect(versionText('unversioned', 1)).toBe('r1');
+    expect(versionText('unversioned', 2, 'label')).toBe('r2');
+    expect(versionText('unversioned', 3, 'needed')).toBe('r3');
+    expect(versionHint('unversioned')).toBe('Istithbat revision · upstream publishes no version label');
+  });
+  it('never replaces a provider-published label', async () => {
+    const { versionText, versionHint } = await import('../strata/format');
+    expect(versionText('1.1.2', 1)).toBe('1.1.2 · r1');
+    expect(versionText('1.1.2', 2)).toBe('1.1.2 · r2');
+    expect(versionText('v14', 1, 'needed')).toBe('v14');
+    expect(versionText('v14', 2, 'needed')).toBe('v14 r2');
+    expect(versionText('v14', 2, 'label')).toBe('v14');
+    expect(versionHint('v14')).toBeUndefined();
+  });
+});

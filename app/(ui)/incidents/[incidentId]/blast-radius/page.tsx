@@ -2,7 +2,7 @@ import { AutoRefresh } from '@/components/strata/AutoRefresh';
 import { notFound } from 'next/navigation';
 import { BlastInstrument } from '@/components/blast/BlastInstrument';
 import { GRAPH_LIMITS } from '@/lib/blast-radius/graph';
-import { dayTime, evTime, plural, shortHash, word } from '@/components/strata/format';
+import { dayTime, evTime, plural, shortHash, versionText, word } from '@/components/strata/format';
 import { Band, Chip, Dk, HandedToYou, HeadRow, Kv, Mk, Mono, PageHeader, Rail, ReadError, Sep, SummaryDock } from '@/components/strata/primitives';
 import { incidentSem } from '@/components/strata/semantics';
 import { readBlast, readGatewayInventory, readIncidentItem, readRegressions, readSourceDetail, readShell } from '../../../_data/read';
@@ -28,8 +28,8 @@ export default async function BlastRadiusPage({ params }: { params: Promise<{ in
   const g = gateway.ok ? gateway.data.find((x) => x.sourceId === inc.sourceId && x.binding) ?? null : null;
   const br = blast.ok ? blast.data : null;
   const sem = incidentSem({ status: inc.status, pipelineStatus: inc.pipelineStatus });
-  const cand = inc.candidateLabel, prev = inc.previousLabel ?? '—';
-  const versionLabel: Record<string, string> = Object.fromEntries((source?.versions ?? []).map((v) => [v.id, v.revisionNumber > 1 ? `${v.upstreamLabel} r${v.revisionNumber}` : v.upstreamLabel]));
+  const cand = versionText(inc.candidateLabel, inc.candidateRevision, 'label'), prev = inc.previousLabel ? versionText(inc.previousLabel, inc.previousRevision, 'label') : '—';
+  const versionLabel: Record<string, string> = Object.fromEntries((source?.versions ?? []).map((v) => [v.id, versionText(v.upstreamLabel, v.revisionNumber, 'needed')]));
   const runBatch: Record<string, string> = Object.fromEntries((regs.ok ? regs.data : []).map((r) => [r.id, `batch ${r.batchId.slice(0, 8)}`]));
   const down = br ? br.nodes.filter((n) => n.assetType !== 'SOURCE' && n.assetType !== 'RECORD') : [];
   const impacted = down.filter((n) => n.impact === 'IMPACTED');
@@ -59,7 +59,7 @@ export default async function BlastRadiusPage({ params }: { params: Promise<{ in
         </Band>
       ) : (
         <BlastInstrument br={br} labels={{
-          sourceName: source?.source.name ?? inc.sourceId, candidate: cand, previous: prev, trustedLabel: g?.latestTrusted?.label ?? prev,
+          sourceName: source?.source.name ?? inc.sourceId, candidate: cand, previous: prev, trustedLabel: g?.latestTrusted ? versionText(g.latestTrusted.label, g.latestTrusted.revisionNumber, 'label') : prev,
           versionLabel, runBatch, changedWord: sum.diff?.removed.length === 1 && !sum.diff.added.length ? sum.diff.removed[0] : null, changedField: sum.fieldPath,
           incidentHeld: held,
         }} />

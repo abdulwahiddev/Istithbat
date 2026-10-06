@@ -1,5 +1,5 @@
 /** Serializable view of one source for the Sources screen (built on the server from the contracts). */
-export type Stage = { main: string; sub: string; dot: string; line: string; lineStyle: 'solid' | 'dashed'; mono?: boolean };
+export type Stage = { main: string; sub: string; dot: string; line: string; lineStyle: 'solid' | 'dashed'; mono?: boolean; /** tooltip when the label is an Istithbat revision */ hint?: string };
 export type SourceView = {
   id: string; tab: string; name: string; provider: string; kind: string; synthetic: boolean; records: string;
   stages: Stage[]; chips: { label: string; tone: string }[]; sentence: string;
@@ -9,6 +9,8 @@ export type SourceView = {
   checks: { when: string; title: string; note: string; code: string; mk: string }[];
   termsLabel: string; terms: string; endpoint: string;
   held: { incidentId: string; label: string } | null;
+  /** Set when the provider publishes no version label: the shown rN is Istithbat's revision. */
+  revisionHint?: string;
 };
 
 /** "background:var(--tq)" → React style object. */
