@@ -6,7 +6,7 @@ Audit date: **6 October 2026**. The original documentation audit used baseline `
 
 | Claim | Evidence | Scope / limitation |
 | --- | --- | --- |
-| Current tests/typecheck/build | Final engineering run: standard unit/component suite; typecheck; Production build; secret scan | 202 tests passed, eight optional database tests skipped. The frozen Packet 07 evaluation was not rerun. |
+| Current tests/typecheck/build | Final engineering run: standard unit/component suite; typecheck; Production build; secret scan | 205 tests passed, eight optional database tests skipped. The frozen Packet 07 evaluation was not rerun. |
 | Deterministic hashing and exact diff | [`lib/hashing/`](../lib/hashing/), [`lib/diff/`](../lib/diff/), [`tests/integrity.test.ts`](../tests/integrity.test.ts), [official result JSON](../evaluation/results/2026-10-05-packet-07.json) | 40/40 synthetic fixture passes; 38/38 expected changes with zero unexpected changes; 3/3 silent mutations. Hash equality establishes byte/normalized identity, not religious truth. |
 | Deterministic policy | [`lib/policy/`](../lib/policy/), [Packet 07 report](evaluation.md) | 40/40 expected policy actions; forced failed AI quarantined 28/28 substantive cases, with 12 equivalent/metadata cases eligible for POL-005 ALLOW. |
 | Live AI behavior | [Packet 07 report](evaluation.md), [frozen result JSON](../evaluation/results/2026-10-05-packet-07.json) | Complete 40-case synthetic evaluation; classification 90.0%, material recall 89.5%, false HIGH/CRITICAL 0/21, regression accuracy 57.5%; no religious-correctness claim. |

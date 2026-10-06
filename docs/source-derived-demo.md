@@ -1,6 +1,6 @@
 # HadeethEnc 10618 — isolated end-to-end validation
 
-> **Historical local validation.** This document records the isolated run and its then-pending Production activation. The later authorized [Production rehearsal](technical-evidence.md#verified-claims) activated 10618: POL-002 quarantined v14, three live comparisons were MATERIAL, Blast Radius found 6 exposed / 1 impacted / 0 stale, and trusted/served stayed v13. The final engineering suite passed 202 tests. The local 2 MATERIAL / 1 NON-MATERIAL results below remain accurate for that separate run.
+> **Historical local validation.** This document records the isolated run and its then-pending Production activation. The later authorized [Production rehearsal](technical-evidence.md#verified-claims) activated 10618: POL-002 quarantined v14, three live comparisons were MATERIAL, Blast Radius found 6 exposed / 1 impacted / 0 stale, and trusted/served stayed v13. The current engineering suite passed 205 tests. The local 2 MATERIAL / 1 NON-MATERIAL results below remain accurate for that separate run.
 
 **Scope:** production build running locally, actual PostgreSQL migrations/transactions, actual signed webhook and persisted pipeline, live Gemini. Snapshot I/O used an isolated Supabase-Storage-compatible HTTP harness, not the Production bucket. No Production mutation, merge, push or deployment. This is additional scenario evidence; official Packet 07 results remain unchanged.
 

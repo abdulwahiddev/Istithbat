@@ -1,6 +1,6 @@
 # Submission-readiness audit
 
-> **Historical audit snapshot.** The 85/100 estimate and 181-test count below describe the earlier `8c03325` baseline, not the current Production release. The later authorized [10618 Production rehearsal](technical-evidence.md#verified-claims) left v14 quarantined, v13 trusted/served, three material regressions and 6 exposed / 1 impacted / 0 stale; the final engineering suite passed 202 tests. Remaining deck, video, private judge access and submission-receipt items still require owner verification.
+> **Historical audit snapshot.** The 85/100 estimate and 181-test count below describe the earlier `8c03325` baseline, not the current Production release. The later authorized [10618 Production rehearsal](technical-evidence.md#verified-claims) left v14 quarantined, v13 trusted/served, three material regressions and 6 exposed / 1 impacted / 0 stale; the current engineering suite passed 205 tests. Public judge preview and sandbox access are documented in the [README](../README.md#judge-access). Remaining deck, video and submission-receipt items still require owner verification.
 
 **Date:** 6 October 2026. **Audited code baseline:** `8c03325bff64c8300956b833c09f24a3d76f2680` on public `main`, plus this documentation-only update. Production was inspected using GET requests and read-only SQL; no source/incident/review/release state was changed. Landing design, Strata, sandbox UI and reviewer UX are outside this audit's change scope.
 
@@ -48,7 +48,7 @@ The documented organizer requirements include a working solution link, public re
 
 ## Submission risks and owner actions
 
-1. **Package/access verification is the remaining submission gate.** Confirm final deck, video, links and private judge instructions, then obtain the portal receipt. Files being present locally would not prove that judges can access them.
+1. **Package verification is the remaining submission gate.** Confirm final deck, video and links, then obtain the portal receipt. Public judge access is documented in the README and verified in Production.
 2. **Do not overstate AI performance.** Official complete results are 89.5% material recall and 57.5% regression accuracy. Show deterministic containment separately; do not represent an incomplete comparison/benchmark as a full success or a religious-correctness evaluation.
 3. **Do not overstate corpus deployment.** 6,236 ayat and 3,574 Arabic hadiths were validated in private artifacts; Production still serves its small monitored baselines. Preserve private raw artifacts for offline reproduction and use the explicit validator if a judge wants an independent acquisition run.
 4. **A new Production rehearsal is a separate destructive action.** Obtain explicit authorization before resetting the held incident. The newest continuation is verified with isolated route/fixture tests; do not present it as a freshly completed live reset→publish run.
