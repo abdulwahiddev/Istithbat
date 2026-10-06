@@ -1,0 +1,196 @@
+{
+  "_doc": "Single source of truth for scene timing + narration. scripts/tts.py reads this to synthesize public/audio/voiceover.wav and write src/narration.json (sentence/caption timings). Captions are the on-screen text; `tts` (optional) is what the voice reads when pronunciation differs.",
+  "fps": 30,
+  "durationSec": 114,
+  "scenes": [
+    {
+      "id": "s01-hook",
+      "start": 0,
+      "end": 8,
+      "sentences": [
+        {
+          "text": "AI systems increasingly depend on trusted knowledge.",
+          "captions": [
+            "AI systems increasingly depend on trusted knowledge."
+          ]
+        },
+        {
+          "text": "But what happens when that knowledge changes after it reaches your system?",
+          "captions": [
+            "But what happens when that knowledge changes",
+            "after it reaches your system?"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s02-trust-state",
+      "start": 8,
+      "end": 17,
+      "sentences": [
+        {
+          "text": "Istithbat separates what is newest from what is trusted — and what applications are actually allowed to serve.",
+          "tts": "Istithbat separates what is newest from what is trusted, and what applications are actually allowed to serve.",
+          "captions": [
+            "Istithbat separates what is newest from what is trusted —",
+            "and what applications are actually allowed to serve."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s03-publish",
+      "start": 17,
+      "end": 30,
+      "sentences": [
+        {
+          "text": "In this controlled demo, we start from a trusted baseline and publish one known mutation of real HadeethEnc record 10618.",
+          "tts": "In this controlled demo, we start from a trusted baseline, and publish one known mutation of real HadeethEnc record, one zero six one eight.",
+          "captions": [
+            "In this controlled demo, we start from a trusted baseline",
+            "and publish one known mutation",
+            "of real HadeethEnc record 10618."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s04-pipeline",
+      "start": 30,
+      "end": 46,
+      "sentences": [
+        {
+          "text": "Istithbat snapshots and fingerprints the source, detects the exact field change, analyzes its semantic significance, runs matched behavioral regression, traces downstream exposure, and evaluates deterministic policy.",
+          "captions": [
+            "Istithbat snapshots and fingerprints the source,",
+            "detects the exact field change,",
+            "analyzes its semantic significance,",
+            "runs matched behavioral regression,",
+            "traces downstream exposure,",
+            "and evaluates deterministic policy."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s05-exact-change",
+      "start": 46,
+      "end": 57,
+      "sentences": [
+        {
+          "text": "The hadith text does not change.",
+          "captions": [
+            "The hadith text does not change."
+          ]
+        },
+        {
+          "text": "Only the grading field changes: an explicit exception disappears.",
+          "tts": "Only the grading field changes. An explicit exception disappears.",
+          "captions": [
+            "Only the grading field changes:",
+            "an explicit exception disappears."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s06-regression",
+      "start": 57,
+      "end": 70,
+      "sentences": [
+        {
+          "text": "The same model is then tested under matched conditions.",
+          "captions": [
+            "The same model is then tested under matched conditions."
+          ]
+        },
+        {
+          "text": "Only the knowledge version changes.",
+          "captions": [
+            "Only the knowledge version changes."
+          ]
+        },
+        {
+          "text": "Two of three comparisons were classified materially different.",
+          "captions": [
+            "Two of three comparisons were classified materially different."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s07-blast-radius",
+      "start": 70,
+      "end": 83,
+      "sentences": [
+        {
+          "text": "Blast Radius deterministically traces where the change can travel.",
+          "captions": [
+            "Blast Radius deterministically traces where the change can travel."
+          ]
+        },
+        {
+          "text": "Six downstream assets are exposed, and one protected application shows material behavioral impact.",
+          "captions": [
+            "Six downstream assets are exposed,",
+            "and one protected application shows material behavioral impact."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s08-gateway",
+      "start": 83,
+      "end": 96,
+      "sentences": [
+        {
+          "text": "But impact does not become trust.",
+          "captions": [
+            "But impact does not become trust."
+          ]
+        },
+        {
+          "text": "POL-002 quarantines the candidate, while the previous trusted version continues serving without interruption.",
+          "tts": "P O L zero zero two quarantines the candidate, while the previous trusted version continues serving without interruption.",
+          "captions": [
+            "POL-002 quarantines the candidate,",
+            "while the previous trusted version continues serving without interruption."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s09-human-review",
+      "start": 96,
+      "end": 107,
+      "sentences": [
+        {
+          "text": "The reviewer receives every evidence layer in one place.",
+          "captions": [
+            "The reviewer receives every evidence layer in one place."
+          ]
+        },
+        {
+          "text": "AI can raise concern, but it cannot promote knowledge or replace expert judgment.",
+          "captions": [
+            "AI can raise concern, but it cannot promote knowledge",
+            "or replace expert judgment."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s10-close",
+      "start": 107,
+      "end": 114,
+      "sentences": [
+        {
+          "text": "Istithbat. Know when trusted knowledge changes.",
+          "captions": [
+            "Istithbat. Know when trusted knowledge changes."
+          ]
+        }
+      ]
+    }
+  ]
+}

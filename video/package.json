@@ -1,0 +1,27 @@
+{
+  "name": "istithbat-demo-video",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Istithbat 2-minute hackathon demo video (Remotion). Isolated from the Next.js app.",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts IstithbatDemo out/istithbat-demo.mp4",
+    "still": "remotion still src/index.ts IstithbatDemo out/still.png",
+    "narration": "python3 scripts/tts.py",
+    "music": "python3 scripts/music.py",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fontsource/amiri": "5.3.0",
+    "@fontsource/instrument-sans": "5.3.0",
+    "@fontsource/jetbrains-mono": "5.3.0",
+    "@remotion/cli": "4.0.533",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "remotion": "4.0.533"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.2",
+    "typescript": "5.9.3"
+  }
+}

@@ -1,0 +1,4 @@
+node_modules/
+.kokoro/
+out/*
+!out/.gitkeep
