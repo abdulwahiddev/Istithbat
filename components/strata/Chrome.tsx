@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
 import { ThemeSwitch } from './theme';
+import { BrandLockup } from './BrandLockup';
 import { Icon } from './icons';
 import { REVIEWER_UNLOCK_EVENT } from './reviewer-events';
 import type { UnlockState } from '@/app/(ui)/_actions/reviewer';
@@ -65,11 +66,7 @@ export function Chrome({ data, actions }: { data: ChromeData; actions: Actions }
       <header style={{ borderBottom: '1px solid var(--line)' }}>
         <div className="wrap" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px 24px', paddingTop: 14, paddingBottom: 14 }}>
           <Link href="/overview" aria-label="Istithbat — overview" className="brand">
-            {/* Official identity (Istithbat Brand.png): transparent symbol + approved wordmark, per theme */}
-            <img className="brand-on-light" src="/brand/istithbat-symbol-on-light.png" alt="" width={31} height={34} />
-            <img className="brand-on-dark" src="/brand/istithbat-symbol-on-dark.png" alt="" width={31} height={34} />
-            <img className="brand-latin brand-on-light" src="/brand/istithbat-wordmark-on-light.png" alt="" width={77} height={34} />
-            <img className="brand-latin brand-on-dark" src="/brand/istithbat-wordmark-on-dark.png" alt="" width={77} height={34} />
+            <BrandLockup />
           </Link>
           <nav aria-label="Primary">
             <NavSeg active={active}>

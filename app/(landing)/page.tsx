@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { preload } from 'react-dom';
 import { HeldHero } from '@/components/landing/HeldHero';
+import { BrandLockup } from '@/components/strata/BrandLockup';
+import { Icon } from '@/components/strata/icons';
 
 /**
  * Landing · hero only (Direction E · Held). The next landing section attaches at #after-hero.
@@ -13,9 +15,8 @@ export default function Landing() {
   return (
     <>
       <header className="lbar">
-        <Link prefetch={false} className="lbrand" href="/" aria-label="Istithbat home">
-          <img src="/brand/istithbat-symbol-on-dark.png" width={29} height={32} alt="" />
-          <span className="ar-wm" lang="ar">استثبات</span><span className="lat">Istithbat</span>
+        <Link prefetch={false} className="lbrand" href="/" aria-label="Istithbat (استثبات) home">
+          <BrandLockup theme="dark" />
         </Link>
         <nav className="lnav" aria-label="Product">
           <Link prefetch={false} href="/overview">Overview</Link>
@@ -24,7 +25,7 @@ export default function Landing() {
         </nav>
         <div className="lbar-r">
           <Link prefetch={false} className="lbtn lbtn-g lbtn-s" href="/sandbox">Run live sandbox</Link>
-          <Link prefetch={false} className="lbtn lbtn-p lbtn-s" href="/overview">Open Istithbat <span aria-hidden="true">↗</span></Link>
+          <Link prefetch={false} className="lbtn lbtn-p lbtn-s" href="/overview">Open Istithbat <Icon name="arrow-up-right" size={16} /></Link>
         </div>
       </header>
       <main id="main">

@@ -4,90 +4,97 @@
  * the constituent parts, not a crossfade of states. All tracks start at F_ENTRY, which matches the
  * static server-rendered State F exactly: the first animated frame never jumps.
  *
- *   A healthy 0–0.9s · B change arrives 0.9–2.0 · C detect 2.0–3.3 · D understand/test 3.3–4.7
- *   E contain 4.7–5.8 · F continuity 5.8–7.0 · return 7.0–7.6 (v14 lifts away, readout rolls back)
+ * Rhythm: quick reveal → stable reading hold → quick exit. Movement stays crisp; the time goes into
+ * the holds, so every evidence card is fully visible and still long enough to read.
+ *
+ *   A healthy        0.0–1.3s  hold 1.3s  (v13 = v13 = v13, serving)
+ *   A→B              1.3–2.1s  v14 descends in ~0.75s; readout rolls to v14 ≠
+ *   B arrived        2.1–3.3s  hold 1.2s
+ *   C exact change   3.3–6.2s  revealed by 3.9s, readable hold ~2.0s, exit 0.3s
+ *   D advisory+test  6.1–9.9s  both cards complete by 6.9s, readable together ~2.7s, exit together 0.3s
+ *   E contain        9.9–10.7s boundary resolves, POL-002 lock lands, "Reviewer decides"
+ *   E/F hold        10.7–12.6s held state readable ~1.9s (F: the sheet hovers, nothing else moves)
+ *   return          12.6–13.2s v14 lifts away, readout rolls back to A
  *
  * The serving path is deliberately NOT on this timeline: it is its own CSS animation, so nothing in
  * the story can ever pause it.
  */
-export const LOOP = 7600;
-export const F_ENTRY = 6100;
+export const LOOP = 13200;
+export const F_ENTRY = 11300;
 /** freeze points for ?st=a…f (stills and QA) */
-export const FREEZE: Record<string, number> = { a: 450, b: 1750, c: 2950, d: 4150, e: 5550, f: 6500 };
+export const FREEZE: Record<string, number> = { a: 700, b: 2900, c: 5000, d: 8300, e: 10900, f: 12300 };
 
 type KF = [ms: number, frame: Keyframe];
 export type Track = { sel: string; kf: KF[] };
 
 const OUT = 'cubic-bezier(.16,1,.3,1)', INOUT = 'cubic-bezier(.65,0,.35,1)', IN = 'cubic-bezier(.55,0,.75,.2)';
-const fade = (on: number, off: number, d = 6, inDur = 400, outDur = 400): KF[] => [
+/** reveal → hold → exit: short translation, no overshoot; once in, the element is still */
+const fade = (on: number, off: number, d = 4, inDur = 400, outDur = 300): KF[] => [
   [0, { opacity: 0, transform: `translateY(${d}px)` }],
   [on, { opacity: 0, transform: `translateY(${d}px)`, easing: OUT }],
   [on + inDur, { opacity: 1, transform: 'none' }],
-  [off, { opacity: 1, transform: 'none', easing: INOUT }],
+  [off, { opacity: 1, transform: 'none', easing: IN }],
   [off + outDur, { opacity: 0, transform: `translateY(${-d / 2}px)` }],
   [LOOP, { opacity: 0, transform: `translateY(${d}px)` }],
 ];
 const op = (pairs: [number, number][]): KF[] => pairs.map(([t, o]) => [t, { opacity: o, easing: INOUT }]);
-const draw = (on: number, dur: number, off: number): KF[] => [
+const draw = (on: number, dur: number, off: number, outDur = 300): KF[] => [
   [0, { strokeDashoffset: 1, opacity: 0 }], [on, { strokeDashoffset: 1, opacity: 1, easing: OUT }], [on + dur, { strokeDashoffset: 0, opacity: 1 }],
-  [off, { strokeDashoffset: 0, opacity: 1 }], [off + 400, { strokeDashoffset: 0, opacity: 0 }], [LOOP, { strokeDashoffset: 1, opacity: 0 }],
+  [off, { strokeDashoffset: 0, opacity: 1 }], [off + outDur, { strokeDashoffset: 0, opacity: 0 }], [LOOP, { strokeDashoffset: 1, opacity: 0 }],
 ];
 
 export const TRACKS: Track[] = [
-  // B: v14 descends from above as its own sheet, settles held above the boundary, hovers in F (never lands), lifts away.
+  // A→B: v14 descends from above as its own sheet (~0.75s), settles held above the boundary,
+  // hovers in F (never lands), lifts away on return.
   { sel: '[data-a=sheet]', kf: [
     [0, { opacity: 0, transform: 'translateY(-150%)' }],
-    [900, { opacity: 0, transform: 'translateY(-150%)', easing: 'cubic-bezier(.33,0,.2,1)' }],
-    [1450, { opacity: 0.95, transform: 'translateY(-60%)', easing: OUT }],
-    [2250, { opacity: 1, transform: 'translateY(0)' }],
-    [5800, { opacity: 1, transform: 'translateY(0)', easing: 'ease-in-out' }],
-    [6450, { opacity: 1, transform: 'translateY(-3%)', easing: 'ease-in-out' }],
-    [7050, { opacity: 1, transform: 'translateY(0)', easing: IN }],
+    [1300, { opacity: 0, transform: 'translateY(-150%)', easing: 'cubic-bezier(.33,0,.2,1)' }],
+    [1700, { opacity: 0.95, transform: 'translateY(-55%)', easing: OUT }],
+    [2100, { opacity: 1, transform: 'translateY(0)' }],
+    [10900, { opacity: 1, transform: 'translateY(0)', easing: 'ease-in-out' }],
+    [11700, { opacity: 1, transform: 'translateY(-3%)', easing: 'ease-in-out' }],
+    [12600, { opacity: 1, transform: 'translateY(0)', easing: IN }],
+    [13150, { opacity: 0, transform: 'translateY(-150%)' }],
     [LOOP, { opacity: 0, transform: 'translateY(-150%)' }],
   ] },
-  // fallback sheet (no media) follows the same arrival
   { sel: '[data-a=fbsheet]', kf: [
-    [0, { opacity: 0, transform: 'translateY(-12%)' }], [900, { opacity: 0, transform: 'translateY(-12%)', easing: OUT }],
-    [2250, { opacity: 1, transform: 'none' }], [7050, { opacity: 1, transform: 'none', easing: IN }], [LOOP, { opacity: 0, transform: 'translateY(-12%)' }],
+    [0, { opacity: 0, transform: 'translateY(-12%)' }], [1300, { opacity: 0, transform: 'translateY(-12%)', easing: OUT }],
+    [2100, { opacity: 1, transform: 'none' }], [12600, { opacity: 1, transform: 'none', easing: IN }], [13150, { opacity: 0, transform: 'translateY(-12%)' }],
+    [LOOP, { opacity: 0, transform: 'translateY(-12%)' }],
   ] },
-  // v14 chip and its progressive facts
-  { sel: '[data-a=c14]', kf: fade(1150, 7050, 6, 450) },
-  { sel: '[data-a=fields]', kf: op([[0, 0], [2600, 0], [3000, 1], [7000, 1], [7300, 0], [LOOP, 0]]) },
-  { sel: '[data-a=tested]', kf: op([[0, 0], [4300, 0], [4700, 1], [7000, 1], [7300, 0], [LOOP, 0]]) },
-  { sel: '[data-a=heldword]', kf: op([[0, 0], [5000, 0], [5400, 1], [7000, 1], [7300, 0], [LOOP, 0]]) },
-  // C: fingerprint scan sweeps the candidate; the exact change attaches by a drawn leader
+  // B: the v14 chip, then its progressive facts (C adds "1 of 11 fields changed", D adds "tested", E adds "held")
+  { sel: '[data-a=c14]', kf: fade(1650, 12650, 4, 400, 250) },
+  { sel: '[data-a=fields]', kf: op([[0, 0], [3600, 0], [3900, 1], [12600, 1], [12800, 0], [LOOP, 0]]) },
+  { sel: '[data-a=tested]', kf: op([[0, 0], [6600, 0], [6900, 1], [12600, 1], [12800, 0], [LOOP, 0]]) },
+  { sel: '[data-a=heldword]', kf: op([[0, 0], [10050, 0], [10350, 1], [12600, 1], [12800, 0], [LOOP, 0]]) },
+  // C: fingerprint scan, then the exact change attaches by its leader; held readable ~2.0s
   { sel: '[data-a=scan]', kf: [
-    [0, { strokeDashoffset: 0.2, opacity: 0 }], [2250, { strokeDashoffset: 0.2, opacity: 0 }], [2350, { opacity: 1, strokeDashoffset: 0.2 }],
-    [3150, { opacity: 1, strokeDashoffset: -1.05 }], [3300, { opacity: 0, strokeDashoffset: -1.05 }], [LOOP, { opacity: 0, strokeDashoffset: -1.05 }],
+    [0, { strokeDashoffset: 0.2, opacity: 0 }], [3300, { strokeDashoffset: 0.2, opacity: 0 }], [3380, { opacity: 1, strokeDashoffset: 0.2 }],
+    [4000, { opacity: 1, strokeDashoffset: -1.05 }], [4150, { opacity: 0, strokeDashoffset: -1.05 }], [LOOP, { opacity: 0, strokeDashoffset: -1.05 }],
   ] },
-  { sel: '[data-a=ldiff]', kf: draw(2350, 450, 4450) },
-  { sel: '[data-a=tdiff]', kf: fade(2600, 4500, 6, 450, 450) },
-  // D: AI advisory and matched regression, each attached, then they recede
-  { sel: '[data-a=lai]', kf: draw(3350, 450, 5250) },
-  { sel: '[data-a=tai]', kf: fade(3600, 5300, 6, 450, 450) },
-  { sel: '[data-a=treg]', kf: fade(3950, 5400, 6, 450, 450) },
-  // E: the boundary resolves from open (dashed) to a held double rule; the stopped edge draws; the lock lands
-  { sel: '[data-a=open]', kf: op([[0, 0.45], [4900, 0.45], [5300, 0], [7050, 0], [7500, 0.45], [LOOP, 0.45]]) },
-  { sel: '[data-a=shut]', kf: op([[0, 0], [4900, 0], [5300, 1], [7050, 1], [7500, 0], [LOOP, 0]]) },
-  { sel: '[data-a=stop]', kf: op([[0, 0], [5000, 0], [5500, 1], [7050, 1], [7450, 0], [LOOP, 0]]) },
-  { sel: '[data-a=lock]', kf: [
-    [0, { opacity: 0, transform: 'translateY(-8px)' }], [5050, { opacity: 0, transform: 'translateY(-8px)', easing: 'cubic-bezier(.2,1.25,.4,1)' }],
-    [5450, { opacity: 1, transform: 'none' }], [7050, { opacity: 1, transform: 'none', easing: INOUT }], [7400, { opacity: 0, transform: 'translateY(-4px)' }],
-    [LOOP, { opacity: 0, transform: 'translateY(-8px)' }],
-  ] },
-  // F: the human decision is pending
-  { sel: '[data-a=rev]', kf: fade(5900, 7000, 4, 450, 300) },
-  // readout: v13 = v13 = v13 rolls to v14 ≠ v13 = v13 in B, and back on return
+  { sel: '[data-a=ldiff]', kf: draw(3350, 350, 5900) },
+  { sel: '[data-a=tdiff]', kf: fade(3500, 5900, 4, 420, 300) },
+  // D: AI advisory, then the matched regression; both complete by 6.9s, read together ~2.7s, leave together
+  { sel: '[data-a=lai]', kf: draw(6050, 350, 9600) },
+  { sel: '[data-a=tai]', kf: fade(6150, 9600, 4, 400, 300) },
+  { sel: '[data-a=treg]', kf: fade(6500, 9600, 4, 400, 300) },
+  // E: the boundary resolves from open (dashed) to a held double rule; the stopped edge firms; the lock lands
+  { sel: '[data-a=open]', kf: op([[0, 0.45], [9850, 0.45], [10250, 0], [12600, 0], [13000, 0.45], [LOOP, 0.45]]) },
+  { sel: '[data-a=shut]', kf: op([[0, 0], [9850, 0], [10250, 1], [12600, 1], [13000, 0], [LOOP, 0]]) },
+  { sel: '[data-a=stop]', kf: op([[0, 0], [9950, 0], [10350, 1], [12600, 1], [12950, 0], [LOOP, 0]]) },
+  { sel: '[data-a=lock]', kf: fade(10000, 12500, -6, 380, 250) },
+  { sel: '[data-a=rev]', kf: fade(10300, 12500, 4, 350, 250) },
+  // readout: v13 = v13 = v13 rolls to v14 ≠ v13 = v13 as v14 arrives, and back on return.
   // Clipped roll (the container hides overflow): the old value leaves before the new one lands.
   { sel: '[data-a=r13]', kf: [
-    [0, { opacity: 1, transform: 'none' }], [1150, { opacity: 1, transform: 'none', easing: IN }], [1350, { opacity: 0, transform: 'translateY(-70%)' }],
-    [7280, { opacity: 0, transform: 'translateY(70%)', easing: OUT }], [7520, { opacity: 1, transform: 'none' }], [LOOP, { opacity: 1, transform: 'none' }],
+    [0, { opacity: 1, transform: 'none' }], [1550, { opacity: 1, transform: 'none', easing: IN }], [1730, { opacity: 0, transform: 'translateY(-70%)' }],
+    [12950, { opacity: 0, transform: 'translateY(70%)', easing: OUT }], [13180, { opacity: 1, transform: 'none' }], [LOOP, { opacity: 1, transform: 'none' }],
   ] },
   { sel: '[data-a=r14]', kf: [
-    [0, { opacity: 0, transform: 'translateY(70%)' }], [1300, { opacity: 0, transform: 'translateY(70%)', easing: OUT }], [1540, { opacity: 1, transform: 'none' }],
-    [7100, { opacity: 1, transform: 'none', easing: IN }], [7300, { opacity: 0, transform: 'translateY(-70%)' }], [LOOP, { opacity: 0, transform: 'translateY(70%)' }],
+    [0, { opacity: 0, transform: 'translateY(70%)' }], [1700, { opacity: 0, transform: 'translateY(70%)', easing: OUT }], [1920, { opacity: 1, transform: 'none' }],
+    [12800, { opacity: 1, transform: 'none', easing: IN }], [12980, { opacity: 0, transform: 'translateY(-70%)' }], [LOOP, { opacity: 0, transform: 'translateY(70%)' }],
   ] },
-  { sel: '[data-a=heldst]', kf: op([[0, 0], [1450, 0], [1800, 1], [7100, 1], [7400, 0], [LOOP, 0]]) },
+  { sel: '[data-a=heldst]', kf: op([[0, 0], [1850, 0], [2150, 1], [12750, 1], [12950, 0], [LOOP, 0]]) },
 ];
 
 /** Freeze/visibility-aware controller. Returns a disposer. */
