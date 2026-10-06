@@ -1,4 +1,4 @@
-import { readReviewer } from '../_data/session';
+import { getT, readReviewer } from '../_data/session';
 import { notFound } from 'next/navigation';
 import { SourcesScreen } from '@/components/sources/SourcesScreen';
 import type { SourceView } from '@/components/sources/types';
@@ -11,6 +11,7 @@ import { sourceView } from '../_data/source-view';
 /** Shared by /sources and /sources/{id}: the same screen with that source selected (handoff §2). */
 export async function SourcesPage({ selectedId }: { selectedId?: string }) {
   const reviewer = await readReviewer();
+  const t = await getT();
   const sources = await readSources();
   const gateway = await readGatewayInventory();
   if (!sources.ok) {
@@ -44,13 +45,13 @@ export async function SourcesPage({ selectedId }: { selectedId?: string }) {
   return (
     <main id="main" className="scr-sources">
       <PageHeader
-        crumbs={<><span>Sources</span><Sep /><span>{models.length} connectors · {records} records</span></>}
-        title={<>{plural(models.length, 'source')} monitored.<br />{real && synth ? `${real} real, ${synth} synthetic.` : real ? 'All real.' : 'All synthetic.'}</>}
-        lede={lede}
+        crumbs={<><span>{t('Sources')}</span><Sep /><span>{t('{n} connectors · {r} records', { n: models.length, r: records })}</span></>}
+        title={<>{t(models.length === 1 ? '1 source monitored.' : '{n} sources monitored.', { n: models.length })}<br />{real && synth ? t('{r} real, {s} synthetic.', { r: real, s: synth }) : t(real ? 'All real.' : 'All synthetic.')}</>}
+        lede={lede.split(/(?<=\.) /).map((x) => t(x)).join(' ')}
         status={<>
-          <Dk k="Connectors"><Chip tone={healthy === models.length ? 'tq' : 'am'}>{healthy} of {models.length} healthy</Chip></Dk>
-          <Dk k="Records monitored">{records}</Dk>
-          <Dk k="Changed since baseline">{changed ? <Chip tone="co">{changed} {changed === 1 ? 'source' : 'sources'}</Chip> : <Chip tone="tq">None</Chip>}</Dk>
+          <Dk k={t('Connectors')}><Chip tone={healthy === models.length ? 'tq' : 'am'}>{t('{h} of {n} healthy', { h: healthy, n: models.length })}</Chip></Dk>
+          <Dk k={t('Records monitored')}>{records}</Dk>
+          <Dk k={t('Changed since baseline')}>{changed ? <Chip tone="co">{t(changed === 1 ? '1 source' : '{n} sources', { n: changed })}</Chip> : <Chip tone="tq">{t('None')}</Chip>}</Dk>
         </>}
       />
       <SourcesScreen views={views} initialId={initial} />

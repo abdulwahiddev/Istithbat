@@ -65,6 +65,13 @@ export const RULES: [RegExp, (m: RegExpMatchArray, t: Tr) => string][] = [
   [/^Its frozen copy still holds (.+), which would be superseded\. It needs a rebuild\.$/, (m) => `ما زالت نسخته المجمّدة تحمل ${m[1]}، وستصبح متجاوَزة؛ ويحتاج إلى إعادة بناء.`],
   [/^A materialized copy of (.+)\. After promotion it keeps the superseded version until rebuilt\.$/, (m) => `نسخة مجسَّدة من ${m[1]}. بعد الاعتماد تبقى على النسخة المتجاوَزة حتى يُعاد بناؤها.`],
   [/^Reads through the gateway, so it switches to (.+) in the same transaction as the binding\.$/, (m) => `يقرأ عبر البوابة، فينتقل إلى ${m[1]} في المعاملة نفسها مع الربط.`],
+  // Source lineage (source-view)
+  [/^Serves (\S+)$/, (m) => `يقدّم ${m[1]}`],
+  [/^(\S+) to (.+)$/, (m) => (/^(v|r)\d/.test(m[1]) ? `${m[1]} إلى ${m[2]}` : m[0])],
+  [/^New version (\S.*)$/, (m) => `نسخة جديدة ${m[1]}`],
+  [/^Yes · (\d+) fields?(.*)$/, (m) => `نعم · ${m[1]} حقل${m[2]}`],
+  [/^(Webhook|Manual|Scheduled|Poll) check, then server fetch$/, (m) => `فحص ${m[1]}، ثم جلب من الخادم`],
+  [/^r(\d+) recorded · no pipeline for a first snapshot$/, (m) => `سُجّلت r${m[1]} · بلا مسار لأول لقطة`],
   // Risk
   [/^Risk (\w+) · advisory$/, (m, t) => `الخطورة ${t(m[1])} · استشاري`],
   [/^(Low|Medium|High|Critical) risk$/, (m, t) => `خطورة ${t(m[1].toLowerCase())}`],

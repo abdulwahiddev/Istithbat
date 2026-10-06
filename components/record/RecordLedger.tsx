@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { useT } from '@/components/strata/i18n/client';
 import { useMemo, useState } from 'react';
 import { AuditPage, Endpoints, type AuditEvent } from '@/lib/contracts';
 import { AUTHORITY, FOLDED, LANE_MARK, narrate, type Lane, type Narrated } from '@/components/strata/events';
@@ -42,6 +43,7 @@ type Entry = {
 
 /** Authority-lane ledger + sticky inspector (Record board). Entries are persisted audit events, paged from GET /api/audit. */
 export function RecordLedger({ ctx, initial }: { ctx: RecordContext; initial: { events: AuditEvent[]; nextCursor: string | null } }) {
+  const t = useT();
   const [events, setEvents] = useState(initial.events);
   const [cursor, setCursor] = useState(initial.nextCursor);
   const [loading, setLoading] = useState<'idle' | 'loading' | 'error'>('idle');
@@ -119,17 +121,17 @@ export function RecordLedger({ ctx, initial }: { ctx: RecordContext; initial: { 
             <span className="lh" style={{ left: 106 }}><span className="mk mk-pol" /></span>
             <span className="lh" style={{ left: 136 }}><span className="mk mk-hum" /></span>
           </span>
-          <span>Time</span><span>Entry</span>
+          <span>{t('Time')}</span><span>{t('Entry')}</span>
         </div>
         {cursor && (
           <div style={{ padding: '8px 0 12px' }}>
             <button type="button" className="lnk" onClick={loadEarlier} disabled={loading === 'loading'} style={{ font: 'inherit', fontSize: 14, fontWeight: 600, background: 'transparent', border: 0, cursor: 'pointer', color: 'var(--ink)' }}>
-              {loading === 'loading' ? 'Loading earlier entries…' : 'Load earlier entries'}
+              {t(loading === 'loading' ? 'Loading earlier entries…' : 'Load earlier entries')}
             </button>
-            {loading === 'error' && <span className="meta" role="alert" style={{ marginLeft: 12 }}>Earlier entries could not be read.</span>}
+            {loading === 'error' && <span className="meta" role="alert" style={{ marginInlineStart: 12 }}>{t('Earlier entries could not be read.')}</span>}
           </div>
         )}
-        <div role="list" aria-label="Record entries">
+        <div role="list" aria-label={t('Record entries')}>
           {entries.map((e, i) => {
             const prev = i > 0 ? entries[i - 1] : null;
             const pl = prev ? prev.lane : e.lane, last = i === entries.length - 1;
@@ -141,9 +143,9 @@ export function RecordLedger({ ctx, initial }: { ctx: RecordContext; initial: { 
             const on = e.key === s?.key;
             return (
               <div role="listitem" key={e.key}>
-                {e.group && <div className="rgrp"><span className="trk"><span className="pv" style={st(prev ? sv(X[pl], '0', null, e.pend) : 'display:none')} /></span><span>{e.group}</span></div>}
+                {e.group && <div className="rgrp"><span className="trk"><span className="pv" style={st(prev ? sv(X[pl], '0', null, e.pend) : 'display:none')} /></span><span>{t(e.group)}</span></div>}
                 <button type="button" className={`rrow${e.pend ? ' pend' : ''}${on ? ' on' : ''}`} aria-pressed={on} onClick={() => setSelKey(e.key)}
-                  aria-label={`${AUTHORITY[e.lane]}: ${e.title}${e.pend ? ', not yet recorded' : ''}`}>
+                  aria-label={`${t(AUTHORITY[e.lane])}: ${t(e.title)}${e.pend ? t(', not yet recorded') : ''}`}>
                   <span className="trk" aria-hidden="true">
                     <span className="pv" style={st(top)} />
                     <span className="ph" style={st(hz)} />
@@ -152,15 +154,15 @@ export function RecordLedger({ ctx, initial }: { ctx: RecordContext; initial: { 
                   </span>
                   <span className="tm2 mono" title={e.event ? fullTime(e.event.createdAt) : undefined}>{e.time}</span>
                   <span className="rtx">
-                    <b>{e.title}</b>
-                    <span className="sub2">{e.line}</span>
-                    <span className="et mono">{e.type}{e.pend ? ' · not yet recorded' : ''}</span>
+                    <b>{t(e.title)}</b>
+                    <span className="sub2">{t(e.line)}</span>
+                    <span className="et mono">{e.type}{e.pend ? ` · ${t('not yet recorded')}` : ''}</span>
                   </span>
                 </button>
               </div>
             );
           })}
-          {entries.length === 0 && <p className="body" style={{ padding: '16px 0' }}>Nothing is recorded for this incident yet.</p>}
+          {entries.length === 0 && <p className="body" style={{ padding: '16px 0' }}>{t('Nothing is recorded for this incident yet.')}</p>}
         </div>
       </div>
 
@@ -168,33 +170,33 @@ export function RecordLedger({ ctx, initial }: { ctx: RecordContext; initial: { 
         <div className="c7-10 insp">
           <div className="plate r fade" key={s.key} style={{ marginLeft: 0, paddingTop: 24, paddingBottom: 20, display: 'flex', flexDirection: 'column', gap: 18 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-              <span className="chip" style={{ color: 'var(--ink)' }}><span className={`mk mk-${LANE_MARK[s.lane]}`} />{AUTHORITY[s.lane]}</span>
-              <span className="meta" style={{ fontSize: 12.5 }}>{s.pend ? 'Not yet recorded' : 'Recorded · append-only'}</span>
+              <span className="chip" style={{ color: 'var(--ink)' }}><span className={`mk mk-${LANE_MARK[s.lane]}`} />{t(AUTHORITY[s.lane])}</span>
+              <span className="meta" style={{ fontSize: 12.5 }}>{t(s.pend ? 'Not yet recorded' : 'Recorded · append-only')}</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <h4 style={{ margin: 0, fontSize: 22, lineHeight: '30px', fontWeight: 600, letterSpacing: '-.012em' }}>{s.title}</h4>
+              <h4 style={{ margin: 0, fontSize: 22, lineHeight: '30px', fontWeight: 600, letterSpacing: '-.012em' }}>{t(s.title)}</h4>
               <span className="mono" style={{ fontSize: 12.5, color: 'var(--ink-2)' }}>{s.type}</span>
             </div>
-            <p style={{ margin: 0, fontSize: 15, lineHeight: '24px', color: 'var(--ink-2)' }}>{s.n.proves}</p>
+            <p style={{ margin: 0, fontSize: 15, lineHeight: '24px', color: 'var(--ink-2)' }}>{t(s.n.proves)}</p>
             <div>
-              <div className="kv"><span>Time</span><span className="mono">{s.event ? fullTime(s.event.createdAt) : '—'}</span></div>
-              <div className="kv"><span>Actor</span><span className="mono">{s.event?.actor ?? 'reviewer:‹you›'}</span></div>
-              <div className="kv"><span>Entity</span><span className="mono">{s.event ? `${s.event.entityType} · ${vl(s.event.entityId) ?? (s.event.entityType === 'incident' ? `${ctx.recordKey} ${ctx.candidateLabel}` : s.event.entityId.slice(0, 8))}` : `incident · ${ctx.recordKey} ${ctx.candidateLabel}`}</span></div>
-              {s.n.evidence.map((k) => <div key={k.k} className="kv"><span>{k.k}</span><span className={k.mono ? 'mono' : ''}>{k.mono && k.v.length > 24 ? `${k.v.slice(0, 8)}…${k.v.slice(-4)}` : k.v}</span></div>)}
+              <div className="kv"><span>{t('Time')}</span><span className="mono">{s.event ? fullTime(s.event.createdAt) : '—'}</span></div>
+              <div className="kv"><span>{t('Actor')}</span><span className="mono">{s.event?.actor ?? 'reviewer:‹you›'}</span></div>
+              <div className="kv"><span>{t('Entity')}</span><span className="mono">{s.event ? `${s.event.entityType} · ${vl(s.event.entityId) ?? (s.event.entityType === 'incident' ? `${ctx.recordKey} ${ctx.candidateLabel}` : s.event.entityId.slice(0, 8))}` : `incident · ${ctx.recordKey} ${ctx.candidateLabel}`}</span></div>
+              {s.n.evidence.map((k) => <div key={k.k} className="kv"><span>{t(k.k)}</span><span className={k.mono ? 'mono' : ''}>{k.mono && k.v.length > 24 ? `${k.v.slice(0, 8)}…${k.v.slice(-4)}` : k.v}</span></div>)}
             </div>
             {s.ba && (
               <div className="ba">
-                <div><span className="cap">{s.ba[0]}</span><span className={`bav ${s.ba[4]}`} {...(s.ba[4].includes('ar') ? { lang: 'ar', dir: 'rtl' } : {})}>{s.ba[2]}</span></div>
-                <span className="ba-ar" aria-label="becomes">→</span>
-                <div><span className="cap">{s.ba[1]}</span><span className={`bav ${s.ba[4]}`} {...(s.ba[4].includes('ar') ? { lang: 'ar', dir: 'rtl' } : {})}>{s.ba[3]}</span></div>
+                <div><span className="cap">{t(s.ba[0])}</span><span className={`bav ${s.ba[4]}`} {...(s.ba[4].includes('ar') ? { lang: 'ar', dir: 'rtl' } : {})}>{s.ba[2]}</span></div>
+                <span className="ba-ar flip-rtl" aria-label={t('becomes')}>→</span>
+                <div><span className="cap">{t(s.ba[1])}</span><span className={`bav ${s.ba[4]}`} {...(s.ba[4].includes('ar') ? { lang: 'ar', dir: 'rtl' } : {})}>{s.ba[3]}</span></div>
               </div>
             )}
-            {s.note && <p className={s.note.ai ? 'note ai' : 'note'}><b>{s.note.head}</b> {s.note.text}</p>}
-            {s.n.link && <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 20px' }}><Link className="lnk" href={ctx.links[s.n.link.target]}>{s.n.link.label} <span aria-hidden="true">→</span></Link></div>}
+            {s.note && <p className={s.note.ai ? 'note ai' : 'note'}><b>{t(s.note.head)}</b> {t(s.note.text)}</p>}
+            {s.n.link && <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 20px' }}><Link className="lnk" href={ctx.links[s.n.link.target]}>{t(s.n.link.label)} <span aria-hidden="true" className="flip-rtl">→</span></Link></div>}
           </div>
           <details style={{ marginTop: 16 }}>
-            <summary>{s.payloadLabel}</summary>
-            <div className="raw" style={{ whiteSpace: 'pre-wrap' }}>{s.payload}</div>
+            <summary>{t(s.payloadLabel)}</summary>
+            <div className="raw" dir="ltr" style={{ whiteSpace: 'pre-wrap' }}>{s.payload}</div>
           </details>
         </div>
       )}

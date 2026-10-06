@@ -534,3 +534,4 @@ details.quiet>.raw{margin-top:12px}
 [dir="rtl"] .scr-gateway .gatebar{left:auto;right:58%;margin-left:0;margin-right:-6px}
 [dir="rtl"] .scr-gateway .lockb{left:auto;right:58%;transform:translate(50%,-50%)}
 [dir="rtl"] .scr-gateway .steps::before{left:auto;right:13.5px}
+[dir="rtl"] .sr-only:not(:focus-visible){right:0;margin:0}

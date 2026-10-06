@@ -5,6 +5,7 @@ import { needsDecision } from '@/components/strata/semantics';
 import { summarizeIncident } from '../_data/incident-summary';
 import { incidentRow } from '../_data/incident-rows';
 import { readIncidents, readShell, readSources } from '../_data/read';
+import { getT } from '../_data/session';
 
 export const metadata = { title: 'Incidents · Istithbat' };
 export const dynamic = 'force-dynamic';
@@ -14,6 +15,7 @@ const SUMMARIZE = 8;
 
 export default async function IncidentsPage() {
   await readShell();
+  const t = await getT();
   const list = await readIncidents();
   const sources = await readSources();
   const nameOf = new Map((sources.ok ? sources.data : []).map((s) => [s.id, s.name.split(' — ')[0]]));
@@ -27,19 +29,19 @@ export default async function IncidentsPage() {
   return (
     <main id="main" className="scr-overview">
       <PageHeader
-        crumbs={<><span>Incidents</span><Sep /><span>{items.length} recorded</span></>}
-        title={open.length ? <>{open.length} open {open.length === 1 ? 'incident' : 'incidents'}.<br />{deciding ? `${deciding} ${deciding === 1 ? 'needs' : 'need'} a decision.` : 'Still investigating.'}</> : <>No open incidents.<br />Nothing is held.</>}
-        lede="One incident opens per meaningful source-version transition. Equivalent and metadata-only changes take the deterministic fast path and never appear here."
+        crumbs={<><span>{t('Incidents')}</span><Sep /><span>{t('{n} recorded', { n: items.length })}</span></>}
+        title={open.length ? <>{t(open.length === 1 ? '1 open incident.' : '{n} open incidents.', { n: open.length })}<br />{deciding ? t(deciding === 1 ? '1 needs a decision.' : '{n} need a decision.', { n: deciding }) : t('Still investigating.')}</> : <>{t('No open incidents.')}<br />{t('Nothing is held.')}</>}
+        lede={t('One incident opens per meaningful source-version transition. Equivalent and metadata-only changes take the deterministic fast path and never appear here.')}
         status={<>
-          <Dk k="Open">{open.length ? <Chip tone="co">{open.length}</Chip> : <Chip tone="tq">None</Chip>}</Dk>
-          <Dk k="Needs a decision">{deciding}</Dk>
-          <Dk k="Resolved">{resolved.length}</Dk>
+          <Dk k={t('Open')}>{open.length ? <Chip tone="co">{open.length}</Chip> : <Chip tone="tq">{t('None')}</Chip>}</Dk>
+          <Dk k={t('Needs a decision')}>{deciding}</Dk>
+          <Dk k={t('Resolved')}>{resolved.length}</Dk>
         </>}
       />
       <Band id="open" labelledBy="h-open" first>
-        <Rail layer="det" id="h-open" title="Incidents">Grouped by what a reviewer must do; newest first.</Rail>
+        <Rail layer="det" id="h-open" title="Incidents">{t('Grouped by what a reviewer must do; newest first.')}</Rail>
         <div className="main">
-          <HeadRow title={`All incidents · ${items.length}`} right={<span className="meta mono">/api/incidents</span>} />
+          <HeadRow title={t('All incidents · {n}', { n: items.length })} right={<span className="meta mono">/api/incidents</span>} />
           {!list.ok ? <ReadError {...list.error} /> : <IncidentList rows={rows} />}
         </div>
       </Band>
