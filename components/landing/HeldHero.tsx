@@ -44,8 +44,8 @@ export function HeldHero() {
             <span><i className="mk mk-hum" aria-hidden="true" />Humans decide.</span>
           </p>
           <div className="lh-ctas">
-            <Link className="lbtn lbtn-p" href="/overview">Open Istithbat <Arrow /></Link>
-            <Link className="lbtn lbtn-g" href="/sandbox"><span className="live" aria-hidden="true" />Run live sandbox</Link>
+            <Link prefetch={false} className="lbtn lbtn-p" href="/overview">Open Istithbat <Arrow /></Link>
+            <Link prefetch={false} className="lbtn lbtn-g" href="/sandbox"><span className="live" aria-hidden="true" />Run live sandbox</Link>
           </div>
         </div>
 

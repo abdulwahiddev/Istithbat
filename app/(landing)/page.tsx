@@ -4,7 +4,8 @@ import { HeldHero } from '@/components/landing/HeldHero';
 
 /**
  * Landing · hero only (Direction E · Held). The next landing section attaches at #after-hero.
- * Nav links point only at destinations that exist today.
+ * Nav links point only at destinations that exist today. They do not prefetch: prefetching the
+ * product routes preloads their stylesheet, which the landing page never applies.
  */
 export default function Landing() {
   preload('/landing/e-plate-1920.jpg', { as: 'image', fetchPriority: 'high', media: '(min-width: 761px)' });
@@ -12,18 +13,18 @@ export default function Landing() {
   return (
     <>
       <header className="lbar">
-        <Link className="lbrand" href="/" aria-label="Istithbat home">
+        <Link prefetch={false} className="lbrand" href="/" aria-label="Istithbat home">
           <img src="/brand/istithbat-symbol-on-dark.png" width={29} height={32} alt="" />
           <span className="ar-wm" lang="ar">استثبات</span><span className="lat">Istithbat</span>
         </Link>
         <nav className="lnav" aria-label="Product">
-          <Link href="/overview">Overview</Link>
-          <Link href="/incidents">Incidents</Link>
-          <Link href="/sources">Sources</Link>
+          <Link prefetch={false} href="/overview">Overview</Link>
+          <Link prefetch={false} href="/incidents">Incidents</Link>
+          <Link prefetch={false} href="/sources">Sources</Link>
         </nav>
         <div className="lbar-r">
-          <Link className="lbtn lbtn-g lbtn-s" href="/sandbox">Run live sandbox</Link>
-          <Link className="lbtn lbtn-p lbtn-s" href="/overview">Open Istithbat <span aria-hidden="true">↗</span></Link>
+          <Link prefetch={false} className="lbtn lbtn-g lbtn-s" href="/sandbox">Run live sandbox</Link>
+          <Link prefetch={false} className="lbtn lbtn-p lbtn-s" href="/overview">Open Istithbat <span aria-hidden="true">↗</span></Link>
         </div>
       </header>
       <main id="main">
