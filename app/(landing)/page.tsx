@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { preload } from 'react-dom';
 import { HeldHero } from '@/components/landing/HeldHero';
 import { LandingFooter, LandingSections } from '@/components/landing/Sections';
+import { deriveScenario, heroFacts } from '@/components/landing/derive';
 import { BrandLockup } from '@/components/strata/BrandLockup';
 import { Icon } from '@/components/strata/icons';
 
@@ -14,6 +15,8 @@ import { Icon } from '@/components/strata/icons';
 export default function Landing() {
   preload('/landing/e-plate-1920.jpg', { as: 'image', fetchPriority: 'high', media: '(min-width: 761px)' });
   preload('/landing/e-plate-mobile.jpg', { as: 'image', fetchPriority: 'high', media: '(max-width: 760px)' });
+  // one derivation for the whole page: the hero and the sections describe the same incident
+  const d = deriveScenario();
   return (
     <>
       {/* sticky shell: transparent at the top (hero unchanged), a quiet bar once scrolled */}
@@ -45,9 +48,9 @@ export default function Landing() {
         </header>
       </div>
       <main id="main">
-        <HeldHero />
+        <HeldHero facts={heroFacts(d)} />
         <div id="after-hero" className="lh-after" />
-        <LandingSections />
+        <LandingSections d={d} />
       </main>
       <LandingFooter />
     </>

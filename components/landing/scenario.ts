@@ -106,7 +106,7 @@ export const EVIDENCE = {
     quranVersion: '1.1.2',
     passes: 2,
   },
-  tests: { passed: 187, skipped: 7, skippedNote: 'optional live-database tests' },
+  tests: { passed: 188, skipped: 7, skippedNote: 'optional live-database tests' },
   repo: 'https://github.com/abdulwahiddev/Istithbat',
   evidenceDoc: 'https://github.com/abdulwahiddev/Istithbat/blob/main/docs/technical-evidence.md',
   corpusReport: 'https://github.com/abdulwahiddev/Istithbat/blob/main/evaluation/results/2026-10-06-real-corpus.md',

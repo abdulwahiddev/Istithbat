@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { deriveScenario } from '@/components/landing/derive';
-import { SCENARIO, type Scenario } from '@/components/landing/scenario';
+import { EVIDENCE, SCENARIO, type Scenario } from '@/components/landing/scenario';
+import quranCounts from '@/evaluation/corpus/quran-counts.json';
 
 describe('landing scenario', () => {
   const d = deriveScenario();
@@ -46,5 +47,11 @@ describe('landing scenario', () => {
 
   it('refuses a scenario that is not exactly one field change', () => {
     expect(() => deriveScenario({ ...SCENARIO, mutation: { ...SCENARIO.mutation, value: SCENARIO.original.value } })).toThrow();
+  });
+
+  it('draws the Quran evidence from the real per-surah counts it claims', () => {
+    const counts = Object.values(quranCounts as Record<string, number>);
+    expect(counts.length).toBe(EVIDENCE.corpus.surahs);
+    expect(counts.reduce((a, b) => a + b, 0)).toBe(EVIDENCE.corpus.ayat);
   });
 });

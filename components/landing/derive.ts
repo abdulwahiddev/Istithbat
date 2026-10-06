@@ -116,3 +116,28 @@ function radius(s: Scenario) {
   // pending is a subset of exposed: without proven material impact, the product counts the app as EXPOSED
   return { graph, verified, down, imp, pending, exp: down - imp - stale, stale, pendingNames: s.assets.filter((a) => impact(a) === 'PENDING').map((a) => a.name) };
 }
+
+/**
+ * The hero's facts, from the same derivation as the sections below it, so the hero and the page
+ * can never describe different incidents. Serializable (the hero is a client component).
+ * Provisional semantics (AI advisory, matched regression) are flagged, never asserted.
+ */
+export function heroFacts(d: Derived) {
+  const { s, change: c } = d;
+  const verified = d.radius.verified;
+  return {
+    recordKey: `${s.source.connectorId}:${s.source.recordId}`,
+    fieldPath: c.path,
+    removedCount: c.removed.length,
+    removedText: c.removed.join(' '),
+    oldPieces: c.pieces.old.map((p) => ({ text: p.text, removed: p.kind === 'removed' })),
+    newValue: s.mutation.value,
+    oldHash: c.oldHash.slice(0, 8), newHash: c.newHash.slice(0, 8),
+    trusted: s.original.version, candidate: s.mutation.version, appName: s.app.name, policyCode: d.policy.code,
+    advisory: { label: s.advisory.label, provisional: s.status !== 'validated' },
+    regression: verified
+      ? { provisional: false, changed: s.regression.material, matched: s.regression.matched }
+      : { provisional: true, changed: null, matched: null },
+  };
+}
+export type HeroFacts = ReturnType<typeof heroFacts>;

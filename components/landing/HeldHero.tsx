@@ -4,13 +4,16 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import { GEO, pts, type Geo, type Pt } from './geometry';
 import { FREEZE, runHero } from './timeline';
 import { Icon, type IconName } from '@/components/strata/icons';
+import type { HeroFacts } from './derive';
 
 /**
  * Landing hero · Direction E "Held". The page renders State F (the complete story) on the server:
- * v14 held above the trust boundary by POL-002, v13 trusted and serving Islamic Q&A. Motion is an
- * enhancement layered on top once the page is interactive, and is skipped under reduced motion.
+ * the candidate held above the trust boundary by policy, the trusted version serving the protected
+ * app. Motion is an enhancement layered on top once the page is interactive, and is skipped under
+ * reduced motion. Scenario content comes from `facts` (derive.ts → scenario.ts), the same source as
+ * every section below, so the hero cannot describe a different incident.
  */
-export function HeldHero() {
+export function HeldHero({ facts: f }: { facts: HeroFacts }) {
   const root = useRef<HTMLElement>(null);
   const plate = useRef<HTMLImageElement>(null);
   const [noMedia, setNoMedia] = useState(false);
@@ -51,7 +54,7 @@ export function HeldHero() {
         </div>
 
         <div className="lh-media" role="img"
-          aria-label="The trusted record history, v13, rests as a stack and keeps serving the Islamic Q&A app along a continuous path. A newer version, v14, is suspended above it at the trust boundary, held by policy POL-002 until a reviewer decides. During the sequence, one of its 11 fields is shown changed, AI flags evidence-scope drift as advisory, and 2 of 3 matched answers changed.">
+          aria-label={`The trusted record history, ${f.trusted}, rests as a stack and keeps serving the ${f.appName} app along a continuous path. A newer version, ${f.candidate}, is suspended above it at the trust boundary, held by policy ${f.policyCode} until a reviewer decides. During the sequence, ${f.removedCount} words are shown removed from ${f.fieldPath} of ${f.recordKey}; AI flags ${f.advisory.label.toLowerCase()} as ${f.advisory.provisional ? 'a draft advisory pending validation' : 'advisory'}; ${f.regression.provisional ? 'the matched regression is pending validation' : `${f.regression.changed} of ${f.regression.matched} matched answers changed`}.`}>
           <picture>
             <source media="(max-width: 760px)" srcSet="/landing/e-plate-mobile.jpg" width={780} height={563} />
             <img ref={plate} className="lh-plate" src="/landing/e-plate-1920.jpg" alt="" width={1920} height={1072} fetchPriority="high" decoding="async" onError={() => setNoMedia(true)} />
@@ -64,8 +67,8 @@ export function HeldHero() {
           </div>
           <Fallback g={GEO.desktop} cls="d" />
           <Fallback g={GEO.mobile} cls="m" />
-          <Overlay g={GEO.desktop} mode="d" />
-          <Overlay g={GEO.mobile} mode="m" />
+          <Overlay g={GEO.desktop} mode="d" f={f} />
+          <Overlay g={GEO.mobile} mode="m" f={f} />
         </div>
 
         <div className="lh-readout" role="group" aria-label="Serving state for islamic-qa-demo: latest seen v14, held and not served, is not the trusted version v13; trusted v13 equals served v13, serving production.">
@@ -89,9 +92,9 @@ export function HeldHero() {
         </div>
 
         <ul className="lh-mlist" aria-label="What Istithbat found">
-          <li><Mark layer="src" /><span>«<bdi lang="ar" className="ar">إسناده</bdi>» removed · 1 of 11 fields</span></li>
-          <li><Mark layer="ai" /><span className="pu">Evidence-scope drift · advisory, not a ruling</span></li>
-          <li><Mark layer="det" /><span>2 of 3 matched answers changed</span></li>
+          <li><Mark layer="src" /><span>«<bdi lang="ar" className="ar">{f.removedText}</bdi>» removed · <span className="mono">{f.fieldPath}</span></span></li>
+          <li><Mark layer="ai" /><span className="pu">{f.advisory.label} · {f.advisory.provisional ? 'draft advisory, pending validation' : 'advisory, not a ruling'}</span></li>
+          <li><Mark layer="det" /><span>{f.regression.provisional ? 'Matched regression pending validation' : `${f.regression.changed} of ${f.regression.matched} matched answers changed`}</span></li>
         </ul>
 
       </div>
@@ -114,7 +117,7 @@ function Pin({ at, tf, cls = '', a, children, right }: { at: Pt; tf?: string; cl
   return <div className={`lh-pin ${cls}`} style={style}><div data-a={a}>{children}</div></div>;
 }
 
-function Overlay({ g, mode }: { g: Geo; mode: 'd' | 'm' }) {
+function Overlay({ g, mode, f }: { g: Geo; mode: 'd' | 'm'; f: HeroFacts }) {
   const ns = { vectorEffect: 'non-scaling-stroke' as const };
   const T = g.stackTop, P = g.plane;
   const desk = mode === 'd';
@@ -143,7 +146,7 @@ function Overlay({ g, mode }: { g: Geo; mode: 'd' | 'm' }) {
 
       <Pin at={desk ? [g.sheet[0][0], g.sheet[0][1] - 4] : [4, 4]} tf={desk ? 'translateY(-100%)' : undefined} cls="c14" a="c14">
         <span className="vchip"><span className="ver co">v14</span><span className="vt"><span className="lbl">Latest seen</span><span data-a="heldword" className="co"> · held</span>
-          {desk && <small><span data-a="fields">1 of 11 fields changed</span><span data-a="tested"> · tested</span></small>}</span></span>
+          {desk && <small><span data-a="fields">{f.removedCount} words removed</span><span data-a="tested"> · {f.regression.provisional ? 'regression pending' : 'tested'}</span></small>}</span></span>
       </Pin>
       <Pin at={desk ? T[0] : [4, 84]} tf={desk ? 'translate(calc(-100% - 16px),-50%)' : undefined} cls="c13">
         <span className="vchip"><span className="ver tq">v13</span><span className="vt"><span className="lbl">Trusted · </span><span className="tq">serving</span></span></span>
@@ -160,15 +163,17 @@ function Overlay({ g, mode }: { g: Geo; mode: 'd' | 'm' }) {
       </Pin>
       {desk && <>
         <Pin at={[44, 3.5]} cls="tag" a="tdiff">
-          <span className="tag-in"><span className="k"><Mark layer="src" />Exact change · 1 of 11 fields</span>
-            <span className="ar-diff"><bdi lang="ar" className="ar"><span className="rm">إسناده</span> صحيح</bdi><span className="arrow" aria-hidden="true">→</span><bdi lang="ar" className="ar">صحيح</bdi></span>
-            <span className="k"><Mark layer="det" /><span className="mono hash">3f9a1c0e → b81e47d2</span></span></span>
+          <span className="tag-in"><span className="k"><Mark layer="src" />Exact change · <span className="mono">{f.fieldPath}</span> · {f.removedCount} words removed</span>
+            <span className="ar-diff"><bdi lang="ar" className="ar">{f.oldPieces.map((p, i) => p.removed ? <span key={i}><span className="rm">{p.text.trimEnd()}</span>{p.text.slice(p.text.trimEnd().length)}</span> : <span key={i}>{p.text}</span>)}</bdi><span className="arrow" aria-hidden="true">→</span><bdi lang="ar" className="ar">{f.newValue}</bdi></span>
+            <span className="k"><Mark layer="det" /><span className="mono hash">{f.oldHash} → {f.newHash}</span></span></span>
         </Pin>
         <Pin at={[74, 2]} cls="tag" a="tai">
-          <span className="tag-in adv"><span className="k"><Mark layer="ai" />AI advisory</span><span className="v pu">Evidence-scope drift</span><small className="pu">Advisory. Not a ruling.</small></span>
+          <span className="tag-in adv"><span className="k"><Mark layer="ai" />AI advisory{f.advisory.provisional && ' · draft'}</span><span className="v pu">{f.advisory.label}</span><small className="pu">{f.advisory.provisional ? 'Draft · pending validation' : 'Advisory. Not a ruling.'}</small></span>
         </Pin>
         <Pin at={[74, 17]} cls="tag" a="treg">
-          <span className="tag-in"><span className="k"><Mark layer="det" />Matched regression</span><span className="v"><span className="co">2 of 3</span> answers changed</span><small>Same model and settings</small></span>
+          <span className="tag-in"><span className="k"><Mark layer="det" />Matched regression</span>{f.regression.provisional
+            ? <span className="v">Pending validation</span>
+            : <span className="v"><span className="co">{f.regression.changed} of {f.regression.matched}</span> answers changed</span>}<small>Same model and settings</small></span>
         </Pin>
       </>}
     </div>

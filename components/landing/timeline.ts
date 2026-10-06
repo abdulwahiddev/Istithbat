@@ -62,7 +62,7 @@ export const TRACKS: Track[] = [
     [2100, { opacity: 1, transform: 'none' }], [12600, { opacity: 1, transform: 'none', easing: IN }], [13150, { opacity: 0, transform: 'translateY(-12%)' }],
     [LOOP, { opacity: 0, transform: 'translateY(-12%)' }],
   ] },
-  // B: the v14 chip, then its progressive facts (C adds "1 of 11 fields changed", D adds "tested", E adds "held")
+  // B: the v14 chip, then its progressive facts (C adds the words-removed count, D adds the regression state, E adds "held")
   { sel: '[data-a=c14]', kf: fade(1650, 12650, 4, 400, 250) },
   { sel: '[data-a=fields]', kf: op([[0, 0], [3600, 0], [3900, 1], [12600, 1], [12800, 0], [LOOP, 0]]) },
   { sel: '[data-a=tested]', kf: op([[0, 0], [6600, 0], [6900, 1], [12600, 1], [12800, 0], [LOOP, 0]]) },

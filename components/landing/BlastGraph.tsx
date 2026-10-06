@@ -15,7 +15,9 @@ const TONE: Record<string, string> = { neutral: 'var(--ink-3)', changed: 'var(--
  * Blast radius on the landing: the product's placement (components/blast/layout), the product's
  * edge geometry (edgePath) and, once the radius has drawn, the product's dependency signal
  * (components/blast/FlowLayer). Drawn at a fixed design width and scaled uniformly, so strokes can
- * be drawn by length. Nodes light in dependency order as their edge arrives.
+ * be drawn by length. Nodes light in dependency order as their edge arrives. Once the radius has
+ * landed, the application cards take a quiet breathing halo (CSS, only while the section is on
+ * screen, never under reduced motion) so the eye ends where the exposure ends.
  */
 export function BlastGraph({ g, source, field, trusted, candidate }: { g: G; source: string; field: string; trusted: string; candidate: string }) {
   const host = useRef<HTMLDivElement>(null);
@@ -47,7 +49,8 @@ export function BlastGraph({ g, source, field, trusted, candidate }: { g: G; sou
 
   return (
     <div className="bg" aria-hidden="true">
-      <div ref={host} className="bg-stage" style={{ aspectRatio: `${g.w} / ${g.h}` }}>
+      {/* `data-alive` lives on the stage: re-rendering the cards would drop the engine's `.on` class */}
+      <div ref={host} className="bg-stage" data-alive={flow || undefined} style={{ aspectRatio: `${g.w} / ${g.h}` }}>
         {g.headings.map((h) => <span key={h.depth} className="colh fx-fade" data-t={START + h.depth * HOP - 120} style={{ left: `${h.x}%` }}>{h.label}</span>)}
         <svg className="bg-edges" viewBox={`0 0 ${g.w} ${g.h}`}>
           {/* a dashed (pending) edge cannot also be drawn by dash offset, so it fades in at its hop */}

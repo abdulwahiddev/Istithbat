@@ -6,6 +6,7 @@ import { typeLabel } from '@/components/blast/layout';
 import { BrandLockup } from '@/components/strata/BrandLockup';
 import { REVISION_NOTE } from '@/components/strata/format';
 import { POLICY_DEFINITIONS } from '@/lib/policy/rules';
+import quranCounts from '@/evaluation/corpus/quran-counts.json';
 import { deriveScenario, type Derived } from './derive';
 import { EVIDENCE } from './scenario';
 import { BlastGraph } from './BlastGraph';
@@ -18,8 +19,7 @@ import { LandingMotion } from './LandingMotion';
  * `data-t`, effects are `fx-*` classes in sections.css). Scenario facts come from deriveScenario(),
  * i.e. from the product's own engines; provisional 10618 values carry Draft labels.
  */
-export function LandingSections() {
-  const d = deriveScenario();
+export function LandingSections({ d = deriveScenario() }: { d?: Derived }) {
   return (
     <>
       <ChangeSection d={d} />
@@ -40,6 +40,7 @@ function Mark({ layer, size = 16 }: { layer: keyof typeof LAYER; size?: number }
 }
 const Mono = ({ children }: { children: ReactNode }) => <span className="mono">{children}</span>;
 const short = (h: string) => `${h.slice(0, 6)}…${h.slice(-4)}`;
+const listOf = (xs: string[]) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}`);
 
 /** Full-width chapter rule: number, layer and a quiet aside. */
 function Chapter({ n, layer, label, aside }: { n: string; layer: (keyof typeof LAYER)[]; label: string; aside?: ReactNode }) {
@@ -159,13 +160,15 @@ function ReachSection({ d }: { d: Derived }) {
           <p className="eqn">
             {terms.map((t, i) => <span key={t} className="eq fx-fade" data-t={420 + i * 160}><Icon name="check" size={16} stroke={2.2} className="ok" />{t}<span className="op" aria-hidden="true">+</span></span>)}
             <span className="eq diff fx-fade" data-t={940}><i aria-hidden="true" />Different knowledge <Mono>{s.original.version} ≠ {s.mutation.version}</Mono></span>
-            <span className="eq res fx-fade" data-t={1260}><span className="op" aria-hidden="true">=</span><b>{s.regression.material} of {s.regression.matched}</b>&nbsp;matched answers changed <Draft d={d} /></span>
+            {d.radius.verified
+              ? <span className="eq res fx-fade" data-t={1260}><span className="op" aria-hidden="true">=</span><b>{s.regression.material} of {s.regression.matched}</b>&nbsp;matched answers changed</span>
+              : <span className="eq res pend fx-fade" data-t={1260}><span className="op" aria-hidden="true">=</span>matched-answer result pending validation <Draft d={d} /></span>}
           </p>
         </div>
 
         <div className="qa" data-seq>
           <div className="qa-q fx-fade" data-t={0}>
-            <span className="cap">Pinned question · 1 of {s.regression.matched}</span>
+            <span className="cap">{d.radius.verified ? `Pinned question · 1 of ${s.regression.matched}` : 'Pinned question'}</span>
             <p>{s.regression.question}</p>
             {s.regression.answers === 'illustrative' && <Draft d={d} what="Illustrative answers · under validation" />}
           </div>
@@ -189,25 +192,24 @@ function ReachSection({ d }: { d: Derived }) {
 
         <figure className="rad" data-seq aria-labelledby="rad-cap">
           <figcaption id="rad-cap" className="rad-head">
-            <div className="rad-tally">
-              <span className="cap fx-fade" data-t={0}>Blast radius · {r.down} downstream assets of record <Mono>{s.source.recordId}</Mono></span>
-              <div className="rbar" role="img" aria-label={`${r.exp} exposed, of which ${r.pending} protected app awaits impact validation; ${r.imp} impacted; ${r.stale} stale`} style={{ gridTemplateColumns: `repeat(${r.down},minmax(0,1fr))` }}>
-                {Array.from({ length: r.down }, (_, i) => <span key={i} className={`fx-grow ${i < r.imp ? 'imp' : i < r.imp + r.pending ? 'pend' : 'exp'}`} data-t={260 + i * 90} />)}
-              </div>
-            </div>
+            <span className="cap fx-fade" data-t={0}>Blast radius · {r.down} downstream assets of record <Mono>{s.source.recordId}</Mono></span>
             <div className="rad-cnt">
-              <span className="cnt fx-fade" data-t={500}><b className="am">{r.exp}</b><span className="cap">Exposed</span></span>
-              {r.verified || r.imp
-                ? <span className="cnt fx-fade" data-t={600}><b className="co">{r.imp}</b><span className="cap">Impacted</span></span>
-                : <span className="cnt pend fx-fade" data-t={600}><b>Pending</b><span className="cap">Impact validation <Draft d={d} /></span><span className="sub">{r.pending} protected app awaiting impact validation</span></span>}
-              <span className="cnt fx-fade" data-t={700}><b className="dim">{r.stale}</b><span className="cap">Stale</span></span>
+              <span className="cnt fx-fade" data-t={300}>
+                <b className="am">{r.exp}</b><span className="cap">Exposed</span>
+                {r.pending > 0 && <span className="sub"><i className="dash" aria-hidden="true" />includes {r.pending} protected app awaiting impact validation <Draft d={d} /></span>}
+              </span>
+              {(r.verified || r.imp > 0) && <span className="cnt fx-fade" data-t={400}><b className="co">{r.imp}</b><span className="cap">Impacted</span></span>}
+              <span className="cnt fx-fade" data-t={500}><b className="dim">{r.stale}</b><span className="cap">Stale</span></span>
             </div>
           </figcaption>
           <BlastGraph g={r.graph} source={s.source.connectorId} field={s.field.path} trusted={s.original.version} candidate={s.mutation.version} />
           <Lineage d={d} />
           <p className="rad-rule fx-fade" data-t={2600}>
             Exposure comes from the dependency graph. Impact needs proof: a material regression against a protected app.
-            {r.pending > 0 && <> {r.pendingNames.join(' and ')} stays exposed, not impacted, until the 10618 regression is validated.</>}
+            {r.pending > 0 && <> {r.pendingNames.join(' and ')} stays exposed, not impacted, until the {s.source.recordId} regression is validated.</>}
+          </p>
+          <p className="rad-rule stale fx-fade" data-t={2700}>
+            <b>Stale</b> applies only to a frozen copy after a newer version is trusted while that copy still holds the previous one. Nothing has been promoted, so {listOf(s.assets.filter((x) => x.mode === 'MATERIALIZED' && x.type === 'API').map((x) => x.name))}’s frozen copy is exposed, not stale.
           </p>
         </figure>
       </div>
@@ -346,13 +348,18 @@ function EvidenceSection() {
           </div>
 
           <div className="ev" data-seq>
-            <h3 className="ev-h fx-fade" data-t={0}><span className="dot tq" aria-hidden="true" />Validated offline · full corpus <span className="ev-tag">Offline validation, not Production ingestion</span></h3>
+            <h3 className="ev-h fx-fade" data-t={0}><span className="dot tq" aria-hidden="true" />Full-corpus validation · offline</h3>
             <dl className="ev-nums">
-              <div className="fx-fade" data-t={150}><dt>HadeethEnc Arabic records validated</dt><dd>{n(E.corpus.hadeethArabic)}</dd></div>
-              <div className="fx-fade" data-t={260}><dt>English translations validated</dt><dd>{n(E.corpus.hadeethEnglish)}</dd></div>
-              <div className="fx-fade" data-t={370}><dt>Quran surahs / ayat validated</dt><dd>{E.corpus.surahs}<span className="sl">/</span>{n(E.corpus.ayat)}</dd></div>
-              <div className="fx-fade" data-t={480}><dt>Automated tests passing</dt><dd>{E.tests.passed}</dd></div>
+              <div className="fx-fade" data-t={150}><dd className="num">{n(E.corpus.hadeethArabic)}</dd><dt>HadeethEnc Arabic records validated</dt>
+                <dd className="viz"><Marks count={E.corpus.hadeethArabic} cols={112} kind="rec" t={300} /><span className="vcap">One mark per record</span></dd></div>
+              <div className="fx-fade" data-t={260}><dd className="num">{n(E.corpus.hadeethEnglish)}</dd><dt>English translations validated</dt>
+                <dd className="viz"><Marks count={E.corpus.hadeethEnglish} cols={61} kind="pair" t={420} /><span className="vcap">One Arabic · English pair per translation</span></dd></div>
+              <div className="fx-fade" data-t={370}><dd className="num">{E.corpus.surahs}<span className="sl">/</span>{n(E.corpus.ayat)}</dd><dt>Quran surahs / ayat validated</dt>
+                <dd className="viz"><SurahBars t={540} /><span className="vcap">One bar per surah · height = its ayat</span></dd></div>
+              <div className="fx-fade" data-t={480}><dd className="num">{E.tests.passed}</dd><dt>Automated tests passing</dt>
+                <dd className="viz"><Marks count={E.tests.passed} cols={22} kind="test" t={660} /><span className="vcap">One mark per passing test</span></dd></div>
             </dl>
+            <p className="ev-sep fx-fade" data-t={800}>Validated artifacts remain separate from the intentionally small live Production baseline.</p>
             <p className="ev-fine fx-fade" data-t={620}>{E.corpus.passes} independent passes over the official APIs; every raw, canonical, record and field hash matched. Quran figures are for <Mono>{E.corpus.quranTranslation}</Mono> ({E.corpus.quranPublisher}, v{E.corpus.quranVersion}). Tests: {E.tests.skipped} {E.tests.skippedNote} skipped; typecheck and Production build pass. Validated artifacts stay unassessed and unserved.</p>
           </div>
 
@@ -407,6 +414,32 @@ function ClosingSection() {
   );
 }
 
+/**
+ * Literal corpus marks: exactly `count` marks, in rows of `cols` (the last row holds the remainder).
+ * Drawn as tiled CSS backgrounds whose boxes are exact multiples of the mark, so the count is exact
+ * without thousands of DOM nodes. The marks reveal by mask; the number beside them never changes.
+ */
+function Marks({ count, cols, kind, t }: { count: number; cols: number; kind: 'rec' | 'pair' | 'test'; t: number }) {
+  const rows = Math.floor(count / cols), rem = count % cols;
+  return (
+    <span className={`marks k-${kind} fx-reveal`} data-t={t} data-marks={count} aria-hidden="true">
+      {rows > 0 && <span className="mr" style={{ ['--c' as string]: cols, ['--r' as string]: rows }} />}
+      {rem > 0 && <span className="mr" style={{ ['--c' as string]: rem, ['--r' as string]: 1 }} />}
+    </span>
+  );
+}
+
+/** The validated Quran translation as its real structure: 114 surahs, bar height = ayat (quran-counts.json). */
+function SurahBars({ t }: { t: number }) {
+  const counts = Object.values(quranCounts as Record<string, number>);
+  const max = Math.max(...counts), W = 2.4, H = 64;
+  return (
+    <svg className="surahs fx-reveal" data-t={t} data-marks={counts.length} viewBox={`0 0 ${counts.length * W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
+      {counts.map((c, i) => { const h = Math.max(1, (c / max) * (H - 2)); return <rect key={i} x={i * W} y={H - h} width={1.6} height={h} rx={0.5} />; })}
+    </svg>
+  );
+}
+
 /** Product footer: only routes and documents that exist. */
 export function LandingFooter() {
   const E = EVIDENCE;
@@ -423,7 +456,6 @@ export function LandingFooter() {
             <h2>Product</h2>
             <Link prefetch={false} href="/overview">Overview</Link>
             <Link prefetch={false} href="/incidents">Incidents</Link>
-            <Link prefetch={false} href="/sources">Sources</Link>
             <Link prefetch={false} href="/gateway">Gateway</Link>
             <Link prefetch={false} href="/sandbox">Sandbox</Link>
           </nav>
