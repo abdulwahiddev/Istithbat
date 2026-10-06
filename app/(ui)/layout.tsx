@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import { headers } from 'next/headers';
+import { notFound } from 'next/navigation';
 import { Amiri, Instrument_Sans, JetBrains_Mono, Newsreader } from 'next/font/google';
 import { Chrome } from '@/components/strata/Chrome';
 import { ThemeRoot } from '@/components/strata/theme';
@@ -33,11 +35,24 @@ export const metadata = {
 export const dynamic = 'force-dynamic';
 
 export default async function StrataLayout({ children }: { children: ReactNode }) {
+  const route = (await headers()).get('x-istithbat-route');
   const theme = await readTheme();
   const reviewer = await readReviewer();
   const incidents = await readIncidents();
   const sources = await readSources();
   const gateway = await readGatewayInventory();
+  // Chrome already needs these lists; checking here adds no database read.
+  // A page-level notFound() runs too late once loading.tsx has streamed HTTP 200.
+  if (route) {
+    const parts = route.split('/').filter(Boolean);
+    if (parts.length >= 2) {
+      let id: string;
+      try { id = decodeURIComponent(parts[1]); } catch { notFound(); }
+      if (parts[0] === 'incidents' && incidents.ok && !incidents.data.some(item => item.id === id)) notFound();
+      if (parts[0] === 'sources' && sources.ok && !sources.data.some(item => item.id === id)) notFound();
+      if (parts[0] === 'gateway' && gateway.ok && !gateway.data.some(item => item.appId === id && item.binding)) notFound();
+    }
+  }
   return (
     <ThemeRoot initial={theme} className={`${instrument.variable} ${newsreader.variable} ${jetbrains.variable} ${amiri.variable}`}>
       <a href="#main" className="sr-only">Skip to content</a>

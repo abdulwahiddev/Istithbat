@@ -21,6 +21,10 @@ async function loadInput(tx: postgres.TransactionSql, incidentId: string): Promi
       WHERE incident_id=${incidentId} ORDER BY id`,
     tx`SELECT id FROM source_versions WHERE source_id=${incident.source_id} AND status='TRUSTED'`,
   ]);
+  return mapGraphInput(incident, changes, assets, mappings, dependencies, protectedApps, regressions, trusted);
+}
+
+function mapGraphInput(incident: any, changes: any[], assets: any[], mappings: any[], dependencies: any[], protectedApps: any[], regressions: any[], trusted: any[]): GraphInput {
   return {
     incident: { id: incident.id, sourceId: incident.source_id, previousVersionId: incident.previous_version_id,
       candidateVersionId: incident.candidate_version_id, status: incident.status, policyAction: incident.effective_policy_action },
@@ -38,22 +42,44 @@ async function loadInput(tx: postgres.TransactionSql, incidentId: string): Promi
 }
 
 export async function readBlastRadius(incidentId: string) {
-  return getSql().begin(async tx => {
-    const input = await loadInput(tx, incidentId);
-    if (!input) return null;
+  const [row] = await getSql()`WITH selected AS (
+      SELECT id,source_id,previous_version_id,candidate_version_id,status,effective_policy_action
+      FROM incidents WHERE id=${incidentId}
+    ) SELECT to_jsonb(i) AS incident,
+      (SELECT COALESCE(jsonb_agg(to_jsonb(c) ORDER BY c.canonical_key,c.id),'[]'::jsonb)
+        FROM changes c WHERE c.to_version_id=i.candidate_version_id) AS changes,
+      (SELECT COALESCE(jsonb_agg(to_jsonb(a) ORDER BY a.id),'[]'::jsonb) FROM assets a) AS assets,
+      (SELECT COALESCE(jsonb_agg(to_jsonb(m) || jsonb_build_object('derived_version_status',v.status)
+        ORDER BY m.canonical_key,m.asset_id),'[]'::jsonb)
+        FROM asset_source_records m JOIN source_versions v ON v.id=m.derived_from_version_id
+        WHERE m.source_id=i.source_id) AS mappings,
+      (SELECT COALESCE(jsonb_agg(to_jsonb(d) ORDER BY d.from_asset_id,d.to_asset_id),'[]'::jsonb)
+        FROM dependencies d) AS dependencies,
+      (SELECT COALESCE(jsonb_agg(to_jsonb(p) || jsonb_build_object('served_version_id',g.served_version_id)
+        ORDER BY p.id),'[]'::jsonb)
+        FROM protected_apps p JOIN gateway_bindings g ON g.protected_app_id=p.id
+        WHERE g.source_id=i.source_id) AS protected_apps,
+      (SELECT COALESCE(jsonb_agg(to_jsonb(r) ORDER BY r.id),'[]'::jsonb)
+        FROM regression_runs r WHERE r.incident_id=i.id) AS regressions,
+      (SELECT COALESCE(jsonb_agg(jsonb_build_object('id',v.id)),'[]'::jsonb)
+        FROM source_versions v WHERE v.source_id=i.source_id AND v.status='TRUSTED') AS trusted,
+      (SELECT COALESCE(jsonb_agg(jsonb_build_object('metadata_json',e.metadata_json,'created_at',e.created_at)
+        ORDER BY e.created_at,e.id),'[]'::jsonb)
+        FROM audit_events e WHERE e.entity_type='incident' AND e.entity_id=${incidentId}
+          AND e.event_type='BLAST_RADIUS_COMPUTED') AS snapshots,
+      (SELECT to_jsonb(s) FROM pipeline_steps s JOIN pipeline_runs r ON r.id=s.run_id
+        WHERE r.incident_id=i.id AND s.step='BLAST_RADIUS' AND s.item_key='' LIMIT 1) AS step
+    FROM selected i`;
+    if (!row) return null;
+    const input = mapGraphInput(row.incident,row.changes,row.assets,row.mappings,row.dependencies,row.protected_apps,row.regressions,row.trusted);
     const graph = buildBlastRadius(input);
-    const snapshots = await tx`SELECT metadata_json,created_at FROM audit_events
-      WHERE entity_type='incident' AND entity_id=${incidentId} AND event_type='BLAST_RADIUS_COMPUTED'
-      ORDER BY created_at,id`;
-    const [step] = await tx`SELECT s.status,s.attempts,s.error_code,s.output_ref,s.completed_at
-      FROM pipeline_steps s JOIN pipeline_runs r ON r.id=s.run_id
-      WHERE r.incident_id=${incidentId} AND s.step='BLAST_RADIUS' AND s.item_key='' LIMIT 1`;
+    const snapshots = row.snapshots as Array<{metadata_json:any;created_at:string}>;
+    const step = row.step;
     return { ...graph, traversalStatus: snapshots.some(row => row.metadata_json.traversalHash === graph.traversalHash) ? 'PERSISTED' : 'LIVE',
       execution: step ? { status: step.status, attempts: step.attempts, errorCode: step.error_code,
-        outputRef: step.output_ref, completedAt: step.completed_at?.toISOString() ?? null } : null,
+        outputRef: step.output_ref, completedAt: step.completed_at ? new Date(step.completed_at).toISOString() : null } : null,
       history: snapshots.map(row => ({ phase: row.metadata_json.phase, traversalHash: row.metadata_json.traversalHash,
-        computedAt: row.created_at.toISOString(), counts: row.metadata_json.counts, graph: row.metadata_json.graph })) };
-  });
+        computedAt: new Date(row.created_at).toISOString(), counts: row.metadata_json.counts, graph: row.metadata_json.graph })) };
 }
 
 export async function computeAndPersistBlastRadius(incidentId: string, phase: 'PIPELINE' | 'POST_PROMOTION') {
