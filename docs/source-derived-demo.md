@@ -1,5 +1,7 @@
 # HadeethEnc 10618 — isolated end-to-end validation
 
+> **Historical local validation.** This document records the isolated run and its then-pending Production activation. The later authorized [Production rehearsal](technical-evidence.md#verified-claims) activated 10618: POL-002 quarantined v14, three live comparisons were MATERIAL, Blast Radius found 6 exposed / 1 impacted / 0 stale, and trusted/served stayed v13. The final engineering suite passed 202 tests. The local 2 MATERIAL / 1 NON-MATERIAL results below remain accurate for that separate run.
+
 **Scope:** production build running locally, actual PostgreSQL migrations/transactions, actual signed webhook and persisted pipeline, live Gemini. Snapshot I/O used an isolated Supabase-Storage-compatible HTTP harness, not the Production bucket. No Production mutation, merge, push or deployment. This is additional scenario evidence; official Packet 07 results remain unchanged.
 
 ## Source and provenance
@@ -150,9 +152,9 @@ Final suite: **201/201 passed**, including eight actual PostgreSQL tests. Typech
 
 After separately authorized deployment/migration and Production activation: sign in to demo control → reset to record 10618 → verify trusted/served original baseline → publish controlled v14 → wait until every persisted stage completes → open incident → inspect exact diff, advisory limitations, matched answers, graph and POL-002 → stop before promotion. Allow variable provider latency; use the real progress indicator. An already-open Incident Review needs navigation/reload to show a new incident; the Sandbox polls automatically. Reviewer sign-in/signing reloads the page automatically.
 
-Production still contains the earlier synthetic held incident. No Production reset was run. A future reset deletes that sandbox’s operational checks, changes, analyses, regression rows, pipeline rows, impact rows, policy evaluations, review rows and incident rows; candidate versions/records are deleted, baseline v13 histories and append-only audit are retained. It replaces the active record mapping, pinned question and serving baseline with source-derived 10618. This destructive activation requires explicit authorization.
+At the time of this isolated validation, Production still contained the earlier synthetic held incident and no Production reset had been run. The subsequently authorized reset deleted that sandbox’s operational checks, changes, analyses, regression rows, pipeline rows, impact rows, policy evaluations, review rows and incident rows; candidate versions/records were deleted, while baseline v13 histories and append-only audit were retained. It replaced the active record mapping, pinned question and serving baseline with source-derived 10618. Future resets remain destructive to the current sandbox investigation and require explicit authorization.
 
-Remaining limitations before a clean recording: AI field interpretation and comparator annotations above; final Production deployment/Storage/migration and authorized rehearsal are unverified. A local Storage-compatible harness does not certify hosted Supabase Storage permissions or remote provider latency.
+Limitations identified at the time of this local run: AI field interpretation and comparator annotations above; Production deployment/Storage/migration and an authorized rehearsal had not yet been verified. A local Storage-compatible harness did not certify hosted Supabase Storage permissions or remote provider latency. The later Production rehearsal is reported separately in [technical evidence](technical-evidence.md).
 
 ## Landing facts (data only; preview untouched)
 

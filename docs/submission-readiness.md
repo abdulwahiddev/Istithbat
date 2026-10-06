@@ -1,8 +1,10 @@
 # Submission-readiness audit
 
+> **Historical audit snapshot.** The 85/100 estimate and 181-test count below describe the earlier `8c03325` baseline, not the current Production release. The later authorized [10618 Production rehearsal](technical-evidence.md#verified-claims) left v14 quarantined, v13 trusted/served, three material regressions and 6 exposed / 1 impacted / 0 stale; the final engineering suite passed 202 tests. Remaining deck, video, private judge access and submission-receipt items still require owner verification.
+
 **Date:** 6 October 2026. **Audited code baseline:** `8c03325bff64c8300956b833c09f24a3d76f2680` on public `main`, plus this documentation-only update. Production was inspected using GET requests and read-only SQL; no source/incident/review/release state was changed. Landing design, Strata, sandbox UI and reviewer UX are outside this audit's change scope.
 
-## Readiness estimate: 85/100
+## Historical readiness estimate: 85/100
 
 This is an internal readiness estimate, **not an organizer score or a prediction of judging**. The rubric assesses verifiability and completion; recorded model limitations remain visible.
 

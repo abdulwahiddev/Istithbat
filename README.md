@@ -1,19 +1,28 @@
-# Istithbat | استثبات
+<p align="center">
+  <img src="public/brand/istithbat-symbol-on-light.png" alt="" width="49" height="54" />
+  <img src="public/brand/istithbat-wordmark-on-light.png" alt="استثبات | Istithbat" width="123" height="54" />
+</p>
 
-Integrity and release governance for organizations consuming Islamic knowledge in AI and digital products. Istithbat detects upstream changes, preserves exact evidence, tests their behavioral effects, and keeps unreviewed candidates from silently reaching a protected app.
+<h1 align="center">Know when trusted knowledge changes.</h1>
 
-**AI advises. Policy governs. Humans decide.** Hashes prove that content changed; they do not determine religious truth, hadith authenticity or a fatwa.
+<p align="center"><strong>AI advises. Policy governs. Humans decide.</strong><br />
+<a href="https://istithbat.vercel.app">Live app</a> · <a href="https://istithbat.vercel.app/sandbox">Sandbox demo</a></p>
 
-- **Product:** [istithbat.vercel.app/overview](https://istithbat.vercel.app/overview)
-- **Controlled upstream simulator:** [istithbat.vercel.app/sandbox](https://istithbat.vercel.app/sandbox)
-- **Public repository:** [abdulwahiddev/Istithbat](https://github.com/abdulwahiddev/Istithbat)
-- **Evidence:** [technical evidence](docs/technical-evidence.md), [evaluation](docs/evaluation.md), [source register](docs/data-sources.md)
+## What Istithbat is
+
+Istithbat is integrity infrastructure for Islamic knowledge consumed by AI and digital applications. It monitors upstream sources, preserves exact evidence of changes, tests how a change affects answers and dependent systems, and holds sensitive candidates for review.
+
+An upstream update can alter what a protected application says without an explicit trust decision. Istithbat keeps those states separate: **Latest seen ≠ Trusted = Served** while a candidate is held. The source may change; the Trust Gateway continues serving the last trusted version.
+
+Hashes establish *what changed*, not religious truth or hadith authenticity. AI investigates significance, deterministic policy sets the release floor, and a human decides whether a held candidate may be promoted.
 
 ## How it works
 
+**CONNECT → DETECT → UNDERSTAND → TEST → TRACE → CONTAIN → HUMAN DECISION**
+
 ```mermaid
 flowchart LR
-  S[Official source or labelled synthetic sandbox] --> N[Immutable raw and canonical snapshots]
+  S[Official read-only source or labelled sandbox] --> N[Immutable raw and canonical snapshots]
   N --> H[Snapshot, record and field SHA-256]
   H --> D[Exact diff and declared field roles]
   D --> A[AI semantic and evidence analysis]
@@ -40,17 +49,17 @@ flowchart LR
 | Human and gateway | Sensitive held changes require a human decision. Approval promotes atomically; the gateway otherwise retains the served trusted version. Latest seen, trusted and served are separate states. |
 | Audit | Records ingestion, pipeline attempts, policy, review and release actions; database guards enforce append-only history. |
 
-## The demo
+## Verified Production demo
 
-The canonical replacement scenario uses **HadeethEnc record 10618**, copied from verified corpus evidence. Its Arabic hadith, English translation, attribution and references remain unchanged. Only the controlled candidate's `ar.grade` changes:
+The current [Production sandbox](https://istithbat.vercel.app/sandbox) uses **real HadeethEnc record 10618** as its source-derived baseline. Its Arabic hadith, English translation, attribution and references remain unchanged. Only Istithbat's controlled candidate changes `ar.grade`:
 
 `صحيح دون قوله: (ولم يستدر)` → `صحيح`
 
-**Real source record · controlled test mutation.** Original record from HadeethEnc; candidate mutation created by Istithbat for demonstration and **not published by HadeethEnc**. Internal v13/v14 labels are sandbox test versions. The retained English `grade_ar` still contains the exception; the inconsistency is deliberately surfaced, not silently rewritten.
+**Original record from HadeethEnc · candidate mutation created for demonstration.** HadeethEnc did **not** publish this candidate. The v13/v14 labels belong to Istithbat's sandbox. The unchanged English `grade_ar` retains the exception, so the field discrepancy remains visible.
 
-An isolated end-to-end rehearsal with actual PostgreSQL and live Gemini completed: POL-002 quarantined the candidate, trusted v13 remained served, and three matched comparisons returned two material changes and one non-material change. **AI caveats remain:** a generated answer confused grading fields, and comparator annotations overstated citation/attribution changes. See [the full evidence and limitations](docs/source-derived-demo.md). This scenario has not been deployed or activated in Production. The existing wholly synthetic HAD-4821 held incident remains the fallback until an owner-authorized reset. The console reflects whichever scenario is actually active. Reset now explicitly activates the original record 10618 baseline; publishing its controlled v14 then runs the real pipeline and deterministic POL-002. The gateway retains the trusted baseline while the candidate is held.
+The verified Production run detected a `SCHOLAR_JUDGMENT` change, and deterministic **POL-002 quarantined v14**. Its three matched comparisons were **3 MATERIAL / 0 NON-MATERIAL**; Blast Radius found **6 EXPOSED / 1 IMPACTED / 0 STALE**. The impacted asset was the protected Islamic Q&A app. **Latest v14 is quarantined; Trusted and Served remain v13.** Live model verdicts can vary; the policy containment is deterministic. Inspect the [held Incident Review](https://istithbat.vercel.app/incidents/863d5b03-fc98-4d49-a2a6-ae9d6c3cf753), [sandbox](https://istithbat.vercel.app/sandbox), [local validation history](docs/source-derived-demo.md) and [console guide](docs/sandbox-demo.md).
 
-Demo Control and Reviewer sessions are separate. Credentials are supplied privately, never in this repository. Do not reset or publish on shared Production without owner authorization. See [scenario evidence and limitations](docs/source-derived-demo.md) and [console operation](docs/sandbox-demo.md).
+Demo Control and Reviewer actions require separate credentials supplied privately to judges. No credentials are stored in this README. The earlier fully synthetic fixture remains in the repository for CI and historical evaluation; it is not the current Production incident.
 
 ## Real sources and measured scope
 
@@ -58,13 +67,19 @@ Demo Control and Reviewer sessions are separate. Credentials are supplied privat
 | --- | --- | --- |
 | [HadeethEnc](https://hadeethenc.com/) | 3 Arabic hadith entries with their English responses | 3,574 unique Arabic records and 2,328 available English translations; complete documented Arabic root-category union for these languages |
 | [QuranEnc](https://quranenc.com/) | 11 ayat, surahs 1 and 112, selected `english_saheeh` translation; publisher metadata identifies Noor International Center | 114 surahs / 6,236 ayat of that translation |
-| Controlled sandbox | One record per test version; existing synthetic fallback retained until authorized activation | Source-derived 10618 scenario plus separate synthetic evaluation cases; real provider endpoints remain untouched |
+| Controlled sandbox | Source-derived HadeethEnc 10618 baseline and controlled candidate; one record per sandbox version | Separate synthetic evaluation cases; real provider endpoints remain untouched |
 
 Both real APIs are read-only. Raw, canonical, record and field hashes were identical across two independent full-corpus passes. **These are private validation artifacts, not a full-corpus Production import or trust approval.** See the [measured report](evaluation/results/2026-10-06-real-corpus.md), [reproducible command](evaluation/corpus/README.md) and [provider terms/attribution](docs/data-sources.md).
 
+## Validation and safety model
+
+The final engineering suite passed **202 application tests**; eight optional database tests were skipped in the standard run. Typecheck, Production build and the repository secret check passed. The separate frozen 40-case evaluation tested deterministic mutation/policy behavior and measured advisory AI performance. Full-corpus validation checked source acquisition and repeat-fetch integrity; it did **not** ingest the entire corpus into Production or establish religious correctness. See [technical evidence](docs/technical-evidence.md) and [evaluation](docs/evaluation.md).
+
+AI cannot grant `TRUSTED` or lower the deterministic policy floor. A substantive candidate remains held through REVIEW or QUARANTINE until an authorized human decision; only the deterministic POL-005 equivalent/operational path can allow automatic promotion. Failures stay visible and fail closed. Human approval uses an atomic release transaction; the audit trail is append-only.
+
 ## AI disclosure and limitations
 
-Main implements **Gemini, OpenAI and Anthropic** adapters, with explicit live, mock and replay modes. The official complete 40-case evaluation and the persisted held Production comparisons used **Gemini `gemini-3.5-flash-lite`**. Persisted per-call metadata is the evidence for the model actually used; deployment defaults can change. [AI and safety disclosure](docs/ai-and-safety.md) explains schema validation, matched conditions and failure behavior.
+Main implements **Gemini, OpenAI and Anthropic** adapters, with explicit live, mock and replay modes. The official complete 40-case evaluation and the current Production regression used **Gemini `gemini-3.5-flash-lite`**. Persisted per-call metadata is the evidence for the model actually used; deployment defaults can change. [AI and safety disclosure](docs/ai-and-safety.md) explains structured outputs, schema validation, matched conditions and failure behavior.
 
 The official synthetic evaluation measured **90.0% classification accuracy**, **89.5% material recall**, **0/21 false HIGH/CRITICAL classifications** and **57.5% regression detection accuracy**. These advisory model limitations are disclosed; they are not a claim of religious correctness. Deterministic mutation/policy tests passed 40/40. See [denominators, safety review and failure details](docs/evaluation.md).
 
