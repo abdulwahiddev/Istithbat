@@ -19,7 +19,7 @@ export type ChromeData = {
   /** The served state for the state bar when nothing is held. */
   served: { appName: string; trustedLabel: string | null; servedLabel: string | null } | null;
   gatewayHref: string;
-  reviewer: { name: string } | null;
+  reviewer: { name: string; canSign: boolean } | null;
   /** Whether this deployment can verify a review credential at all (server-side check). */
   reviewAvailable: boolean;
 };
@@ -202,7 +202,7 @@ function Reviewer({ reviewer, available, actions }: { reviewer: ChromeData['revi
     document.addEventListener('keydown', onKey); document.addEventListener('mousedown', onDown);
     return () => { document.removeEventListener('keydown', onKey); document.removeEventListener('mousedown', onDown); };
   }, [open]);
-  const label = reviewer ? `${reviewer.name}, reviewer mode` : available ? 'Reviewer mode is locked' : 'Reviewer mode is unavailable on this deployment';
+  const label = reviewer ? `${reviewer.name}, ${reviewer.canSign ? 'reviewer mode' : 'review preview mode'}` : available ? 'Reviewer mode is locked' : 'Reviewer mode is unavailable on this deployment';
   return (
     <div className="whobox" ref={box}>
       <button type="button" className="who" aria-label={label} title={reviewer ? 'Reviewer mode' : 'Unlock reviewer mode'} aria-expanded={open} aria-haspopup="dialog"
@@ -216,7 +216,7 @@ function Reviewer({ reviewer, available, actions }: { reviewer: ChromeData['revi
         <div className="unlock" role="dialog" aria-label={reviewer ? 'Reviewer mode' : 'Unlock reviewer mode'}>
           {reviewer ? (
             <>
-              <p>Signed in as <b style={{ color: 'var(--ink)' }}>{reviewer.name}</b>. Decisions are recorded under this name.</p>
+              <p>Signed in as <b style={{ color: 'var(--ink)' }}>{reviewer.name}</b>. {reviewer.canSign ? 'Decisions are recorded under this name.' : 'Preview only. No decision can be signed or recorded with this access.'}</p>
               <button type="button" className="ubtn" onClick={async () => { await actions.lock(); setOpen(false); window.location.reload(); }}>Sign out of Reviewer Mode</button>
             </>
           ) : !available ? (

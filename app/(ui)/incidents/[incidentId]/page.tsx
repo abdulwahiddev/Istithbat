@@ -339,12 +339,12 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
       {/* 07 HUMAN DECISION */}
       <section id="decision" aria-labelledby="h-dec" style={{ padding: '64px 0 120px' }}>
         <div className="wrap g">
-          <Rail layer="hum" id="h-dec" title="Review decision" decision>{inc.status === 'RESOLVED' ? 'Decided and recorded.' : reviewer ? 'Reviewer active. Your signature records a real decision.' : 'Reviewer authentication required to sign a decision.'}</Rail>
+          <Rail layer="hum" id="h-dec" title="Review decision" decision>{inc.status === 'RESOLVED' ? 'Decided and recorded.' : reviewer?.canSign ? 'Reviewer active. Your signature records a real decision.' : reviewer ? 'Judge preview active. No decision can be signed.' : 'Reviewer authentication required to sign a decision.'}</Rail>
           <div className="main" style={{ gap: 0 }}>
             <div className="handoff">
               {f.policyCode ? <HeldBy code={f.policyCode} /> : <Chip tone="am">Policy pending</Chip>}
               <span className="handoff-line" aria-hidden="true" />
-              {inc.status === 'RESOLVED' ? <HandedToYou>Signed</HandedToYou> : <ReviewerStatus active={!!reviewer} />}
+              {inc.status === 'RESOLVED' ? <HandedToYou>Signed</HandedToYou> : <ReviewerStatus active={!!reviewer?.canSign} />}
             </div>
             <div className="handoff-drop" aria-hidden="true" />
             <DecisionDock incidentId={inc.id} candidate={cand} previous={prev} served={served} appName={appName} candidateState={heldText}

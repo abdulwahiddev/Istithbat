@@ -4,7 +4,7 @@ Open [Production `/sandbox`](https://istithbat.vercel.app/sandbox). The active s
 
 ## Controls
 
-Sign in with the existing `DEMO_CONTROL_SECRET` using the control credential field. The server issues a separate 12-hour signed, Secure, HttpOnly, SameSite=Strict control cookie. Reviewer credentials and cookies do not grant control access; control access does not grant reviewer permission. Credentials are never embedded in a page or returned by the API.
+Sign in with the intentionally public judge key `IstithbatDemo2026!` using the control credential field. It is backed by `DEMO_SANDBOX_SECRET` and issues a 12-hour signed, Secure, HttpOnly, SameSite=Strict sandbox cookie. This cookie authorizes only the controlled sandbox reset and publish workflow. It does not grant real-source checks, arbitrary pipeline actions or reviewer decisions. The broader `DEMO_CONTROL_SECRET` remains private for internal operations. The public Reviewer Mode pair in the [README](../README.md#judge-access) provides preview access only; the real signer credential remains private. No credential is embedded in a page or returned by an API.
 
 Reset requires explicit confirmation. The existing reset transaction restores upstream/trusted/served v13 and clears sandbox candidate versions, incidents, reviews and pipeline state; the append-only audit history is retained. Do not reset while a pipeline is active. Reset is intentionally destructive to the sandbox investigation, so obtain the demo owner's authorization before a Production rehearsal.
 

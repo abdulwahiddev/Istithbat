@@ -6,7 +6,7 @@ import type { GatewayItem, ReadResult } from './read';
 import { versionText } from '@/components/strata/format';
 
 /** Chrome facts from the incident list, sources and bindings. Served state always comes from the gateway binding. */
-export function chromeData(incidents: ReadResult<IncidentListItem[]>, sources: ReadResult<SourceSummary[]>, gateway: ReadResult<GatewayItem[]>, reviewer: { name: string } | null): ChromeData {
+export function chromeData(incidents: ReadResult<IncidentListItem[]>, sources: ReadResult<SourceSummary[]>, gateway: ReadResult<GatewayItem[]>, reviewer: { name: string; canSign: boolean } | null): ChromeData {
   const list = incidents.ok ? incidents.data : [];
   const bindingList = (gateway.ok ? gateway.data : []).filter((g) => g.binding && g.appId);
   const sourceById = new Map((sources.ok ? sources.data : []).map((s) => [s.id, s]));
@@ -31,6 +31,6 @@ export function chromeData(incidents: ReadResult<IncidentListItem[]>, sources: R
     gatewayHref: firstBinding ? `/gateway/${encodeURIComponent(firstBinding.appId!)}` : '/gateway',
     reviewer,
     // Only whether sign-in can work here; the credential itself never leaves the server.
-    reviewAvailable: Boolean(process.env.DEMO_REVIEW_USERNAME && process.env.DEMO_REVIEW_SECRET),
+    reviewAvailable: Boolean((process.env.DEMO_REVIEW_USERNAME && process.env.DEMO_REVIEW_SECRET) || (process.env.DEMO_REVIEW_PREVIEW_USERNAME && process.env.DEMO_REVIEW_PREVIEW_SECRET)),
   };
 }

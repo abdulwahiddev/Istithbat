@@ -65,7 +65,24 @@ The current [Production sandbox](https://istithbat.vercel.app/sandbox) uses **re
 
 The verified Production run detected a `SCHOLAR_JUDGMENT` change, and deterministic **POL-002 quarantined v14**. Its three matched comparisons were **3 MATERIAL / 0 NON-MATERIAL**; Blast Radius found **6 EXPOSED / 1 IMPACTED / 0 STALE**. The impacted asset was the protected Islamic Q&A app. **Latest v14 is quarantined; Trusted and Served remain v13.** Live model verdicts can vary; the policy containment is deterministic. Inspect the [held Incident Review](https://istithbat.vercel.app/incidents/863d5b03-fc98-4d49-a2a6-ae9d6c3cf753), [sandbox](https://istithbat.vercel.app/sandbox), [local validation history](docs/source-derived-demo.md) and [console guide](docs/sandbox-demo.md).
 
-Demo Control and Reviewer actions require separate credentials supplied privately to judges. No credentials are stored in this README. The earlier fully synthetic fixture remains in the repository for CI and historical evaluation; it is not the current Production incident.
+## Judge access
+
+These credentials are **intentionally public hackathon demo credentials**. They do not provide infrastructure, database, Vercel or real-source provider access. HadeethEnc and QuranEnc are never modified; the candidate is controlled sandbox test data. The earlier fully synthetic fixture remains in the repository for CI and historical evaluation, not the current Production incident.
+
+### Demo Sandbox
+
+Open [the sandbox console](https://istithbat.vercel.app/sandbox) and enter the **Demo Sandbox key:** `IstithbatDemo2026!`
+
+This key unlocks only the controlled HadeethEnc 10618 sandbox reset and publish workflow. Reset replaces the current sandbox investigation, so judges should inspect the held incident before using it. The key cannot authorize source checks, arbitrary pipeline actions or human decisions.
+
+### Reviewer Mode preview
+
+Open [the held Incident Review](https://istithbat.vercel.app/incidents/863d5b03-fc98-4d49-a2a6-ae9d6c3cf753) and sign in with:
+
+- **Username:** `IslamicAIChallenge2026`
+- **Password:** `IstithbatReviewer2026!`
+
+This judge session can inspect evidence and preview Approve, Reject, Keep quarantined and Escalate. It cannot sign or record any decision. The real signer credential remains private. **Latest v14 is quarantined; Trusted and Served remain v13.**
 
 ## Real sources and measured scope
 
@@ -107,7 +124,7 @@ Fill the required server configuration in the ignored `.env.local`; select mock 
 | Database | `DATABASE_URL`; `DATABASE_URL_DIRECT` for migrations, or the configured database connection as fallback |
 | Private snapshot Storage | `SUPABASE_URL`, `SNAPSHOT_BUCKET`, `SUPABASE_SECRET_KEY`; optional legacy fallback `SUPABASE_SERVICE_ROLE_KEY` |
 | AI mode and live configuration | `AI_MODE`; `AI_PROVIDER`, `AI_MODEL` for live mode; one of `GEMINI_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` |
-| Separate demo privileges | `DEMO_CONTROL_SECRET`, `DEMO_WEBHOOK_SECRET`, `DEMO_REVIEW_USERNAME`, `DEMO_REVIEW_SECRET` |
+| Separate demo privileges | `DEMO_CONTROL_SECRET`, `DEMO_WEBHOOK_SECRET`, `DEMO_REVIEW_USERNAME`, `DEMO_REVIEW_SECRET`, `DEMO_SANDBOX_SECRET`, `DEMO_REVIEW_PREVIEW_USERNAME`, `DEMO_REVIEW_PREVIEW_SECRET` |
 | Application origin | `APP_BASE_URL` |
 | Optional local replay recording | `AI_RECORD_REPLAY` |
 

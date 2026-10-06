@@ -11,7 +11,7 @@ export type DockProps = {
   /** decisions the governance transition table allows right now */
   allowed: Decision[];
   aiPill: string | null;
-  reviewer: { name: string } | null;
+  reviewer: { name: string; canSign: boolean } | null;
   /** last recorded decision, if any */
   recorded: { decision: Decision; reviewer: string; at: string } | null;
   resolved: boolean;
@@ -34,7 +34,7 @@ export function DecisionDock(p: DockProps) {
   const [stage, setStage] = useState<'choose' | 'confirm' | 'sending' | 'done'>('choose');
   const [result, setResult] = useState<{ ok: boolean; title: string; body: string } | null>(null);
   const confirmRef = useRef<HTMLDivElement>(null);
-  const locked = !p.reviewer;
+  const locked = !p.reviewer?.canSign;
   useEffect(() => { if (stage === 'confirm') confirmRef.current?.querySelector('button')?.focus(); }, [stage]);
   // No anonymous drafts: a reason exists only while Reviewer Mode is active.
   useEffect(() => { if (locked) setReason(''); }, [locked]);
@@ -62,7 +62,7 @@ export function DecisionDock(p: DockProps) {
   const blocked = !pick || p.resolved || (!locked && reasonMissing);
 
   async function submit() {
-    if (!d || !p.reviewer) return;
+    if (!d || !p.reviewer?.canSign) return;
     setStage('sending');
     try {
       const res = await fetch(Endpoints.incidentReview(p.incidentId), {
@@ -137,7 +137,7 @@ export function DecisionDock(p: DockProps) {
               <textarea id="reason" className="field" rows={4} value={reason} maxLength={2000} disabled={locked || p.resolved || stage === 'sending' || stage === 'done'}
                 onChange={(e) => setReason(e.target.value)} placeholder={locked ? 'Available once Reviewer Mode is unlocked' : 'In your words, why this decision'}
                 aria-required={!locked && needsReason} aria-describedby={locked ? 'reason-locked' : undefined} />
-              {locked && !p.resolved && <span id="reason-locked" style={{ fontSize: 14, lineHeight: '21px', color: 'var(--h-ink-3)' }}>Unlock Reviewer Mode to record a reason and sign this decision.</span>}
+                  {locked && !p.resolved && <span id="reason-locked" style={{ fontSize: 14, lineHeight: '21px', color: 'var(--h-ink-3)' }}>{p.reviewer ? 'Judge preview cannot record a reason or sign this decision.' : 'Unlock Reviewer Mode to record a reason and sign this decision.'}</span>}
             </div>
             {stage === 'choose' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -155,7 +155,7 @@ export function DecisionDock(p: DockProps) {
                 {locked ? (
                   <>
                     <p style={{ margin: 0, fontSize: 16, lineHeight: '24px' }}><b>{pick.ifLabel}</b><span style={{ color: 'var(--h-ink-3)', fontWeight: 400 }}> · preview</span><br /><span style={{ color: 'var(--h-ink-2)' }}>{pick.confirmBody}</span></p>
-                    <p style={{ margin: 0, fontSize: 14, lineHeight: '21px', color: 'var(--h-ink-2)' }}>Nothing has been queued or recorded. Reviewer authentication is required to sign a decision.</p>
+                    <p style={{ margin: 0, fontSize: 14, lineHeight: '21px', color: 'var(--h-ink-2)' }}>Nothing has been queued or recorded. {p.reviewer ? 'Judge preview access cannot sign a decision.' : 'Reviewer authentication is required to sign a decision.'}</p>
                   </>
                 ) : (
                   <>
@@ -166,7 +166,7 @@ export function DecisionDock(p: DockProps) {
                 )}
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                   {locked
-                    ? <button type="button" className="btn btn-go" style={{ flex: 1 }} onClick={requestReviewerUnlock}>Unlock Reviewer Mode<Arrow /></button>
+                    ? p.reviewer ? <span style={{ flex: 1, fontSize: 14, color: 'var(--h-ink-2)' }}>Preview only · no signing access</span> : <button type="button" className="btn btn-go" style={{ flex: 1 }} onClick={requestReviewerUnlock}>Unlock Reviewer Mode<Arrow /></button>
                     : <button type="button" className="btn btn-go" style={{ flex: 1 }} disabled={stage === 'sending' || reasonMissing} onClick={submit}>{stage === 'sending' ? 'Signing…' : `Sign as ${p.reviewer!.name}`}<Arrow /></button>}
                   <button type="button" className="btn btn-ghost" disabled={stage === 'sending'} onClick={() => setStage('choose')}>Back</button>
                 </div>

@@ -61,7 +61,7 @@ export default async function Lab({ searchParams }: { searchParams: Promise<{ s?
           <div className="handoff"><span /><span className="handoff-line" aria-hidden="true" /><ReviewerStatus active={arg === 'active'} /></div>
           <div className="handoff-drop" aria-hidden="true" />
           <DecisionDock key={s} incidentId="fixture" candidate="v2" previous="v1" served="v1" appName="Fixture Protected App" candidateState="Quarantined"
-            allowed={['APPROVE', 'REJECT', 'KEEP_QUARANTINED', 'ESCALATE']} aiPill={null} reviewer={arg === 'active' ? { name: 'Fixture Reviewer' } : null} recorded={null} resolved={false} />
+            allowed={['APPROVE', 'REJECT', 'KEEP_QUARANTINED', 'ESCALATE']} aiPill={null} reviewer={arg === 'active' ? { name: 'Fixture Reviewer', canSign: true } : null} recorded={null} resolved={false} />
         </div></div></section>
       )}
       <div style={{ height: 120 }} />

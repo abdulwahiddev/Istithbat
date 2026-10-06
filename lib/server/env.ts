@@ -13,6 +13,7 @@ const serverSchema = z.object({
   SNAPSHOT_BUCKET: z.string().min(1),
   AI_PROVIDER: z.string().optional(), AI_MODEL: z.string().optional(), AI_MODE: z.enum(['live','mock','replay']).default('mock'),
   DEMO_REVIEW_USERNAME: z.string().min(1), DEMO_REVIEW_SECRET: z.string().min(16), DEMO_CONTROL_SECRET: z.string().min(16), DEMO_WEBHOOK_SECRET: z.string().min(16),
+  DEMO_SANDBOX_SECRET: z.string().min(16).optional(), DEMO_REVIEW_PREVIEW_USERNAME: z.string().min(1).optional(), DEMO_REVIEW_PREVIEW_SECRET: z.string().min(16).optional(),
   APP_BASE_URL: z.string().url(), QURANPEDIA_API_BASE: z.string().url().optional(), DORAR_API_BASE: z.string().url().optional(),
 }).refine(
   env => Boolean(env.SUPABASE_SECRET_KEY || env.SUPABASE_SERVICE_ROLE_KEY),

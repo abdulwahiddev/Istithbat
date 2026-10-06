@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSql } from '@/lib/db/client';
-import { requireControl } from '@/lib/server/demo-auth';
+import { requireSandbox } from '@/lib/server/demo-auth';
 import { fixtureNames, SANDBOX_ID } from '@/lib/connectors/sandbox';
 import { signWebhook } from '@/lib/server/webhook-signature';
 export const runtime='nodejs';
 export const maxDuration=60;
 export async function POST(request:NextRequest) {
-  if(!requireControl(request)) return NextResponse.json({error:{code:'UNAUTHORIZED',message:'Demo control required'}},{status:401});
+  if(!requireSandbox(request)) return NextResponse.json({error:{code:'UNAUTHORIZED',message:'Sandbox access required'}},{status:401});
   const body=await request.json().catch(()=>null);
   const fixture=body?.fixture;
   if(!fixtureNames.includes(fixture)) return NextResponse.json({error:{code:'INVALID_FIXTURE',message:'Unknown sandbox fixture'}},{status:400});
