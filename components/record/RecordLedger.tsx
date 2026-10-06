@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { AuditPage, Endpoints, type AuditEvent } from '@/lib/contracts';
 import { AUTHORITY, FOLDED, LANE_MARK, narrate, type Lane, type Narrated } from '@/components/strata/events';
 import { clock, fullTime } from '@/components/strata/format';
+import { Icon, type IconName } from '@/components/strata/icons';
 
 export type RecordContext = {
   incidentId: string; recordKey: string; candidateId: string; candidateLabel: string; previousId: string | null; previousLabel: string | null;
@@ -18,13 +19,19 @@ export type RecordContext = {
 const X = [16, 46, 76, 106, 136], NY = 25;
 const st = (s: string) => Object.fromEntries(s.split(';').filter(Boolean).map((d) => { const i = d.indexOf(':'); return [d.slice(0, i).replace(/-([a-z])/g, (_, c: string) => c.toUpperCase()), d.slice(i + 1)]; }));
 const T = 'translate(-50%,-50%)';
-/** One node shape for every authority: a dot in the authority's colour (tone overrides it for meaning). AI keeps the dashed advisory ring; unrecorded entries are hollow. */
+/** Lane glyphs: the same Lucide family as the layer marks, drawn inside every event node. */
+const LANE_ICON: IconName[] = ['database', 'fingerprint-pattern', 'sparkles', 'scale', 'user-check'];
+/**
+ * Event node: an icon tile in the authority's colour. A semantic tone (e.g. quarantine) fills the
+ * tile; AI keeps the dashed advisory ring; unrecorded entries are hollow and dashed.
+ */
 function nodeStyle(lane: Lane, tone: string | null, pend: boolean): string {
-  const base = `width:11px;height:11px;border-radius:50%;box-sizing:border-box;transform:${T}`;
-  if (pend) return `${base};border:1.5px dashed var(--ink-3);background:var(--plate-a)`;
-  if (lane === 2) return `${base};border:2px dashed var(--pu);background:var(--pu-soft);box-shadow:0 0 0 3px var(--plate-a)`;
-  const c = tone ?? ['var(--ink)', 'var(--ink-2)', 'var(--pu)', 'var(--ink)', 'var(--ink)'][lane];
-  return `${base};background:${c};box-shadow:0 0 0 3px var(--plate-a)`;
+  const base = `width:24px;height:24px;border-radius:50%;box-sizing:border-box;display:grid;place-items:center;transform:${T};box-shadow:0 0 0 3px var(--plate-a)`;
+  if (pend) return `${base};border:1.5px dashed var(--ink-3);background:var(--plate-a);color:var(--ink-3)`;
+  if (lane === 2) return `${base};border:1.5px dashed var(--pu);background:var(--pu-soft);color:var(--pu-ink)`;
+  if (tone) return `${base};background:${tone};border:1.5px solid ${tone};color:var(--on-solid)`;
+  const c = ['var(--ink-2)', 'var(--ink-2)', 'var(--pu)', 'var(--ink)', 'var(--ink)'][lane];
+  return `${base};border:1.5px solid ${c};background:var(--plate-a);color:${c}`;
 }
 const TONE: Record<string, string> = { tq: 'var(--tq)', co: 'var(--co)', am: 'var(--am)' };
 
@@ -141,7 +148,7 @@ export function RecordLedger({ ctx, initial }: { ctx: RecordContext; initial: { 
                     <span className="pv" style={st(top)} />
                     <span className="ph" style={st(hz)} />
                     <span className="pv" style={st(bot)} />
-                    <span className="nd" style={st(`left:${X[e.lane]}px;${nodeStyle(e.lane, e.tone, e.pend)}`)} />
+                    <span className="nd" style={st(`left:${X[e.lane]}px;${nodeStyle(e.lane, e.tone, e.pend)}`)}><Icon name={LANE_ICON[e.lane]} size={13} stroke={2} /></span>
                   </span>
                   <span className="tm2 mono" title={e.event ? fullTime(e.event.createdAt) : undefined}>{e.time}</span>
                   <span className="rtx">

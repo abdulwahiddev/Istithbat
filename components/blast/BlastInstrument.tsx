@@ -1,8 +1,11 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { BlastRadius } from '@/lib/contracts';
-import { afterApproval, layoutGraph, type Placed } from './layout';
+import { afterApproval, edgePath, layoutGraph, typeLabel, type Placed } from './layout';
+import { FlowLayer, type FlowEdge } from './FlowLayer';
 import { plural } from '@/components/strata/format';
+import { EntityIcon, STATE_COLOR, StateMark, type StateKey } from '@/components/strata/entity';
+import { Icon } from '@/components/strata/icons';
 
 type Impact = BlastRadius['nodes'][number]['impact'];
 export type BlastLabels = {
@@ -14,9 +17,10 @@ export type BlastLabels = {
   incidentHeld: boolean;
 };
 
-const XS = [0, 12.5, 25, 37.5, 50, 66, 82];
+const XS = [1.5, 13.5, 25.5, 37.5, 49.5, 64, 80];
 const C = { co: 'var(--co)', am: 'var(--am)', tq: 'var(--tq)', n: 'var(--ink-4)' };
-const TYPE_SUB: Record<string, string> = { DATASET: 'Dataset', RAG_CHUNK: 'Chunk', KNOWLEDGE_INDEX: 'Lexical index', API: 'API', APPLICATION: 'Application' };
+/** Columns longer than this fold their lowest-priority assets into one expandable summary. */
+const MAX_PER_COLUMN = 6;
 
 /**
  * The radius instrument (Blast Radius hero). Every state is the persisted graph's; "If approved"
@@ -26,19 +30,34 @@ const TYPE_SUB: Record<string, string> = { DATASET: 'Dataset', RAG_CHUNK: 'Chunk
 export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: BlastLabels }) {
   const [view, setView] = useState<'now' | 'after'>('now');
   const after = view === 'after';
-  const lay = useMemo(() => layoutGraph(br, { xs: XS, centre: 200, gap: 200, height: 400 }), [br]);
-  const def = lay.nodes.find((n) => n.protectedApp) ?? lay.nodes.find((n) => n.impact === 'IMPACTED') ?? lay.nodes.at(-1);
+  const [expanded, setExpanded] = useState<ReadonlySet<number>>(() => new Set());
+  const lay = useMemo(() => layoutGraph(br, { xs: XS, centre: 200, gap: 200, height: 400, maxPerColumn: MAX_PER_COLUMN, expanded }), [br, expanded]);
+  const full = useMemo(() => layoutGraph(br, { xs: XS, centre: 200, gap: 200, height: 400 }), [br]);
+  const def = lay.nodes.find((n) => n.protectedApp && n.impact === 'IMPACTED') ?? lay.nodes.find((n) => n.protectedApp) ?? lay.nodes.find((n) => n.impact === 'IMPACTED') ?? lay.nodes.at(-1);
   const [selId, setSelId] = useState(def?.id ?? '');
-  const byId = new Map(lay.nodes.map((n) => [n.id, n]));
-  const sel = byId.get(selId) ?? def;
+  const byId = new Map(full.nodes.map((n) => [n.id, n]));
+  const sel = (byId.get(selId) && !byId.get(selId)!.summary ? byId.get(selId) : undefined) ?? def;
   const impactOf = (n: Placed): Impact => (after ? afterApproval(n, br) : n.impact);
+  const host = useRef<HTMLDivElement>(null);
+  const [W, setW] = useState(0);
+  useEffect(() => {
+    const el = host.current; if (!el) return;
+    const ro = new ResizeObserver(() => setW(el.clientWidth)); ro.observe(el); setW(el.clientWidth);
+    return () => ro.disconnect();
+  }, []);
   const vl = (id: string | null) => (id ? L.versionLabel[id] ?? '—' : '—');
 
-  const stateOf = (n: Placed): { s: string; c: string; stale?: boolean } => {
-    if (n.assetType === 'SOURCE') return { s: 'Unchanged source', c: C.n };
-    if (n.assetType === 'RECORD') return { s: 'Changed', c: C.co };
+  const stateOf = (n: Placed): { s: string; c: string; k: StateKey; stale?: boolean } => {
+    if (n.assetType === 'SOURCE') return { s: 'Unchanged', c: C.n, k: 'neutral' };
+    if (n.assetType === 'RECORD') return { s: 'Changed', c: C.co, k: 'changed' };
     const i = impactOf(n);
-    return i === 'IMPACTED' ? { s: 'Impacted', c: C.co } : i === 'STALE' ? { s: 'Stale', c: C.am, stale: true } : i === 'HEALTHY' ? { s: 'Healthy', c: C.tq } : { s: 'Exposed', c: C.am };
+    return i === 'IMPACTED' ? { s: 'Impacted', c: C.co, k: 'impacted' } : i === 'STALE' ? { s: 'Stale', c: C.am, k: 'stale', stale: true } : i === 'HEALTHY' ? { s: 'Healthy', c: C.tq, k: 'healthy' } : { s: 'Exposed', c: C.am, k: 'exposed' };
+  };
+  /** A folded group's members, in the current view. */
+  const memberCounts = (n: Placed) => {
+    const out: Partial<Record<string, number>> = {};
+    for (const id of n.summary?.ids ?? []) { const m = byId.get(id); if (m) { const s = stateOf(m).s; out[s] = (out[s] ?? 0) + 1; } }
+    return Object.entries(out).sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0)).map(([k, v]) => `${v} ${k.toLowerCase()}`).join(' · ');
   };
   const readsOf = (n: Placed) => {
     if (n.assetType === 'SOURCE') return after ? `${L.candidate} trusted` : `${L.candidate} seen · ${L.trustedLabel} trusted`;
@@ -75,13 +94,21 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
     return 'Not tested at this layer';
   };
 
-  const down = lay.nodes.filter((n) => n.assetType !== 'SOURCE' && n.assetType !== 'RECORD');
+  const down = full.nodes.filter((n) => n.assetType !== 'SOURCE' && n.assetType !== 'RECORD');
   const imp = down.filter((n) => impactOf(n) === 'IMPACTED').length, stl = down.filter((n) => impactOf(n) === 'STALE').length, exp = down.length - imp - stl;
   const tally = down.map((n) => stateOf(n)).sort((a, b) => (a.s === 'Impacted' ? -1 : b.s === 'Impacted' ? 1 : Number(!!a.stale) - Number(!!b.stale)));
   const ss = sel ? stateOf(sel) : null;
   const path = sel ? (sel.dependencyPaths[0] ?? [sel.id]) : [];
   const short = (n: Placed | undefined) => (!n ? '' : n.assetType === 'SOURCE' ? L.sourceName : n.name);
-  const dotStyle = (s: { s: string; c: string; stale?: boolean }): React.CSSProperties => (s.stale ? { border: '1.5px dashed var(--am)', background: 'transparent', width: 8, height: 8, boxSizing: 'border-box' } : { background: s.c });
+  // Flow signals in pixel space (edges are re-drawn in px once the instrument is measured).
+  const px = (x: number) => (x / 100) * W;
+  const flow: FlowEdge[] = W ? lay.edges.map((e) => {
+    const to = lay.nodes.find((n) => n.id === e.to)!, from = lay.nodes.find((n) => n.id === e.from)!;
+    const k = to.summary ? 'exposed' : stateOf(to).k;
+    const tone = from.assetType === 'SOURCE' ? 'var(--ink-3)' : STATE_COLOR[k === 'neutral' ? 'exposed' : k];
+    return { ...e, path: edgePath({ x: px(e.a.x), y: e.a.y }, { x: px(e.b.x), y: e.b.y }), tone, fromDepth: from.depth, toNode: e.to, strong: k === 'impacted' && to.app };
+  }) : [];
+  const toggleColumn = (d: number) => setExpanded((cur) => { const n = new Set(cur); if (n.has(d)) n.delete(d); else n.add(d); return n; });
 
   const rows = down.map((n) => ({ id: n.id, name: n.name, type: n.assetType, mode: n.derivationMode ?? '—', reads: readsOf(n), st: stateOf(n),
     evidence: n.regressionEvidence.length ? groupEvidence(n).map((g) => `${plural(g.runs, 'material run')} · ${g.batch}`).join('; ') : n.app && !n.protectedApp ? 'Not protected' : '—' }));
@@ -94,7 +121,7 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
         <div className="rail"><span className="mk mk-det" /><h2 id="h-radius">Exposure</h2><p>Every asset downstream of the changed record.</p></div>
         <div className="main">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
-        <h3 className="h3">{after ? `Dependency graph · if ${L.candidate} is approved` : 'Dependency graph'}</h3>
+        <h3 className="h3">{after ? 'Dependency graph · after approval' : 'Dependency graph'}</h3>
         {L.incidentHeld && (
           <div className="mseg" role="group" aria-label="Radius view" style={{ marginTop: -7 }}>
             <button type="button" aria-pressed={!after} onClick={() => setView('now')}>Now</button>
@@ -106,7 +133,7 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
         <div className="sub" style={{ alignItems: 'center', rowGap: 16, paddingBottom: 24, borderBottom: '1px solid var(--line)' }}>
           <div className="c1-6" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div className="radius" role="img" aria-label={`Blast radius: ${imp} impacted, ${exp} exposed, ${stl} stale`} style={{ gridTemplateColumns: `repeat(${Math.max(1, down.length)},minmax(0,1fr))` }}>
-              {tally.map((s, i) => <span key={i} style={s.stale ? { background: 'transparent', boxShadow: 'inset 0 0 0 1.5px var(--am)' } : { background: s.c }} />)}
+              {tally.map((s, i) => <span key={i} style={s.stale ? { background: 'transparent', boxShadow: 'inset 0 0 0 2px var(--am)' } : { background: s.c }} />)}
             </div>
             <span className="cap">Blast radius · {down.length} downstream {down.length === 1 ? 'asset' : 'assets'}</span>
           </div>
@@ -117,23 +144,45 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
           </div>
         </div>
         <div style={{ overflowX: 'auto', margin: '0 -8px', padding: '0 8px' }}>
-          <div className={`graph${after ? ' after' : ''}`} style={{ height: lay.height }} role="group" aria-label="Dependency graph. Select an asset to inspect it.">
-            {lay.headings.map((h) => <span key={h.depth} className="colh" style={{ left: `${h.x}%` }}>{h.label}</span>)}
-            <svg className="edges" viewBox={`0 0 100 ${lay.height}`} preserveAspectRatio="none" aria-hidden="true">
-              {lay.edges.map((e) => <path key={e.id} className={`e-${e.kind}`} d={e.d} />)}
-            </svg>
+          <div ref={host} className={`graph${after ? ' after' : ''}`} style={{ height: lay.height }} role="group" aria-label="Dependency graph. Select an asset to inspect it.">
+            {lay.headings.map((h) => {
+              const foldable = full.headings.find((x) => x.depth === h.depth) && full.nodes.filter((n) => n.depth === h.depth).length > MAX_PER_COLUMN;
+              return <span key={h.depth} className="colh" style={{ left: `${h.x}%` }}>{h.label}{foldable && expanded.has(h.depth) && <button type="button" className="colx" onClick={() => toggleColumn(h.depth)}>Show fewer</button>}</span>;
+            })}
+            {W ? (
+              <svg className="edges" viewBox={`0 0 ${W} ${lay.height}`} aria-hidden="true">
+                {lay.edges.map((e) => <path key={e.id} className={`e-${e.kind}`} d={edgePath({ x: px(e.a.x), y: e.a.y }, { x: px(e.b.x), y: e.b.y })} />)}
+              </svg>
+            ) : (
+              <svg className="edges" viewBox={`0 0 100 ${lay.height}`} preserveAspectRatio="none" aria-hidden="true">
+                {lay.edges.map((e) => <path key={e.id} className={`e-${e.kind}`} d={e.d} />)}
+              </svg>
+            )}
+            {W > 0 && <FlowLayer edges={flow} width={W} height={lay.height} host={host} cycleKey={`${view}|${[...expanded].join(',')}`} />}
             {[...lay.nodes].sort((a, b) => a.depth - b.depth || a.y - b.y).map((n) => { // DOM order = reading order, so Tab follows the trace
+              if (n.summary) {
+                const card = n.app || n.summary.types.includes('APPLICATION');
+                const what = n.summary.types.length === 1 ? typeLabel(n.summary.types[0]).toLowerCase() + (n.summary.ids.length === 1 ? '' : 's') : 'assets';
+                return (
+                  <button key={n.id} type="button" data-node={n.id} className={`node sum${card ? ' card' : ''}`} style={{ ...(card ? { left: `${n.x}%`, right: 0, top: n.y - 28 } : { left: `${n.x}%`, top: n.y - 14 }), ['--d' as string]: n.depth }}
+                    aria-expanded={false} onClick={() => toggleColumn(n.depth)} aria-label={`${n.summary.ids.length} more ${what}: ${memberCounts(n)}. Show all.`}>
+                    <span className="ping" aria-hidden="true" />
+                    <span className="nd nd-sum">+{n.summary.ids.length}</span>
+                    <span className="nl"><b>{n.summary.ids.length} more {what}</b><span>{memberCounts(n)}</span></span>
+                    {card && <Icon name="chevron-right" size={16} style={{ marginLeft: 'auto', color: 'var(--ink-3)' }} />}
+                  </button>
+                );
+              }
               const st = stateOf(n), on = n.id === sel?.id, card = n.app;
-              const cls = `node${card ? ' card' : ''}${n.assetType === 'SOURCE' ? ' src' : n.assetType === 'RECORD' ? ' rec' : ''}${on ? ' on' : ''}${st.stale ? ' stale' : ''}${impactOf(n) === 'IMPACTED' ? ' imp' : ''}${after && impactOf(n) !== n.impact ? ' changed' : ''}`;
-              const pos: React.CSSProperties = { ...(card ? { left: `${n.x}%`, right: 0, top: n.y - 30 } : { left: `${n.x}%`, top: n.y - 7 }), ['--d' as string]: n.depth };
-              const dot: React.CSSProperties = n.assetType === 'RECORD' ? { background: st.c, borderRadius: 3 }
-                : n.assetType === 'SOURCE' || impactOf(n) === 'IMPACTED' ? { background: st.c }
-                : st.stale ? { border: `2px dashed ${st.c}`, background: 'transparent' } : { border: `2px solid ${st.c}`, background: 'var(--plate-a)' };
+              const cls = `node${card ? ' card' : ''} st-${st.k}${on ? ' on' : ''}${after && impactOf(n) !== n.impact ? ' changed' : ''}`;
+              const pos: React.CSSProperties = { ...(card ? { left: `${n.x}%`, right: 0, top: n.y - 28 } : { left: `${n.x}%`, top: n.y - 14 }), ['--d' as string]: n.depth };
+              const name = n.assetType === 'SOURCE' ? short(n).split(' — ')[0] : n.name;
               return (
-                <button key={n.id} type="button" className={cls} style={pos} aria-pressed={on} onClick={() => setSelId(n.id)} aria-label={`${short(n)}, ${st.s}`}>
-                  <span className="nd" style={dot} />
-                  <span className="nl"><b className={n.assetType === 'RECORD' ? 'mono' : ''}>{n.assetType === 'SOURCE' ? short(n).split(' — ')[0] : n.name}</b>
-                    <span>{card ? `${st.s} · ${readsOf(n)}` : n.assetType === 'SOURCE' ? 'Source' : n.assetType === 'RECORD' ? `${L.changedField ?? 'record'} changed` : TYPE_SUB[n.assetType] ?? n.assetType}</span></span>
+                <button key={n.id} type="button" data-node={n.id} className={cls} style={pos} aria-pressed={on} onClick={() => setSelId(n.id)} aria-label={`${typeLabel(n.assetType)} ${short(n)}, ${st.s}`}>
+                  <span className="ping" aria-hidden="true" />
+                  <span className="nd"><EntityIcon type={n.assetType} size={card ? 16 : 15} /></span>
+                  <span className="nl"><b className={n.assetType === 'RECORD' ? 'mono' : ''} dir="auto" title={name}>{name}</b>
+                    <span>{card ? `${st.s} · ${readsOf(n)}` : n.assetType === 'RECORD' ? `${L.changedField ?? 'Record'} changed` : `${typeLabel(n.assetType)} · ${st.s}`}</span></span>
                 </button>
               );
             })}
@@ -143,8 +192,8 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
           <div className="insp" aria-live="polite">
             <div className="sub fade" key={`${sel.id}-${view}`} style={{ rowGap: 20 }}>
               <div className="c1-5" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <span className="cap">Selected asset</span>
-                <span style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}><b style={{ fontSize: 20, lineHeight: '28px', fontWeight: 600 }}>{sel.assetType === 'SOURCE' ? L.sourceName : sel.name}</b><span className="chip"><span className="dot" style={dotStyle(ss)} />{ss.s}</span></span>
+                <span className="cap" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><EntityIcon type={sel.assetType} size={14} />{typeLabel(sel.assetType)} · selected</span>
+                <span style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}><b style={{ fontSize: 20, lineHeight: '28px', fontWeight: 600 }}>{sel.assetType === 'SOURCE' ? L.sourceName : sel.name}</b><span className="chip"><StateMark s={ss.k} />{ss.s}</span></span>
                 <p className="body">{whyOf(sel)}</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px 8px', fontSize: 13, color: 'var(--ink-3)' }}>
                   <span className="cap" style={{ marginRight: 4 }}>Path</span>
@@ -180,11 +229,11 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
               <tbody>
                 {rows.map((r) => (
                   <tr key={r.id}>
-                    <td><b style={{ fontWeight: 600 }}>{r.name}</b></td>
+                    <td><span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}><EntityIcon type={r.type} size={15} style={{ color: 'var(--ink-3)', flex: 'none' }} /><b style={{ fontWeight: 600 }} dir="auto">{r.name}</b></span></td>
                     <td><span className="mono" style={{ fontSize: 13, color: 'var(--ink-2)' }}>{r.type}</span></td>
                     <td><span className="mono" style={{ fontSize: 13, color: 'var(--ink-2)' }}>{r.mode}</span></td>
                     <td><span className="mono" style={{ fontSize: 13 }}>{r.reads}</span></td>
-                    <td><span className="chip"><span className="dot" style={dotStyle(r.st)} />{r.st.s}</span></td>
+                    <td><span className="chip"><StateMark s={r.st.k} />{r.st.s}</span></td>
                     <td style={{ textAlign: 'right', color: 'var(--ink-3)' }}>{r.evidence}</td>
                   </tr>
                 ))}
@@ -193,12 +242,12 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
           </div>
           <div className="sub" style={{ rowGap: 24 }}>
             <div className="c1-5" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}><span className="chip" style={{ padding: '1px 9px 1px 7px', fontSize: 12 }}><span className="dot" style={{ background: 'var(--co)' }} />Impacted</span><span className="meta">Only a protected app, only with proof</span></span>
-              <p className="body">An asset is impacted when it is exposed, it is a protected app, and a regression run against it found a material change.{protectedNames.length ? ` ${protectedNames.join(' and ')} ${protectedNames.length === 1 ? 'is the only protected app' : 'are the protected apps'} here.` : ' No protected app is in this radius.'}</p>
+              <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}><span className="chip" style={{ padding: '1px 9px 1px 7px', fontSize: 12 }}><StateMark s="impacted" />Impacted</span><span className="meta">Only a protected app, only with proof</span></span>
+              <p className="body">An asset is impacted when it is exposed, it is a protected app, and a regression run against it found a material change.{protectedNames.length ? ` ${listNames(protectedNames)} ${protectedNames.length === 1 ? 'is the only protected app' : `are the ${protectedNames.length} protected apps`} here.` : ' No protected app is in this radius.'}</p>
             </div>
             <div className="c6-10" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}><span className="chip" style={{ padding: '1px 9px 1px 7px', fontSize: 12 }}><span className="dot" style={{ border: '1.5px dashed var(--am)', background: 'transparent', width: 8, height: 8, boxSizing: 'border-box' }} />Stale</span><span className="meta">Only frozen copies, only after promotion</span></span>
-              <p className="body">{frozen.length ? <>{frozen.join(' and ')} keep a materialized copy of <span className="mono">{L.trustedLabel}</span>. If <span className="mono">{L.candidate}</span> is approved they keep reading the superseded version until rebuilt.</> : 'No asset in this radius keeps a materialized copy, so none can go stale.'}</p>
+              <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}><span className="chip" style={{ padding: '1px 9px 1px 7px', fontSize: 12 }}><StateMark s="stale" />Stale</span><span className="meta">Only frozen copies, only after promotion</span></span>
+              <p className="body">{frozen.length ? <>{listNames(frozen)} {frozen.length === 1 ? 'keeps' : 'keep'} a materialized copy of <span className="mono">{L.trustedLabel}</span>. If <span className="mono">{L.candidate}</span> is approved {frozen.length === 1 ? 'it keeps' : 'they keep'} reading the superseded version until rebuilt.</> : 'No asset in this radius keeps a materialized copy, so none can go stale.'}</p>
             </div>
           </div>
         </div>
@@ -206,4 +255,11 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
     </section>
     </>
   );
+}
+
+/** "A and B", "A, B and C", "A, B and 9 others". */
+function listNames(xs: string[]) {
+  if (xs.length <= 2) return xs.join(' and ');
+  if (xs.length <= 4) return `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}`;
+  return `${xs.slice(0, 3).join(', ')} and ${xs.length - 3} others`;
 }

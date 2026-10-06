@@ -1,13 +1,17 @@
 'use client';
 import { useState } from 'react';
+import { Icon } from '@/components/strata/icons';
 
+export type GateCandidate = { label: string; state: string; policyCode: string | null };
 export type GateProps = {
   appName: string;
   trusted: string;
   served: string;
   /** held candidate at the gate; null when nothing is held */
-  candidate: { label: string; state: string; policyCode: string | null } | null;
+  candidate: GateCandidate | null;
 };
+/** One bound source of a protected app: its own trusted/served versions and, possibly, a held candidate. */
+export type GateLane = { sourceId: string; sourceName: string; trusted: string; served: string; candidate: GateCandidate | null };
 
 const Lock = ({ open }: { open?: boolean }) => (
   <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -18,11 +22,52 @@ const Pkts = () => <><span className="pkt" /><span className="pkt" style={{ anim
 const card = { position: 'absolute', left: '74%', right: 0, transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', gap: 6, padding: '12px 16px 14px', borderRadius: 16 } as const;
 const chip = (bg: string, text: string) => <span className="chip" style={{ padding: '1px 9px 1px 7px', fontSize: 12 }}><span className="dot" style={{ background: bg }} />{text}</span>;
 
+/**
+ * Trust Gateway for a protected app. One bound source: the full gate diagram. Several: one shared
+ * gateway with a compact lane per source (candidate stops at the gate; trusted continues), and the
+ * selected lane opens in the full diagram below. Scales to many sources without repeating diagrams.
+ */
+export function GatewayLanes({ appName, lanes, initialSourceId }: { appName: string; lanes: GateLane[]; initialSourceId?: string }) {
+  const [selId, setSelId] = useState(initialSourceId ?? lanes[0]?.sourceId);
+  const sel = lanes.find((l) => l.sourceId === selId) ?? lanes[0];
+  if (!sel) return null;
+  if (lanes.length === 1) return <GateInstrument appName={appName} trusted={sel.trusted} served={sel.served} candidate={sel.candidate} />;
+  const held = lanes.filter((l) => l.candidate).length;
+  return (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
+        <h3 className="h3">Source lanes · {lanes.length}</h3>
+        <span className="meta">{held ? `${held} held at the gate · ${lanes.length - held} passing` : 'Every source is serving its trusted version'}</span>
+      </div>
+      <div className="plate tight glanes" role="list" aria-label={`Sources bound to ${appName}`}>
+        <div className="glh" aria-hidden="true"><span>Source</span><span>Upstream · stops at the gateway</span><span>Gateway</span><span>Production · {appName}</span></div>
+        {lanes.map((l) => (
+          <button key={l.sourceId} type="button" role="listitem" className={`glane${l.sourceId === sel.sourceId ? ' on' : ''}`} aria-pressed={l.sourceId === sel.sourceId} onClick={() => setSelId(l.sourceId)}
+            aria-label={`${l.sourceName}: ${l.candidate ? `${l.candidate.label} ${l.candidate.state.toLowerCase()} at the gate; ` : 'nothing held; '}${appName} reads ${l.served}`}>
+            <span className="gl-src"><b dir="auto" title={l.sourceName}>{l.sourceName}</b><span className="mono">{l.trusted} trusted</span></span>
+            <span className="gl-up">
+              {l.candidate
+                ? <span className="gl-held"><span className="gl-chip mono">{l.candidate.label}</span><span className="gl-line co" /><span className="gl-stop" /></span>
+                : <span className="gl-none">No candidate waiting</span>}
+              <span className="gl-pass"><span className="gl-chip mono tq">{l.trusted}</span><span className="gl-line tq" /></span>
+            </span>
+            <span className="gl-gate" aria-hidden="true">{l.candidate && <Icon name="lock" size={12} />}</span>
+            <span className="gl-prod"><span className="gl-line tq" /><span className="gl-reads">Reads <span className="mono">{l.served}</span></span></span>
+          </button>
+        ))}
+      </div>
+      <div key={sel.sourceId} className="fade" style={{ display: 'flex', flexDirection: 'column', gap: 'inherit' }}>
+        <GateInstrument appName={appName} trusted={sel.trusted} served={sel.served} candidate={sel.candidate} sourceName={sel.sourceName} />
+      </div>
+    </>
+  );
+}
+
 /** The gate (Trust Gateway hero). "If approved" is a preview computed from the same facts; nothing changes until a reviewer signs. */
-export function GateInstrument({ appName, trusted, served, candidate }: GateProps) {
+export function GateInstrument({ appName, trusted, served, candidate, sourceName }: GateProps & { sourceName?: string }) {
   const [view, setView] = useState<'now' | 'after'>('now');
   const after = view === 'after' && !!candidate;
-  const title = after ? `Serving state · if ${candidate!.label} is approved` : `Serving state · ${served}`;
+  const title = sourceName ? `${sourceName} · ${after ? 'after approval' : 'serving state'}` : after ? 'Serving state · after approval' : 'Serving state';
   const aria = after
     ? `Preview: ${candidate!.label} passes the gate and ${appName} reads ${candidate!.label}; ${trusted} is superseded.`
     : candidate ? `${candidate.label} is stopped at the Trust Gateway${candidate.policyCode ? ` by ${candidate.policyCode}` : ''}. ${served} passes through and is served to ${appName}.`

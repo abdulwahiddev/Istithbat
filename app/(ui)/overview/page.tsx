@@ -83,10 +83,10 @@ export default async function OverviewPage() {
       <Band id="incidents" labelledBy="h-inc">
         <Rail layer="det" id="h-inc" title="Incidents">Open cases needing a decision.</Rail>
         <div className="main">
-          <HeadRow title={open.length ? `Open incidents · ${open.length}` : 'No open incidents'} right={<span className="meta mono">/api/incidents</span>} />
+          <HeadRow title={open.length ? `Open incidents · ${open.length}` : 'No open incidents'} right={open.length > 3 ? <Lnk href="/incidents">All {open.length} incidents</Lnk> : <span className="meta mono">/api/incidents</span>} />
           {!incidents.ok ? <ReadError {...incidents.error} /> : open.length === 0 ? (
             <div className="plate" style={{ display: 'flex', alignItems: 'center', gap: 12 }}><Chip tone="tq">Nothing open</Chip><span className="body" style={{ color: 'var(--ink-3)' }}>An incident opens when a source version changes a substantive field.</span></div>
-          ) : open.map((i) => {
+          ) : open.slice(0, 3).map((i) => {
             return <IncidentCard key={i.id} item={i} summary={summaries.find((x) => x.item.id === i.id) ?? null} />;
           })}
         </div>

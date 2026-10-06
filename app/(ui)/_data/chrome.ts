@@ -26,5 +26,7 @@ export function chromeData(incidents: ReadResult<IncidentListItem[]>, sources: R
     served: firstBinding ? { appName: firstBinding.appName ?? firstBinding.appId!, trustedLabel: firstBinding.latestTrusted?.label ?? null, servedLabel: firstBinding.served?.label ?? null } : null,
     gatewayHref: firstBinding ? `/gateway/${encodeURIComponent(firstBinding.appId!)}` : '/gateway',
     reviewer,
+    // Only whether sign-in can work here; the credential itself never leaves the server.
+    reviewAvailable: Boolean(process.env.DEMO_REVIEW_SECRET),
   };
 }

@@ -1,30 +1,36 @@
 import { AutoRefresh } from '@/components/strata/AutoRefresh';
+import { IncidentList } from '@/components/strata/IncidentList';
 import type { IncidentSummary } from '@/components/strata/incident-model';
-import { summarizeIncident } from '../_data/incident-summary';
-import { IncidentCard } from '@/components/strata/IncidentCard';
-import { word } from '@/components/strata/format';
 import { Band, Chip, Dk, HeadRow, PageHeader, Rail, ReadError, Sep } from '@/components/strata/primitives';
 import { needsDecision } from '@/components/strata/semantics';
-import { readIncidents } from '../_data/read';
+import { summarizeIncident } from '../_data/incident-summary';
+import { incidentRow } from '../_data/incident-rows';
+import { readIncidents, readShell, readSources } from '../_data/read';
 
 export const metadata = { title: 'Incidents · Istithbat' };
 export const dynamic = 'force-dynamic';
 
-/** The incident list has no dedicated board: Strata tokens and the Overview "Incidents" row pattern (handoff §2). */
+/** Summaries cost two reads each; past this many open incidents, rows fall back to the stored title. */
+const SUMMARIZE = 8;
+
 export default async function IncidentsPage() {
+  await readShell();
   const list = await readIncidents();
+  const sources = await readSources();
+  const nameOf = new Map((sources.ok ? sources.data : []).map((s) => [s.id, s.name.split(' — ')[0]]));
   const items = list.ok ? [...list.data].sort((a, b) => b.openedAt.localeCompare(a.openedAt)) : [];
   const open = items.filter((i) => i.status !== 'RESOLVED');
   const resolved = items.filter((i) => i.status === 'RESOLVED');
   const summaries = new Map<string, IncidentSummary>();
-  for (const i of open.slice(0, 6)) summaries.set(i.id, await summarizeIncident(i));
+  for (const i of open.slice(0, SUMMARIZE)) summaries.set(i.id, await summarizeIncident(i));
   const deciding = open.filter(needsDecision).length;
+  const rows = items.map((i) => incidentRow(i, summaries.get(i.id) ?? null, nameOf.get(i.sourceId) ?? i.sourceId));
   return (
     <main id="main" className="scr-overview">
       <AutoRefresh active={open.some((i) => i.pipelineStatus === 'RUNNING')} />
       <PageHeader
         crumbs={<><span>Incidents</span><Sep /><span>{items.length} recorded</span></>}
-        title={open.length ? <>{word(open.length)} open {open.length === 1 ? 'incident' : 'incidents'}.<br />{deciding ? `${word(deciding)} ${deciding === 1 ? 'needs' : 'need'} a decision.` : 'Still investigating.'}</> : <>No open incidents.<br />Nothing is held.</>}
+        title={open.length ? <>{open.length} open {open.length === 1 ? 'incident' : 'incidents'}.<br />{deciding ? `${deciding} ${deciding === 1 ? 'needs' : 'need'} a decision.` : 'Still investigating.'}</> : <>No open incidents.<br />Nothing is held.</>}
         lede="One incident opens per meaningful source-version transition. Equivalent and metadata-only changes take the deterministic fast path and never appear here."
         status={<>
           <Dk k="Open">{open.length ? <Chip tone="co">{open.length}</Chip> : <Chip tone="tq">None</Chip>}</Dk>
@@ -33,23 +39,12 @@ export default async function IncidentsPage() {
         </>}
       />
       <Band id="open" labelledBy="h-open" first>
-        <Rail layer="det" id="h-open" title="Open">Newest first.</Rail>
+        <Rail layer="det" id="h-open" title="Incidents">Grouped by what a reviewer must do; newest first.</Rail>
         <div className="main">
-          <HeadRow title={open.length ? `Open incidents · ${open.length}` : 'No open incidents'} right={<span className="meta mono">/api/incidents</span>} />
-          {!list.ok ? <ReadError {...list.error} /> : open.length === 0
-            ? <div className="plate" style={{ display: 'flex', alignItems: 'center', gap: 12 }}><Chip tone="tq">Nothing open</Chip><span className="body" style={{ color: 'var(--ink-3)' }}>An incident opens when a source version changes a substantive field.</span></div>
-            : open.map((i) => <IncidentCard key={i.id} item={i} summary={summaries.get(i.id) ?? null} />)}
+          <HeadRow title={`All incidents · ${items.length}`} right={<span className="meta mono">/api/incidents</span>} />
+          {!list.ok ? <ReadError {...list.error} /> : <IncidentList rows={rows} />}
         </div>
       </Band>
-      {resolved.length > 0 && (
-        <Band id="resolved" labelledBy="h-res">
-          <Rail layer="hum" id="h-res" title="Resolved">Decided cases.</Rail>
-          <div className="main">
-            <HeadRow title={`${resolved.length} resolved`} />
-            {resolved.map((i) => <IncidentCard key={i.id} item={i} summary={null} />)}
-          </div>
-        </Band>
-      )}
       <div style={{ height: 120 }} />
     </main>
   );

@@ -18,6 +18,8 @@ export type ChromeData = {
   served: { appName: string; trustedLabel: string | null; servedLabel: string | null } | null;
   gatewayHref: string;
   reviewer: { name: string } | null;
+  /** Whether this deployment can verify a review credential at all (server-side check). */
+  reviewAvailable: boolean;
 };
 
 type Actions = {
@@ -85,7 +87,7 @@ export function Chrome({ data, actions }: { data: ChromeData; actions: Actions }
               <Icon name="bell" size={18} />
               {n > 0 && <span className="bd" />}
             </button>
-            <Reviewer reviewer={data.reviewer} actions={actions} />
+            <Reviewer reviewer={data.reviewer} available={data.reviewAvailable} actions={actions} />
           </div>
         </div>
       </header>
@@ -171,7 +173,7 @@ function Served({ trusted, served }: { trusted: string | null; served: string | 
 const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join('') || 'R';
 
 /** Reviewer pill. Signed in: name from the review session. Otherwise it opens the D-11 unlock. */
-function Reviewer({ reviewer, actions }: { reviewer: ChromeData['reviewer']; actions: Actions }) {
+function Reviewer({ reviewer, available, actions }: { reviewer: ChromeData['reviewer']; available: boolean; actions: Actions }) {
   const [open, setOpen] = useState(false);
   const [state, submit, pending] = useActionState(actions.unlock, { ok: false });
   const box = useRef<HTMLDivElement>(null);
@@ -184,12 +186,12 @@ function Reviewer({ reviewer, actions }: { reviewer: ChromeData['reviewer']; act
     document.addEventListener('keydown', onKey); document.addEventListener('mousedown', onDown);
     return () => { document.removeEventListener('keydown', onKey); document.removeEventListener('mousedown', onDown); };
   }, [open]);
-  const label = reviewer ? `${reviewer.name}, reviewer mode` : 'Reviewer mode is locked';
+  const label = reviewer ? `${reviewer.name}, reviewer mode` : available ? 'Reviewer mode is locked' : 'Reviewer mode is unavailable on this deployment';
   return (
     <div className="whobox" ref={box}>
       <button type="button" className="who" aria-label={label} title={reviewer ? 'Reviewer mode' : 'Unlock reviewer mode'} aria-expanded={open} aria-haspopup="dialog"
         onClick={() => setOpen((o) => !o)} style={{ font: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-        <span className="avatar" style={{ width: 34, height: 34, boxShadow: 'none', ...(reviewer ? {} : { background: 'transparent', color: 'var(--ink-3)', boxShadow: 'inset 0 0 0 1.5px var(--line-2)' }) }}>
+        <span className={`avatar${reviewer ? '' : ' locked'}`} style={{ boxShadow: 'none' }}>
           {reviewer ? initials(reviewer.name) : <Icon name="lock" size={16} />}
         </span>
         <span className="who-name">{reviewer ? reviewer.name : 'Reviewer mode'}</span>
@@ -201,6 +203,8 @@ function Reviewer({ reviewer, actions }: { reviewer: ChromeData['reviewer']; act
               <p>Signed in as <b style={{ color: 'var(--ink)' }}>{reviewer.name}</b>. Decisions are recorded under this name.</p>
               <button type="button" className="ubtn" onClick={async () => { await actions.lock(); setOpen(false); router.refresh(); }}>Lock reviewer mode</button>
             </>
+          ) : !available ? (
+            <p>Reviewer sign-in is not configured on this deployment, so no decision can be signed here. Read-only views stay public.</p>
           ) : (
             <form action={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <p>Only reviewers can sign decisions. Read-only views stay public.</p>

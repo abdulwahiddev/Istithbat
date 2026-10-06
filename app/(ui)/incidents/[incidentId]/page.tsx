@@ -117,13 +117,13 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
   return (
     <main id="main" className="scr-incident">
       <AutoRefresh active={inc.pipeline?.status === 'RUNNING'} />
-      <section style={{ padding: '72px 0 56px' }}>
-        <div className="wrap g" style={{ rowGap: 28, alignItems: 'end' }}>
+      <section className="phd">
+        <div className="wrap g" style={{ rowGap: 14, alignItems: 'start' }}>
           <nav aria-label="Breadcrumb" className="crumbs" style={{ gridColumn: '1 / -1' }}>
             <Link href="/incidents">Incidents</Link><span aria-hidden="true">/</span><Mono>{f.recordKey}</Mono>
           </nav>
-          <div className="ph-lead" style={{ gridColumn: '1 / span 8', display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <h1 style={{ margin: 0, fontSize: 60, lineHeight: '64px', fontWeight: 600, letterSpacing: '-.034em' }}>{h1a}{h1b && <><br />{h1b}</>}</h1>
+          <div className="ph-lead" style={{ gridColumn: '1 / span 8', display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 6 }}>
+            <h1 className="ph-title">{h1a}{h1b && <><br />{h1b}</>}</h1>
             <p className="meta" style={{ margin: 0, fontSize: 15 }}>Record <Mono style={{ color: 'var(--ink)' }}>{f.recordKey}</Mono> · field <Mono style={{ color: 'var(--ink)' }}>{field}</Mono> · upstream <Mono style={{ color: 'var(--ink)' }}>{prev} → {cand}{inc.candidateVersion.revisionNumber > 1 ? ` r${inc.candidateVersion.revisionNumber}` : ''}</Mono>{inc.candidateVersion.upstreamPublishedAt ? `, published ${dayYear(inc.candidateVersion.upstreamPublishedAt)}` : `, observed ${dayYear(inc.candidateVersion.detectedAt)}`}</p>
           </div>
           <dl className="plate in ph-status" style={{ gridColumn: '9 / span 4', margin: '0 -24px', padding: '8px 24px' }}>
@@ -262,10 +262,10 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
 
       {/* 04 BEHAVIOR */}
       <Band id="behavior" labelledBy="h-beh">
-        <Rail layer="det" id="h-beh" title="Behavior">Matched regression; only the knowledge version changes.</Rail>
+        <Rail layer="det" id="h-beh" title="Behavioral regression">Matched regression; only the knowledge version changes.</Rail>
         <div className="main" style={{ gap: 32 }}>
           <div className="sub" style={{ alignItems: 'start', rowGap: 12 }}>
-            <h3 className="h3 c1-7">Behavioral regression</h3>
+            <h3 className="h3 c1-7">Same model. Different knowledge.</h3>
             <p className="c8-10 body" style={{ color: 'var(--ink-3)', paddingBottom: 2 }}>Each question was asked twice with the same model, prompt and retrieval. Only the version of {f.recordKey} differed.</p>
           </div>
           {questions.length === 0 ? (

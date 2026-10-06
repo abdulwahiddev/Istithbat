@@ -20,12 +20,15 @@ const amiri = Amiri({ subsets: ['arabic', 'latin'], weight: ['400', '700'], vari
 export const metadata = {
   title: 'Istithbat | استثبات',
   description: 'Integrity and release governance for trusted Islamic knowledge in AI systems.',
-  // Official identity (Istithbat Brand.png): the symbol on the Midnight Navy app tile.
+  // Official mark, transparent (no tile) in the browser: ICO for Safari/legacy, PNGs, and an SVG that
+  // swaps to the white-chevron variant in dark browser chrome. Only the iOS touch icon keeps the navy
+  // tile, because iOS requires an opaque icon.
   icons: {
     icon: [
+      { url: '/favicon.ico', sizes: '16x16 32x32 48x48' },
+      { url: '/brand/istithbat-favicon.svg', type: 'image/svg+xml' },
       { url: '/brand/istithbat-favicon-32.png', sizes: '32x32', type: 'image/png' },
       { url: '/brand/istithbat-favicon-16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/brand/istithbat-app-icon-512.png', sizes: '512x512', type: 'image/png' },
     ],
     apple: [{ url: '/brand/apple-touch-icon.png', sizes: '180x180' }],
   },

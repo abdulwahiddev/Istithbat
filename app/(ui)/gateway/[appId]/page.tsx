@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { GateInstrument } from '@/components/gateway/GateInstrument';
+import { GatewayLanes, type GateLane } from '@/components/gateway/GateInstrument';
 import { FOLDED, LANE_MARK, narrate } from '@/components/strata/events';
 import { dayTime, evTime } from '@/components/strata/format';
 import { Band, Chip, Dk, Ev, HandedToYou, HeadRow, HeldBy, Lnk, Mk, Mono, PageHeader, Rail, ReadError, Sep, SummaryDock } from '@/components/strata/primitives';
@@ -36,17 +36,23 @@ export default async function GatewayPage({ params }: { params: Promise<{ appId:
     : (e.entityType === 'source_version' && versionIds.has(e.entityId)) || (e.entityType === 'source' && e.entityId === g.sourceId))).slice(0, 6) : [];
   const held = g.heldCandidate;
   const candidateLabel = held ? held.version.label : null;
-  const heldState = held ? (held.incidentStatus === 'QUARANTINED' ? 'Quarantined' : held.incidentStatus === 'ANALYZING' ? 'Investigating' : 'Held for review') : null;
   const policyCode = f?.policyCode ?? null;
   const allowCase = policyCode === 'POL-005';
   const synthetic = source?.isDemoFixture ?? false;
+  const stateText = (st: string) => (st === 'QUARANTINED' ? 'Quarantined' : st === 'ANALYZING' ? 'Investigating' : 'Held for review');
+  // Every source bound to this app, each with its own trusted/served versions and held candidate.
+  const lanes: GateLane[] = rows.map((r) => ({
+    sourceId: r.sourceId, sourceName: r.sourceName.split(' — ')[0], trusted: r.latestTrusted?.label ?? '—', served: r.served?.label ?? '—',
+    candidate: r.heldCandidate ? { label: r.heldCandidate.version.label, state: stateText(r.heldCandidate.incidentStatus), policyCode: r.sourceId === g.sourceId ? policyCode : null } : null,
+  }));
+  const heldCount = lanes.filter((l) => l.candidate).length;
 
   return (
     <main id="main" className="scr-gateway">
       <PageHeader
         crumbs={<><span>Trust Gateway</span><Sep /><span>{g.appName}</span></>}
         synthetic={synthetic}
-        title={held ? <>{held.version.label} is held.<br />{g.served.label} keeps serving.</> : <>Nothing is held.<br />{g.served.label} is serving.</>}
+        title={heldCount > 1 ? <>{heldCount} candidates are held.<br />Trusted versions keep serving.</> : held ? <>{held.version.label} is held.<br />{g.served.label} keeps serving.</> : heldCount ? <>One candidate is held.<br />Trusted versions keep serving.</> : <>Nothing is held.<br />{lanes.length > 1 ? 'Trusted versions are serving.' : `${g.served.label} is serving.`}</>}
         lede={held ? 'Production reads only the trusted version. The newest upstream version waits at the gate until a person signs.' : 'Production reads only the trusted version. Any new upstream version will wait at the gate until policy or a person releases it.'}
         status={<>
           <Dk k="Gateway"><Chip tone={g.served.status === 'TRUSTED' ? 'tq' : 'co'}>{g.served.status === 'TRUSTED' ? 'Serving trusted' : 'Not serving trusted'}</Chip></Dk>
@@ -58,8 +64,7 @@ export default async function GatewayPage({ params }: { params: Promise<{ appId:
       <Band id="gate" labelledBy="h-gate" first>
         <Rail layer="pol" id="h-gate" title="Gateway">What production reads and what waits outside.</Rail>
         <div className="main">
-          <GateInstrument appName={g.appName} trusted={g.latestTrusted?.label ?? '—'} served={g.served.label}
-            candidate={held ? { label: held.version.label, state: heldState!, policyCode } : null} />
+          <GatewayLanes appName={g.appName} lanes={lanes} initialSourceId={g.sourceId} />
         </div>
       </Band>
 

@@ -21,7 +21,7 @@ export function Dot({ tone, style }: { tone: Tone; style?: CSSProperties }) {
   return <span className="dot" style={{ background: toneVar[tone], ...style }} aria-hidden="true" />;
 }
 
-/** Chip with a state dot. `dashedDot` renders the hollow stale dot from the Blast Radius board. */
+/** Chip with a state dot. `dashedDot` renders the stale mark (a solid ring; dashes break up at 8px). */
 export function Chip({ tone, children, small, ink, dashedDot, style }: {
   tone?: Tone; children: ReactNode; small?: boolean; ink?: boolean; dashedDot?: boolean; style?: CSSProperties;
 }) {
@@ -29,7 +29,7 @@ export function Chip({ tone, children, small, ink, dashedDot, style }: {
   return (
     <span className="chip" style={s}>
       {tone && (dashedDot
-        ? <span className="dot" aria-hidden="true" style={{ border: '1.5px dashed var(--am)', background: 'transparent', width: 8, height: 8, boxSizing: 'border-box' }} />
+        ? <span className="stm stm-stale" aria-hidden="true" />
         : <Dot tone={tone} />)}
       {children}
     </span>
@@ -82,11 +82,11 @@ export function Lnk({ href, children }: { href: string; children: ReactNode }) {
 /** Page header band: crumbs, answer-first H1, lede and the status panel (columns 9–12). */
 export function PageHeader({ crumbs, title, lede, status, synthetic }: { crumbs: ReactNode; title: ReactNode; lede: ReactNode; status: ReactNode; synthetic?: boolean }) {
   return (
-    <section style={{ padding: '72px 0 56px' }}>
-      <div className="wrap g" style={{ rowGap: 28, alignItems: 'end' }}>
+    <section className="phd">
+      <div className="wrap g" style={{ rowGap: 14, alignItems: 'start' }}>
         <nav aria-label="Breadcrumb" className="crumbs" style={{ gridColumn: '1 / -1' }}>{crumbs}</nav>
-        <div className="ph-lead" style={{ gridColumn: '1 / span 8', display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <h1 style={{ margin: 0, fontSize: 60, lineHeight: '64px', fontWeight: 600, letterSpacing: '-.034em' }}>{title}</h1>
+        <div className="ph-lead" style={{ gridColumn: '1 / span 8', display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 6 }}>
+          <h1 className="ph-title">{title}</h1>
           <p className="meta" style={{ margin: 0, fontSize: 15, maxWidth: 620 }}>{lede}</p>
         </div>
         <dl className="plate in ph-status" style={{ gridColumn: '9 / span 4', margin: '0 -24px', padding: '8px 24px' }}>{status}{synthetic && <SyntheticRow />}</dl>

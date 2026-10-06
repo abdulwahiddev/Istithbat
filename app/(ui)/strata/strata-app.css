@@ -108,7 +108,7 @@ details[open]>summary~*{animation:strata-in .2s var(--ease) both}
 /* ---- Reveal: CSS only. Sections fade up as they enter the viewport (scroll-driven, where supported;
    elsewhere they are simply shown). No DOM mutation, so nothing can mismatch hydration. ---- */
 @keyframes trace{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
-@keyframes node-in{from{opacity:0;transform:translate(-7px,4px) scale(.96)}to{opacity:1}}
+@keyframes node-in{from{opacity:0;transform:translate(-14px,4px) scale(.96)}to{opacity:1}}
 @keyframes card-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 @keyframes resolve-imp{0%{box-shadow:0 0 0 1px var(--am),var(--float-shadow);border-color:var(--am)}100%{box-shadow:0 0 0 1px var(--co),var(--float-shadow);border-color:var(--co)}}
 @keyframes nd-imp{0%{background:var(--am)}100%{background:var(--co)}}
@@ -122,8 +122,8 @@ details[open]>summary~*{animation:strata-in .2s var(--ease) both}
 .graph .edges{animation:trace 1.05s cubic-bezier(.4,0,.2,1) both}
 .graph .node:not(.card){animation:node-in .3s var(--ease) both;animation-delay:calc(var(--d) * 140ms)}
 .graph .node.card{animation:card-in .32s var(--ease) both;animation-delay:calc(var(--d) * 140ms)}
-.graph .node.card.imp{animation:card-in .32s var(--ease) both,resolve-imp .5s var(--ease) both;animation-delay:calc(var(--d) * 140ms),calc(var(--d) * 140ms + 260ms)}
-.graph .node.card.imp .nd{animation:nd-imp .5s var(--ease) both;animation-delay:calc(var(--d) * 140ms + 260ms)}
+.graph .node.card.st-impacted{animation:card-in .32s var(--ease) both,resolve-imp .5s var(--ease) both;animation-delay:calc(var(--d) * 140ms),calc(var(--d) * 140ms + 260ms)}
+.graph .node.card.st-impacted .nd{animation:nd-imp .5s var(--ease) both;animation-delay:calc(var(--d) * 140ms + 260ms)}
 
 /* State changes (Now ↔ If approved; selection): crisp, short, never blocking */
 .graph .node .nd{transition:transform .18s var(--ease),box-shadow .2s var(--ease),border-color .3s var(--ease),background-color .3s var(--ease)}
@@ -133,3 +133,132 @@ details[open]>summary~*{animation:strata-in .2s var(--ease) both}
 .graph .node.changed .nd{animation:flip .45s var(--ease)}
 @keyframes march{from{stroke-dashoffset:24}to{stroke-dashoffset:0}}
 .graph.after .e-mat{animation:march .6s linear 1}
+
+/* ---- Circular header controls: one 40px geometry, ring and badge kept inside the circle ---- */
+.tsw{height:40px;box-sizing:border-box;padding:2px;gap:2px;align-items:center}
+.tsw button{width:34px;height:34px}
+.tsw .tsw-ind{top:2px;left:2px;width:34px;height:34px}
+.tsw[data-theme="dark"] .tsw-ind{transform:translateX(36px)}
+.iconbtn{width:40px;height:40px;box-sizing:border-box;flex:none}
+.iconbtn .bd{top:9px;right:10px;width:7px;height:7px;box-shadow:none}
+.who{height:40px;box-sizing:border-box;padding:0 16px 0 3px;gap:10px;flex:none}
+.who .avatar{width:32px !important;height:32px !important;flex:none}
+.who .avatar.locked{background:transparent !important;color:var(--ink-2) !important;box-shadow:none !important}
+.tsw button:hover,.iconbtn:hover,.who:hover{background-color:var(--hover)}
+.tsw button[aria-pressed="true"]:hover{background:transparent}
+.iconbtn:active,.who:active{transform:scale(.96)}
+.iconbtn:focus-visible,.who:focus-visible,.tsw button:focus-visible{outline-offset:3px}
+@media(max-width:1400px){.who{width:40px;padding:0;justify-content:center}}
+
+/* ---- Page-header spacing system: chrome → 28 → crumbs → 14 → headline/status → 40 → first instrument ---- */
+.phd{padding:28px 0 40px}
+.ph-title{margin:0;font-size:48px;line-height:54px;font-weight:600;letter-spacing:-.03em;text-wrap:balance}
+.band{padding-top:56px}
+.band>.wrap::after{margin-top:56px}
+@media(max-width:1100px){.ph-title{font-size:40px;line-height:46px}}
+
+/* ---- Status marks (tables, chips): filled = impacted/exposed/healthy, solid ring = stale ---- */
+.stm{display:inline-block;flex:none;width:8px;height:8px;border-radius:50%;box-sizing:border-box;background:var(--ink-4)}
+.stm-impacted,.stm-changed{background:var(--co)}
+.stm-exposed{background:var(--am)}
+.stm-healthy{background:var(--tq)}
+.stm-stale{background:transparent;box-shadow:inset 0 0 0 2px var(--am)}
+
+/* ---- Dependency graph v2: entity icon tiles, state by fill/border/label, flow layer ---- */
+.scr-blast .graph{min-width:1040px}
+.scr-blast .graph .colh{display:flex;align-items:center;gap:10px;transform:none}
+.scr-blast .colx{font:inherit;font-size:12px;font-weight:600;color:var(--ink-2);background:transparent;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.scr-blast .edges{z-index:0}
+.scr-blast .flow{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;overflow:visible}
+.scr-blast .node{z-index:2;transform:translateX(-14px);gap:8px;--sc:var(--am);--si:var(--am-ink)}
+.scr-blast .node.st-neutral{--sc:var(--ink-4);--si:var(--ink-2)}
+.scr-blast .node.st-healthy{--sc:var(--tq);--si:var(--tq)}
+.scr-blast .node.st-impacted,.scr-blast .node.st-changed{--sc:var(--co);--si:var(--co-ink)}
+.scr-blast .node .nd{position:relative;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;box-sizing:border-box;border:1.5px solid var(--sc);background:var(--plate-a);color:var(--si);box-shadow:0 0 0 3px var(--plate-a)}
+.scr-blast .node.st-impacted .nd,.scr-blast .node.st-changed .nd{background:var(--sc);color:var(--on-solid);border-color:var(--sc)}
+.scr-blast .node.st-stale .nd{border-style:dashed}
+.scr-blast .node:hover .nd{transform:scale(1.08)}
+.scr-blast .node .nl{max-width:118px}
+.scr-blast .node .nl b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.scr-blast .node.on .nd{box-shadow:0 0 0 3px var(--plate-a),0 0 0 5px var(--ink)}
+.scr-blast .node .ping{position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;box-sizing:border-box;border:2px solid var(--sc);opacity:0;pointer-events:none}
+.scr-blast .node.card{transform:none;padding:10px 14px 10px 10px;gap:12px;min-height:56px;box-sizing:border-box}
+.scr-blast .node.card .ping{inset:-1px;width:auto;height:auto;border-radius:16px}
+.scr-blast .node.card.st-impacted{border-color:var(--co);box-shadow:0 0 0 1px var(--co),var(--float-shadow)}
+.scr-blast .node.card.st-stale{border-style:dashed;border-color:var(--am)}
+.scr-blast .node.card .nl b{-webkit-line-clamp:2}
+.scr-blast .node.sum .nd-sum{border:1.5px solid var(--line-2);background:var(--well);color:var(--ink-2);font-size:11px;font-weight:700;letter-spacing:-.01em}
+.scr-blast .node.sum.card{background:transparent;border:1px dashed var(--line-2);box-shadow:none}
+.scr-blast .node.sum:hover .nl b{text-decoration:underline;text-underline-offset:3px}
+@media (prefers-reduced-motion: reduce){.scr-blast .flow{display:none}}
+.scr-blast .graph[data-flow] .edges path{stroke-opacity:.5;transition:stroke-opacity .6s var(--ease)}
+.scr-blast .graph[data-flow] .edges .e-src{stroke-opacity:.8}
+
+/* ---- Gateway source lanes (several sources bound to one protected app) ---- */
+.glanes{padding-top:4px;padding-bottom:8px;overflow-x:auto}
+.glh,.glane{display:grid;grid-template-columns:minmax(150px,22%) minmax(220px,1fr) 28px minmax(90px,.45fr) minmax(130px,18%);align-items:center;column-gap:0;min-width:760px}
+.glh{padding:10px 0;font-size:12px;color:var(--ink-4);font-weight:500;border-bottom:1px solid var(--line)}
+.glh span:nth-child(3){grid-column:3 / span 1;justify-self:center;white-space:nowrap;visibility:hidden}
+.glh span:nth-child(4){grid-column:4 / span 2;padding-left:20px}
+.glane{width:100%;border:0;border-bottom:1px solid var(--line);background:transparent;font:inherit;color:var(--ink);text-align:left;cursor:pointer;padding:12px 0;margin:0;border-radius:0;transition:background-color .18s var(--ease)}
+.glane:last-child{border-bottom:0}
+.glane:hover{background:var(--hover)}
+.glane.on{background:var(--hover);box-shadow:inset 3px 0 0 var(--ink)}
+.gl-src{display:flex;flex-direction:column;gap:3px;padding:0 16px 0 14px;min-width:0}
+.gl-src b{font-size:14px;line-height:19px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gl-src .mono{font-size:12px;color:var(--ink-3)}
+.gl-up{display:flex;flex-direction:column;gap:8px;min-width:0}
+.gl-held,.gl-pass{display:flex;align-items:center;gap:8px;min-width:0}
+.gl-none{font-size:12px;color:var(--ink-4);height:20px;display:flex;align-items:center}
+.gl-chip{flex:none;font-size:12px;line-height:18px;padding:0 7px;border-radius:6px;border:1px solid var(--co);color:var(--co-ink);background:var(--plate-a)}
+.gl-chip.tq{border-color:var(--tq);color:var(--ink)}
+.gl-line{flex:1;height:3px;border-radius:2px;min-width:16px}
+.gl-line.co{background:var(--co);opacity:.75}
+.gl-line.tq{background:var(--tq)}
+.gl-stop{flex:none;width:3px;height:14px;border-radius:2px;background:var(--co)}
+.gl-gate{align-self:stretch;margin:-12px 0;display:grid;place-items:center;background:var(--gate);color:var(--on-solid);width:10px;justify-self:center;border-radius:0}
+.glane:first-of-type .gl-gate{border-radius:5px 5px 0 0}
+.glane:last-child .gl-gate{border-radius:0 0 5px 5px}
+.gl-gate svg{background:var(--gate);border-radius:6px;padding:3px;box-sizing:content-box}
+.gl-prod{display:flex;align-items:center;gap:10px;grid-column:4 / span 2;min-width:0;padding-top:28px}
+.gl-prod .gl-line{max-width:none}
+.gl-reads{flex:none;font-size:12.5px;color:var(--ink-2);padding:2px 10px;border-radius:999px;border:1px solid var(--line-2);background:var(--plate-a)}
+
+/* ---- Incident list ---- */
+.ilbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.ilbar .mseg .n,.ilg .n{font-variant-numeric:tabular-nums;color:var(--ink-3);font-weight:500;margin-left:4px}
+.ilsrc{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-3)}
+.ilsrc select{font:inherit;font-size:14px;color:var(--ink);background:var(--plate-a);border:1px solid var(--line-2);border-radius:10px;padding:7px 30px 7px 12px;max-width:280px}
+.il{padding-top:4px;padding-bottom:4px}
+.ilg{margin:0;padding:16px 0 10px;font-size:14px;font-weight:600;color:var(--ink);display:flex;align-items:baseline;gap:6px}
+.il ul{list-style:none;margin:0;padding:0}
+.ilhd,.ilrow{display:grid;grid-template-columns:150px minmax(0,1fr) minmax(120px,18%) 92px 128px 20px;column-gap:20px;align-items:center}
+.ilhd{padding:6px 0;font-size:12px;color:var(--ink-4);border-bottom:1px solid var(--line)}
+.ilrow{padding:14px 0;border-bottom:1px solid var(--line);color:var(--ink);text-decoration:none;transition:background-color .15s var(--ease)}
+.il li:last-child .ilrow{border-bottom:0}
+.ilrow:hover{background:var(--hover);margin:0 -24px;padding-left:24px;padding-right:24px}
+.ils{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-2)}
+.ilm{display:flex;flex-direction:column;gap:4px;min-width:0}
+.ilk{display:flex;align-items:center;gap:10px;font-size:13px;flex-wrap:wrap}
+.ilm b{font-size:15px;line-height:21px;font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ilr{font-size:12px;color:var(--pu-ink);border:1px dashed var(--pu-line);border-radius:999px;padding:0 8px}
+.ilx{font-size:13.5px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.ilt{color:var(--ink-3)}
+.ilmore{display:block;margin:4px 0 12px;font:inherit;font-size:14px;font-weight:600;background:transparent;border:0;padding:0;cursor:pointer;color:var(--ink)}
+@media(max-width:1100px){.ilhd{display:none}.ilrow{grid-template-columns:130px minmax(0,1fr) 20px}.ilrow .ilx{display:none}}
+
+/* ---- Lineage entity tiles (Sources) ---- */
+.scr-sources .stg{padding-top:34px}
+.scr-sources .stg::before{left:30px;top:11px}
+.scr-sources .sdot{width:24px;height:24px;display:grid;place-items:center;color:var(--ink-2);box-shadow:0 0 0 3px var(--plate-a)}
+.scr-sources .sdot.fill{color:var(--on-solid)}
+.scr-sources .lk .ic{color:var(--ink-3)}
+
+/* ---- Quiet disclosures (terms, endpoints): secondary weight, same accessibility ---- */
+.srcfoot{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px 24px;padding-top:16px;border-top:1px solid var(--line)}
+.srcfoot>.cap{flex-basis:100%}
+.srcfoot details.quiet{flex:0 1 auto}
+.srcfoot details.quiet[open]{flex-basis:100%}
+details.quiet>summary{background:transparent;border:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:0;font-size:13.5px;font-weight:500;color:var(--ink-2);text-decoration:underline;text-decoration-color:var(--line-2);text-underline-offset:4px}
+details.quiet>summary:hover{color:var(--ink);text-decoration-color:currentColor}
+details.quiet>.raw{margin-top:12px}
