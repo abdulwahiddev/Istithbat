@@ -4,11 +4,12 @@ import type { IncidentAggregate } from '@/lib/contracts';
 type PipelineStepState = IncidentAggregate['pipelineSteps'][number];
 import { FOLDED, LANE_MARK, narrate } from '@/components/strata/events';
 import { evTime, word } from '@/components/strata/format';
-import { incidentFacts } from '@/components/strata/incident-model';
+import type { IncidentSummary } from '@/components/strata/incident-model';
+import { summarizeIncident } from '../_data/incident-summary';
 import { Band, Chip, Dk, Ev, HandedToYou, HeadRow, HeldBy, Lnk, Mk, Mono, PageHeader, Rail, ReadError, Sep, SummaryDock } from '@/components/strata/primitives';
-import { aiSuggestion, analysisText, leadIncident, needsDecision } from '@/components/strata/semantics';
+import { leadIncident, needsDecision } from '@/components/strata/semantics';
 import { IncidentCard } from '@/components/strata/IncidentCard';
-import { readAudit, readGatewayInventory, readIncidentDetail, readIncidents, readSources } from '../_data/read';
+import { readAudit, readGatewayInventory, readIncidents, readSources } from '../_data/read';
 import { sourceModel, vr, type SourceModel } from '../_data/source-model';
 
 export const metadata = { title: 'Overview · Istithbat' };
@@ -26,17 +27,15 @@ export default async function OverviewPage() {
   const list = incidents.ok ? incidents.data : [];
   const open = list.filter((i) => i.status !== 'RESOLVED').sort((a, b) => b.openedAt.localeCompare(a.openedAt));
   const lead = leadIncident(list);
-  const details: IncidentAggregate[] = [];
-  for (const i of open.slice(0, 3)) {
-    const d = await readIncidentDetail(i.id);
-    if (d.ok && d.data) details.push(d.data);
-  }
-  const leadDetail = details.find((d) => d.id === lead?.id) ?? null;
+  // Light summaries from persisted audit + source detail; the full aggregate is only needed on Incident Review.
+  const summaries: IncidentSummary[] = [];
+  for (const i of open.slice(0, 3)) summaries.push(await summarizeIncident(i));
+  const leadSum = summaries.find((d) => d.item.id === lead?.id) ?? null;
   const held = open.filter(needsDecision);
   const quarantined = held.filter((i) => i.status === 'QUARANTINED').length;
   const records = models.reduce((n, m) => n + (m.recordCount ?? 0), 0);
   const versionLabel = new Map(models.flatMap((m) => [m.latest, m.trusted]).filter(Boolean).map((v) => [v!.id, vr(v)!]));
-  for (const d of details) { versionLabel.set(d.candidateVersion.id, `${d.candidateVersion.upstreamLabel} · r${d.candidateVersion.revisionNumber}`); }
+  for (const d of summaries) { versionLabel.set(d.item.candidateVersionId, `${d.item.candidateLabel} · r${d.item.candidateRevision}`); }
   const servingTrusted = bindingList.length > 0 && bindingList.every((b) => b.served?.status === 'TRUSTED');
 
   return (
@@ -56,9 +55,9 @@ export default async function OverviewPage() {
       />
 
       <Band id="sources" labelledBy="h-src" first>
-        <Rail layer="src" id="h-src" title="Sources">What Istithbat watches, and which version each one is actually serving.</Rail>
+        <Rail layer="src" id="h-src" title="Sources">Version state per source.</Rail>
         <div className="main">
-          <HeadRow title="Latest seen ≠ trusted ≠ served" right={<Lnk href="/sources">All sources</Lnk>} />
+          <HeadRow title="Source versions" right={<Lnk href="/sources">All sources</Lnk>} />
           {!sources.ok ? <ReadError {...sources.error} /> : (
             <div className="plate tight" style={{ overflowX: 'auto' }}>
               <div className="srow shead" aria-hidden="true">
@@ -75,29 +74,28 @@ export default async function OverviewPage() {
       </Band>
 
       <Band id="flow" labelledBy="h-flow">
-        <Rail layer="pol" id="h-flow" title="Integrity flow">Every substantive change follows the same path. AI advises. Policy governs. Humans decide.</Rail>
+        <Rail layer="pol" id="h-flow" title="Pipeline">AI advises, policy governs, humans decide.</Rail>
         <div className="main">
-          {leadDetail ? <Flow inc={leadDetail} level={models.find((m) => m.summary.id === leadDetail.sourceId)?.summary.contentLevel ?? null} /> : <IdleFlow />}
+          {leadSum ? <Flow s={leadSum} /> : <IdleFlow />}
         </div>
       </Band>
 
       <Band id="incidents" labelledBy="h-inc">
-        <Rail layer="det" id="h-inc" title="Incidents">Open cases that need a decision.</Rail>
+        <Rail layer="det" id="h-inc" title="Incidents">Open cases needing a decision.</Rail>
         <div className="main">
-          <HeadRow title={open.length ? `${open.length} open` : 'None open'} right={<span className="meta mono">/api/incidents</span>} />
+          <HeadRow title={open.length ? `Open incidents · ${open.length}` : 'No open incidents'} right={<span className="meta mono">/api/incidents</span>} />
           {!incidents.ok ? <ReadError {...incidents.error} /> : open.length === 0 ? (
             <div className="plate" style={{ display: 'flex', alignItems: 'center', gap: 12 }}><Chip tone="tq">Nothing open</Chip><span className="body" style={{ color: 'var(--ink-3)' }}>An incident opens when a source version changes a substantive field.</span></div>
           ) : open.map((i) => {
-            const d = details.find((x) => x.id === i.id);
-            return <IncidentCard key={i.id} item={i} detail={d ?? null} />;
+            return <IncidentCard key={i.id} item={i} summary={summaries.find((x) => x.item.id === i.id) ?? null} />;
           })}
         </div>
       </Band>
 
       <Band id="record" labelledBy="h-rec">
-        <Rail layer="det" id="h-rec" title="Record">The latest entries in the append-only audit trail.</Rail>
+        <Rail layer="det" id="h-rec" title="Audit">Latest append-only entries.</Rail>
         <div className="main">
-          <HeadRow title="Latest in the record" right={lead ? <Lnk href={`/incidents/${lead.id}/record`}>Full record</Lnk> : undefined} />
+          <HeadRow title="Recent audit events" right={lead ? <Lnk href={`/incidents/${lead.id}/record`}>Full record</Lnk> : undefined} />
           {!audit.ok ? <ReadError {...audit.error} /> : (
             <div className="plate tight">
               {audit.data.events.filter((e) => !FOLDED.test(e.eventType)).slice(0, 5).map((e) => {
@@ -110,15 +108,15 @@ export default async function OverviewPage() {
         </div>
       </Band>
 
-      {lead && leadDetail && needsDecision(lead) ? (
+      {lead && leadSum && needsDecision(lead) ? (
         <SummaryDock
           railText={held.length === 1 ? 'One case is waiting. Everything else is serving trusted knowledge.' : `${word(held.length)} cases are waiting.`}
-          left={leadDetail.policyEvaluation?.policyCode ? <HeldBy code={leadDetail.policyEvaluation.policyCode} /> : <Chip tone="am">Held for review</Chip>}
+          left={leadSum.policyCode ? <HeldBy code={leadSum.policyCode} /> : <Chip tone="am">Held for review</Chip>}
           right={<HandedToYou />}
-          question={<>Should <span className="mono" style={{ fontSize: 25 }}>{leadDetail.candidateVersion.upstreamLabel}</span> of {models.find((m) => m.summary.id === lead.sourceId)?.facts.real ? models.find((m) => m.summary.id === lead.sourceId)?.facts.title : 'the sandbox'} replace <span className="mono" style={{ fontSize: 25 }}>{leadDetail.previousVersion?.upstreamLabel ?? 'the trusted version'}</span>?</>}
+          question={<>Should <span className="mono" style={{ fontSize: 25 }}>{lead.candidateLabel}</span> of {leadSum.sourceTitle} replace <span className="mono" style={{ fontSize: 25 }}>{lead.previousLabel ?? 'the trusted version'}</span>?</>}
           body="The evidence, the AI reading and the regression are on the incident."
           href={`/incidents/${lead.id}#decision`} cta="Review the evidence and decide"
-          helper={[aiSuggestion(incidentFacts(leadDetail).analysis), 'policy requires a human'].filter(Boolean).join(' · ')}
+          helper={leadSum.policyAction === 'QUARANTINE' ? 'Policy requires a human for this change' : 'Held until a person decides'}
         />
       ) : (
         <SummaryDock
@@ -175,28 +173,28 @@ function groupState(steps: PipelineStepState[], names: string[]): string {
   return 'Pending';
 }
 
-function Flow({ inc, level }: { inc: IncidentAggregate; level: string | null }) {
-  const f = incidentFacts(inc);
+function Flow({ s: f }: { s: IncidentSummary }) {
+  const inc = f.item;
   const steps = inc.pipelineSteps;
   const base = `/incidents/${inc.id}`;
-  const decided = inc.status === 'RESOLVED' || !!f.decided;
+  const decided = inc.status === 'RESOLVED' || f.decided;
   const views: StepView[] = [
-    { href: `${base}#source`, mk: 'src', title: 'Change detected', sub: <>{inc.changes.length} {inc.changes.length === 1 ? 'field' : 'fields'}{f.primary?.fieldPath && <> · <span className="mono">{f.primary.fieldPath}</span></>}</>, state: 'Done' },
-    { href: `${base}#facts`, mk: 'det', title: 'Facts', sub: <>{inc.changes.every((c) => c.flags.some((x) => x === 'WHITESPACE_ONLY' || x === 'UNICODE_EQUIVALENT')) ? 'Equivalent' : 'Substantive'}{level ? ` · level ${level}` : ''}</>, state: 'Done' },
-    { href: `${base}#advisory`, mk: 'ai', title: 'Analysis', sub: <span style={{ color: 'var(--pu-ink)' }}>{inc.analysis ? `${analysisText(inc.analysis.analysisType)} · advisory` : 'Advisory'}</span>, state: groupState(steps, ['ANALYSIS']) },
-    { href: `${base}#behavior`, mk: 'det', title: 'Regression', sub: f.regressionCount && groupState(steps, ['REGRESSION_QUESTIONS', 'REGRESSION_PAIR']) === 'Done' ? <><span className="dot" style={{ background: f.materialCount ? 'var(--co)' : 'var(--tq)' }} /> {f.materialCount ? 'Material change' : 'No material change'}</> : 'Matched questions', state: groupState(steps, ['REGRESSION_QUESTIONS', 'REGRESSION_PAIR']) },
+    { href: `${base}#source`, mk: 'src', title: 'Change detected', sub: <>{f.changeCount} {f.changeCount === 1 ? 'field' : 'fields'}{f.fieldPath && <> · <span className="mono">{f.fieldPath}</span></>}</>, state: 'Done' },
+    { href: `${base}#facts`, mk: 'det', title: 'Facts', sub: <>{f.substantive ? 'Substantive' : 'Equivalent'}{f.contentLevel ? ` · level ${f.contentLevel}` : ''}</>, state: 'Done' },
+    { href: `${base}#advisory`, mk: 'ai', title: 'Analysis', sub: <span style={{ color: 'var(--pu-ink)' }}>{f.analysed ? `${inc.riskLevel ? `${inc.riskLevel.charAt(0)}${inc.riskLevel.slice(1).toLowerCase()} risk` : 'Recorded'} · advisory` : 'Advisory'}</span>, state: groupState(steps, ['ANALYSIS']) },
+    { href: `${base}#behavior`, mk: 'det', title: 'Regression', sub: f.regressionCount && groupState(steps, ['REGRESSION_QUESTIONS', 'REGRESSION_PAIR']) === 'Done' ? <><span className="dot" style={{ background: f.materialCount ? 'var(--co)' : 'var(--tq)' }} /> {f.materialCount ? `${f.materialCount} of ${f.regressionCount} material` : 'No material change'}</> : 'Matched questions', state: groupState(steps, ['REGRESSION_QUESTIONS', 'REGRESSION_PAIR']) },
     { href: `${base}/blast-radius`, mk: 'det', title: 'Blast radius', sub: f.counts && groupState(steps, ['BLAST_RADIUS']) === 'Done' ? `${f.counts.impacted} impacted · ${f.counts.exposed} exposed` : 'Dependency walk', state: groupState(steps, ['BLAST_RADIUS']) },
     { href: `${base}#containment`, mk: 'pol', title: 'Policy', sub: f.policyCode ? <><span className="mono">{f.policyCode}</span> · {String(f.policyAction ?? '').toLowerCase()}</> : 'Deterministic rules', state: groupState(steps, ['POLICY']) },
-    { href: `${base}#decision`, mk: 'hum', title: 'Human decision', sub: decided ? `Decided · ${f.decided ? f.decided.decision.toLowerCase().replace('_', ' ') : 'resolved'}` : 'Waiting on you', state: decided ? 'Done' : 'Pending' },
+    { href: `${base}#decision`, mk: 'hum', title: 'Review decision', sub: decided ? 'Decided' : 'Awaiting a reviewer', state: decided ? 'Done' : 'Pending' },
   ];
   const firstOpen = views.findIndex((v) => v.state !== 'Done');
   if (firstOpen >= 0) { views[firstOpen].now = true; views[firstOpen].state = views[firstOpen].state === 'Pending' ? 'Now' : views[firstOpen].state; }
-  const meta = inc.pipeline?.status === 'RUNNING' ? 'Pipeline running · results arrive step by step'
-    : inc.pipeline?.status === 'FAILED_CLOSED' ? 'Pipeline failed closed · held for a person'
-    : decided ? 'Decided and recorded' : 'Pipeline complete · waiting on a person';
+  const meta = inc.pipelineStatus === 'RUNNING' ? 'Pipeline running · results arrive step by step'
+    : inc.pipelineStatus === 'FAILED_CLOSED' ? 'Pipeline failed closed · held for a person'
+    : decided ? 'Decided and recorded' : 'Pipeline complete · awaiting a reviewer';
   return (
     <>
-      <HeadRow title={<>Where <span className="mono">{f.recordKey}</span> is now</>} right={<span className="meta">{meta}</span>} />
+      <HeadRow title={<>Pipeline · <span className="mono">{f.recordKey}</span></>} right={<span className="meta">{meta}</span>} />
       <div className="plate" style={{ paddingTop: 24, paddingBottom: 24 }}>
         <ol className="flow">
           {views.map((v) => (
@@ -219,7 +217,7 @@ function IdleFlow() {
   ];
   return (
     <>
-      <HeadRow title="Nothing in the flow" right={<span className="meta">No candidate under review</span>} />
+      <HeadRow title="Pipeline idle" right={<span className="meta">No candidate under review</span>} />
       <div className="plate" style={{ paddingTop: 24, paddingBottom: 24 }}>
         <ol className="flow">
           {steps.map(([mk, t, s]) => (

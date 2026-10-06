@@ -38,3 +38,14 @@ export function incidentFacts(inc: IncidentAggregate) {
 
 export const modeLabel = (mode: string | null | undefined) =>
   mode === 'replay' ? 'Replayed response' : mode === 'mock' ? 'Mock response' : mode === 'live' ? 'Live response' : 'Not yet analysed';
+
+/** Light summary for lists (Overview, /incidents): no full aggregate needed. */
+export type IncidentSummary = {
+  item: import('@/lib/contracts').IncidentListItem;
+  diff: ReturnType<typeof wordDiff> | null;
+  recordKey: string; headline: string; fieldPath: string | null; changeCount: number;
+  policyCode: string | null; policyAction: string | null;
+  regressionCount: number; materialCount: number;
+  counts: { exposed: number; stale: number; impacted: number } | null;
+  analysed: boolean; decided: boolean; contentLevel: string | null; sourceTitle: string; substantive: boolean;
+};

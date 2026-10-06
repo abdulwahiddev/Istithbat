@@ -20,7 +20,15 @@ const amiri = Amiri({ subsets: ['arabic', 'latin'], weight: ['400', '700'], vari
 export const metadata = {
   title: 'Istithbat | استثبات',
   description: 'Integrity and release governance for trusted Islamic knowledge in AI systems.',
-  icons: { icon: '/brand/istithbat-icon.png' },
+  // Official identity (Istithbat Brand.png): the symbol on the Midnight Navy app tile.
+  icons: {
+    icon: [
+      { url: '/brand/istithbat-favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/brand/istithbat-favicon-16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/brand/istithbat-app-icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/brand/apple-touch-icon.png', sizes: '180x180' }],
+  },
 };
 export const dynamic = 'force-dynamic';
 

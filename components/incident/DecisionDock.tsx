@@ -83,7 +83,7 @@ export function DecisionDock(p: DockProps) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px 32px', alignItems: 'center', justifyContent: 'space-between' }}>
           <h3 style={{ margin: 0, fontSize: 40, lineHeight: '48px', fontWeight: 600, letterSpacing: '-.024em' }}>What should happen to <span className="mono" style={{ fontSize: 36 }}>{c}</span>?</h3>
-          {p.aiPill && <span className="pill" style={{ fontSize: 14, color: 'var(--h-ai)', border: '1px dashed var(--h-ai-line)' }}><span className="mk" style={{ width: 9, height: 9, border: '1.5px dashed var(--h-ai-line)', borderRadius: '50%', boxSizing: 'border-box' }} />{p.aiPill}</span>}
+          {p.aiPill && <span className="pill" style={{ fontSize: 14, color: 'var(--h-ai)', border: '1px dashed var(--h-ai-line)' }}><span className="mk mk-ai" style={{ background: 'var(--h-ai)' }} />{p.aiPill}</span>}
         </div>
 
         <fieldset className="sub" style={{ border: 0, margin: 0, padding: 0, rowGap: 16, minInlineSize: 0 }} disabled={p.resolved || stage === 'sending' || stage === 'done'}>

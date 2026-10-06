@@ -36,15 +36,6 @@ export function Chip({ tone, children, small, ink, dashedDot, style }: {
   );
 }
 
-/** Amber notice for the controlled synthetic source (D-13). */
-export function SyntheticPill({ short }: { short?: boolean }) {
-  return (
-    <span className="pill" style={{ border: '1px solid var(--am-soft)', background: 'var(--am-soft)', color: 'var(--am-ink)', ...(short ? { padding: '1px 10px', fontSize: 12 } : {}) }}>
-      <Dot tone="am" />{short ? 'Synthetic' : 'Controlled synthetic source — not real hadith data'}
-    </span>
-  );
-}
-
 export const Mono = ({ children, style }: { children: ReactNode; style?: CSSProperties }) => <span className="mono" style={style}>{children}</span>;
 
 export function Kv({ k, children, style }: { k: ReactNode; children: ReactNode; style?: CSSProperties }) {
@@ -89,22 +80,29 @@ export function Lnk({ href, children }: { href: string; children: ReactNode }) {
 }
 
 /** Page header band: crumbs, answer-first H1, lede and the status panel (columns 9–12). */
-export function PageHeader({ crumbs, title, lede, status }: { crumbs: ReactNode; title: ReactNode; lede: ReactNode; status: ReactNode }) {
+export function PageHeader({ crumbs, title, lede, status, synthetic }: { crumbs: ReactNode; title: ReactNode; lede: ReactNode; status: ReactNode; synthetic?: boolean }) {
   return (
     <section style={{ padding: '72px 0 56px' }}>
       <div className="wrap g" style={{ rowGap: 28, alignItems: 'end' }}>
-        <div style={{ gridColumn: '1 / -1', display: 'flex', flexWrap: 'wrap', gap: '8px 16px', alignItems: 'center', fontSize: 14, color: 'var(--ink-3)' }}>{crumbs}</div>
+        <nav aria-label="Breadcrumb" className="crumbs" style={{ gridColumn: '1 / -1' }}>{crumbs}</nav>
         <div className="ph-lead" style={{ gridColumn: '1 / span 8', display: 'flex', flexDirection: 'column', gap: 20 }}>
           <h1 style={{ margin: 0, fontSize: 60, lineHeight: '64px', fontWeight: 600, letterSpacing: '-.034em' }}>{title}</h1>
           <p className="meta" style={{ margin: 0, fontSize: 15, maxWidth: 620 }}>{lede}</p>
         </div>
-        <dl className="plate in ph-status" style={{ gridColumn: '9 / span 4', margin: '0 -24px', padding: '8px 24px' }}>{status}</dl>
+        <dl className="plate in ph-status" style={{ gridColumn: '9 / span 4', margin: '0 -24px', padding: '8px 24px' }}>{status}{synthetic && <SyntheticRow />}</dl>
       </div>
     </section>
   );
 }
 
 export const Sep = () => <span aria-hidden="true">/</span>;
+
+/** The controlled-synthetic notice (D-13), as a fact in the case's state panel rather than in navigation. */
+export function SyntheticRow() {
+  return (
+    <div className="kv"><dt>Source data</dt><dd><span className="pill" style={{ padding: '2px 10px', border: '1px solid var(--am-soft)', background: 'var(--am-soft)', color: 'var(--am-ink)', fontSize: 12.5 }}><Dot tone="am" />Synthetic, not real hadith data</span></dd></div>
+  );
+}
 
 export function Ev({ mark, time, title, note, code, titleStyle }: {
   mark: ReactNode; time: ReactNode; title: ReactNode; note?: ReactNode; code?: ReactNode; titleStyle?: CSSProperties;
@@ -133,7 +131,7 @@ export function SummaryDock({ railText, left, right, question, body, href, cta, 
   return (
     <section aria-labelledby="h-dock" style={{ padding: '64px 0 120px' }}>
       <div className="wrap g">
-        <Rail layer="hum" id="h-dock" title="Your decision" decision>{railText}</Rail>
+        <Rail layer="hum" id="h-dock" title="Review decision" decision>{railText}</Rail>
         <div className="main" style={{ gap: 0 }}>
           <div className="handoff">
             {left}

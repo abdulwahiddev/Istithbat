@@ -1,10 +1,11 @@
 import { AutoRefresh } from '@/components/strata/AutoRefresh';
-import type { IncidentAggregate } from '@/lib/contracts';
+import type { IncidentSummary } from '@/components/strata/incident-model';
+import { summarizeIncident } from '../_data/incident-summary';
 import { IncidentCard } from '@/components/strata/IncidentCard';
 import { word } from '@/components/strata/format';
 import { Band, Chip, Dk, HeadRow, PageHeader, Rail, ReadError, Sep } from '@/components/strata/primitives';
 import { needsDecision } from '@/components/strata/semantics';
-import { readIncidentDetail, readIncidents } from '../_data/read';
+import { readIncidents } from '../_data/read';
 
 export const metadata = { title: 'Incidents · Istithbat' };
 export const dynamic = 'force-dynamic';
@@ -15,8 +16,8 @@ export default async function IncidentsPage() {
   const items = list.ok ? [...list.data].sort((a, b) => b.openedAt.localeCompare(a.openedAt)) : [];
   const open = items.filter((i) => i.status !== 'RESOLVED');
   const resolved = items.filter((i) => i.status === 'RESOLVED');
-  const details = new Map<string, IncidentAggregate>();
-  for (const i of open.slice(0, 6)) { const d = await readIncidentDetail(i.id); if (d.ok && d.data) details.set(i.id, d.data); }
+  const summaries = new Map<string, IncidentSummary>();
+  for (const i of open.slice(0, 6)) summaries.set(i.id, await summarizeIncident(i));
   const deciding = open.filter(needsDecision).length;
   return (
     <main id="main" className="scr-overview">
@@ -32,20 +33,20 @@ export default async function IncidentsPage() {
         </>}
       />
       <Band id="open" labelledBy="h-open" first>
-        <Rail layer="det" id="h-open" title="Open">Cases that need a decision, newest first.</Rail>
+        <Rail layer="det" id="h-open" title="Open">Newest first.</Rail>
         <div className="main">
-          <HeadRow title={open.length ? `${open.length} open` : 'None open'} right={<span className="meta mono">/api/incidents</span>} />
+          <HeadRow title={open.length ? `Open incidents · ${open.length}` : 'No open incidents'} right={<span className="meta mono">/api/incidents</span>} />
           {!list.ok ? <ReadError {...list.error} /> : open.length === 0
             ? <div className="plate" style={{ display: 'flex', alignItems: 'center', gap: 12 }}><Chip tone="tq">Nothing open</Chip><span className="body" style={{ color: 'var(--ink-3)' }}>An incident opens when a source version changes a substantive field.</span></div>
-            : open.map((i) => <IncidentCard key={i.id} item={i} detail={details.get(i.id) ?? null} />)}
+            : open.map((i) => <IncidentCard key={i.id} item={i} summary={summaries.get(i.id) ?? null} />)}
         </div>
       </Band>
       {resolved.length > 0 && (
         <Band id="resolved" labelledBy="h-res">
-          <Rail layer="hum" id="h-res" title="Resolved">Decided cases. Their record stays append-only.</Rail>
+          <Rail layer="hum" id="h-res" title="Resolved">Decided cases.</Rail>
           <div className="main">
             <HeadRow title={`${resolved.length} resolved`} />
-            {resolved.map((i) => <IncidentCard key={i.id} item={i} detail={null} />)}
+            {resolved.map((i) => <IncidentCard key={i.id} item={i} summary={null} />)}
           </div>
         </Band>
       )}

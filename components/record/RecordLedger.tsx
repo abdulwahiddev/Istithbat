@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { AuditPage, Endpoints, type AuditEvent } from '@/lib/contracts';
-import { AUTHORITY, FOLDED, narrate, type Lane, type Narrated } from '@/components/strata/events';
+import { AUTHORITY, FOLDED, LANE_MARK, narrate, type Lane, type Narrated } from '@/components/strata/events';
 import { clock, fullTime } from '@/components/strata/format';
 
 export type RecordContext = {
@@ -16,15 +16,15 @@ export type RecordContext = {
 };
 
 const X = [16, 46, 76, 106, 136], NY = 25;
-const MARK = ['width:14px;height:3px;background:var(--ink)', 'width:8px;height:8px;background:var(--ink-2)', 'width:10px;height:10px;border:1.5px dashed var(--pu);border-radius:50%;box-sizing:border-box', 'width:9px;height:9px;border:1.5px solid var(--ink);transform:rotate(45deg);box-sizing:border-box', 'width:10px;height:10px;border-radius:50%;background:var(--ink)'];
 const st = (s: string) => Object.fromEntries(s.split(';').filter(Boolean).map((d) => { const i = d.indexOf(':'); return [d.slice(0, i).replace(/-([a-z])/g, (_, c: string) => c.toUpperCase()), d.slice(i + 1)]; }));
 const T = 'translate(-50%,-50%)';
+/** One node shape for every authority: a dot in the authority's colour (tone overrides it for meaning). AI keeps the dashed advisory ring; unrecorded entries are hollow. */
 function nodeStyle(lane: Lane, tone: string | null, pend: boolean): string {
-  if (lane === 0) return `width:16px;height:4px;border-radius:2px;background:${tone ?? 'var(--ink)'};transform:${T}`;
-  if (lane === 1) return `width:10px;height:10px;border-radius:2px;background:${tone ?? 'var(--ink-2)'};transform:${T}`;
-  if (lane === 2) return `width:14px;height:14px;border-radius:50%;border:2px dashed var(--pu);background:var(--pu-soft);box-shadow:0 0 0 3px var(--plate-a);transform:${T}`;
-  if (lane === 3) return `width:11px;height:11px;border:1.5px solid ${tone ?? 'var(--am)'};background:${tone === 'var(--co)' ? 'var(--co)' : 'var(--plate-a)'};transform:${T} rotate(45deg)`;
-  return pend ? `width:13px;height:13px;border-radius:50%;border:1.5px dashed var(--ink-3);background:var(--plate-a);transform:${T}` : `width:12px;height:12px;border-radius:50%;background:var(--ink);transform:${T}`;
+  const base = `width:11px;height:11px;border-radius:50%;box-sizing:border-box;transform:${T}`;
+  if (pend) return `${base};border:1.5px dashed var(--ink-3);background:var(--plate-a)`;
+  if (lane === 2) return `${base};border:2px dashed var(--pu);background:var(--pu-soft);box-shadow:0 0 0 3px var(--plate-a)`;
+  const c = tone ?? ['var(--ink)', 'var(--ink-2)', 'var(--pu)', 'var(--ink)', 'var(--ink)'][lane];
+  return `${base};background:${c};box-shadow:0 0 0 3px var(--plate-a)`;
 }
 const TONE: Record<string, string> = { tq: 'var(--tq)', co: 'var(--co)', am: 'var(--am)' };
 
@@ -161,7 +161,7 @@ export function RecordLedger({ ctx, initial }: { ctx: RecordContext; initial: { 
         <div className="c7-10 insp">
           <div className="plate r fade" key={s.key} style={{ marginLeft: 0, paddingTop: 24, paddingBottom: 20, display: 'flex', flexDirection: 'column', gap: 18 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-              <span className="chip" style={{ color: 'var(--ink)' }}><span className="mk" style={st(MARK[s.lane])} />{AUTHORITY[s.lane]}</span>
+              <span className="chip" style={{ color: 'var(--ink)' }}><span className={`mk mk-${LANE_MARK[s.lane]}`} />{AUTHORITY[s.lane]}</span>
               <span className="meta" style={{ fontSize: 12.5 }}>{s.pend ? 'Not yet recorded' : 'Recorded · append-only'}</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

@@ -1,4 +1,5 @@
 'use client';
+import { Icon } from './icons';
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
 
 /**
@@ -34,10 +35,10 @@ export function ThemeSwitch() {
     <div className="tsw" role="group" aria-label="Theme" data-theme={theme}>
       <span className="tsw-ind" aria-hidden="true" />
       <button type="button" aria-pressed={theme === 'light'} aria-label="Light theme" title="Light" onClick={() => setTheme('light')}>
-        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true"><circle cx="10" cy="10" r="3.4" /><path d="M10 2.6v1.7M10 15.7v1.7M2.6 10h1.7M15.7 10h1.7M4.8 4.8l1.2 1.2M14 14l1.2 1.2M4.8 15.2L6 14M14 6l1.2-1.2" /></svg>
+        <Icon name="sun" size={18} />
       </button>
       <button type="button" aria-pressed={theme === 'dark'} aria-label="Dark theme" title="Dark" onClick={() => setTheme('dark')}>
-        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" aria-hidden="true"><path d="M16.2 12.4A6.6 6.6 0 017.6 3.8a6.6 6.6 0 108.6 8.6z" /></svg>
+        <Icon name="moon" size={17} />
       </button>
     </div>
   );

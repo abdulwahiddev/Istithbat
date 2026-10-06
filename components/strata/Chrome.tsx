@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useActionState, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ThemeSwitch } from './theme';
+import { Icon } from './icons';
 import type { UnlockState } from '@/app/(ui)/_actions/reviewer';
 
 export type ChromeIncident = {
@@ -60,14 +61,12 @@ export function Chrome({ data, actions }: { data: ChromeData; actions: Actions }
     <div className="chrome">
       <header style={{ borderBottom: '1px solid var(--line)' }}>
         <div className="wrap" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px 24px', paddingTop: 14, paddingBottom: 14 }}>
-          <Link href="/overview" aria-label="Istithbat overview" style={{ display: 'flex', alignItems: 'center', gap: 14, textDecoration: 'none', color: 'var(--ink)' }}>
-            <span style={{ display: 'flex', flexDirection: 'column', gap: 3 }} aria-hidden="true">
-              <span style={{ display: 'block', width: 22, height: 3, background: 'var(--tq)' }} />
-              <span style={{ display: 'block', width: 16, height: 3, background: 'var(--ink)' }} />
-              <span style={{ display: 'block', width: 10, height: 3, background: 'var(--ink-4)' }} />
-            </span>
-            <span className="ar" lang="ar" dir="rtl" style={{ fontSize: 26, fontWeight: 700, lineHeight: 1 }}>استثبات</span>
-            <span className="brand-latin" style={{ fontSize: 14, color: 'var(--ink-3)' }}>Istithbat</span>
+          <Link href="/overview" aria-label="Istithbat — overview" className="brand">
+            {/* Official identity (Istithbat Brand.png): transparent symbol + approved wordmark, per theme */}
+            <img className="brand-on-light" src="/brand/istithbat-symbol-on-light.png" alt="" width={31} height={34} />
+            <img className="brand-on-dark" src="/brand/istithbat-symbol-on-dark.png" alt="" width={31} height={34} />
+            <img className="brand-latin brand-on-light" src="/brand/istithbat-wordmark-on-light.png" alt="" width={77} height={34} />
+            <img className="brand-latin brand-on-dark" src="/brand/istithbat-wordmark-on-dark.png" alt="" width={77} height={34} />
           </Link>
           <nav aria-label="Primary">
             <NavSeg active={active}>
@@ -81,13 +80,9 @@ export function Chrome({ data, actions }: { data: ChromeData; actions: Actions }
           </nav>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <ThemeSwitch />
-            <button type="button" className="cmdk" style={{ minWidth: 150 }} aria-disabled="true" aria-label="Search records, hashes and incidents (not available yet)" title="Search is not available yet">
-              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><circle cx="7" cy="7" r="5" /><path d="M11 11l3.5 3.5" strokeLinecap="round" /></svg>
-              Search<span className="kbd">⌘</span><span className="kbd" style={{ marginLeft: 0 }}>K</span>
-            </button>
             <button type="button" className="iconbtn" onClick={() => router.push('/incidents')}
               aria-label={n ? `Notifications, ${n} ${n === 1 ? 'incident needs' : 'incidents need'} a decision` : 'Notifications, nothing needs a decision'}>
-              <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5.5 8.2a4.5 4.5 0 019 0c0 4.3 1.8 5.6 1.8 5.6H3.7s1.8-1.3 1.8-5.6" /><path d="M8.3 16.3a1.8 1.8 0 003.4 0" /></svg>
+              <Icon name="bell" size={18} />
               {n > 0 && <span className="bd" />}
             </button>
             <Reviewer reviewer={data.reviewer} actions={actions} />
@@ -145,7 +140,7 @@ function StateBar({ incident, served }: { incident: ChromeIncident | null; serve
             <Served trusted={incident.trustedLabel} served={incident.servedLabel} />
             {incident.needsDecision && (
               <Link className="cta" href={`/incidents/${incident.id}#decision`} style={{ marginLeft: 'auto' }}>
-                <span className="mk" style={{ width: 8, height: 8, borderRadius: '50%', background: 'currentColor' }} aria-hidden="true" />Decision needed
+                <Icon name="user-check" size={16} />Decision needed
               </Link>
             )}
           </>
@@ -195,7 +190,7 @@ function Reviewer({ reviewer, actions }: { reviewer: ChromeData['reviewer']; act
       <button type="button" className="who" aria-label={label} title={reviewer ? 'Reviewer mode' : 'Unlock reviewer mode'} aria-expanded={open} aria-haspopup="dialog"
         onClick={() => setOpen((o) => !o)} style={{ font: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
         <span className="avatar" style={{ width: 34, height: 34, boxShadow: 'none', ...(reviewer ? {} : { background: 'transparent', color: 'var(--ink-3)', boxShadow: 'inset 0 0 0 1.5px var(--line-2)' }) }}>
-          {reviewer ? initials(reviewer.name) : <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4.5" y="9" width="11" height="8" rx="2" /><path d="M7 9V6.5a3 3 0 016 0V9" /></svg>}
+          {reviewer ? initials(reviewer.name) : <Icon name="lock" size={16} />}
         </span>
         <span className="who-name">{reviewer ? reviewer.name : 'Reviewer mode'}</span>
       </button>

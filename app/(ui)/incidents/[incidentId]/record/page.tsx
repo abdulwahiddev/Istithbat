@@ -3,39 +3,44 @@ import { notFound } from 'next/navigation';
 import { canReview } from '@/lib/governance/transitions';
 import { RecordLedger } from '@/components/record/RecordLedger';
 import { isArabic } from '@/components/strata/diff';
-import { incidentFacts } from '@/components/strata/incident-model';
 import { Band, Chip, Dk, HandedToYou, HeldBy, Mk, Mono, PageHeader, Rail, ReadError, Sep, SummaryDock } from '@/components/strata/primitives';
-import { readAudit, readGatewayInventory, readIncidentDetail, readSourceDetail } from '../../../_data/read';
+import { readAudit, readGatewayInventory, readIncidentItem, readSourceDetail } from '../../../_data/read';
+import { summarizeIncident } from '../../../_data/incident-summary';
 
 export const metadata = { title: 'Record · Istithbat' };
 export const dynamic = 'force-dynamic';
 
 export default async function RecordPage({ params }: { params: Promise<{ incidentId: string }> }) {
   const { incidentId } = await params;
-  const detail = await readIncidentDetail(incidentId);
-  if (!detail.ok) return <main id="main"><section style={{ padding: '72px 0 120px' }}><div className="wrap"><ReadError {...detail.error} /></div></section></main>;
-  const inc = detail.data;
+  // Light path: the list row, the persisted audit page and the source detail (not the full aggregate).
+  const itemR = await readIncidentItem(incidentId);
+  if (!itemR.ok) return <main id="main"><section style={{ padding: '72px 0 120px' }}><div className="wrap"><ReadError {...itemR.error} /></div></section></main>;
+  const inc = itemR.data;
   if (!inc) notFound();
   const audit = await readAudit({ incidentId: inc.id, limit: 100 });
   const src = await readSourceDetail(inc.sourceId);
   const gateway = await readGatewayInventory();
+  const sum = await summarizeIncident(inc);
   const g = gateway.ok ? gateway.data.find((x) => x.sourceId === inc.sourceId && x.binding) ?? null : null;
-  const f = incidentFacts(inc);
-  const versionLabel = Object.fromEntries((src.ok && src.data ? src.data.versions : [inc.candidateVersion, ...(inc.previousVersion ? [inc.previousVersion] : [])])
-    .map((v) => [v.id, `${v.upstreamLabel} · r${v.revisionNumber}`]));
+  const versions = src.ok && src.data ? src.data.versions : [];
+  const versionLabel = Object.fromEntries(versions.map((v) => [v.id, `${v.upstreamLabel} · r${v.revisionNumber}`]));
+  const candV = versions.find((v) => v.id === inc.candidateVersionId) ?? null;
+  const prevV = candV?.previousVersionId ? versions.find((v) => v.id === candV.previousVersionId) ?? null : null;
   const open = inc.status !== 'RESOLVED';
-  const cand = inc.candidateVersion.upstreamLabel;
+  const cand = inc.candidateLabel;
   const latest = audit.ok ? audit.data.events.find((e) => !/^PIPELINE_STEP_/.test(e.eventType)) ?? null : null;
-  const policy = (inc.effectivePolicyAction ?? null) as 'ALLOW' | 'REVIEW' | 'QUARANTINE' | 'ESCALATE' | null;
-  const approveAllowed = canReview('APPROVE', inc.candidateVersion.status, inc.status, policy);
+  const policy = (sum.policyAction ?? null) as 'ALLOW' | 'REVIEW' | 'QUARANTINE' | 'ESCALATE' | null;
+  const approveAllowed = candV ? canReview('APPROVE', candV.status, inc.status, policy) : false;
+  const oldV = sum.diff ? sum.diff.old.map((x) => x.text).join(' ') : null, newV = sum.diff ? sum.diff.new.map((x) => x.text).join(' ') : null;
   const base = `/incidents/${inc.id}`;
 
   return (
     <main id="main" className="scr-record">
-      <AutoRefresh active={inc.pipeline?.status === 'RUNNING'} />
+      <AutoRefresh active={inc.pipelineStatus === 'RUNNING'} />
       <PageHeader
-        crumbs={<><span>Record</span><Sep /><span><Mono>{f.recordKey}</Mono> · <Mono>{inc.previousVersion?.upstreamLabel ?? '—'} → {cand}</Mono></span></>}
-        title={open ? <>Every step is on the record.<br />The next one is yours.</> : <>Every step is on the record.<br />The decision is signed.</>}
+        crumbs={<><span>Record</span><Sep /><Mono>{sum.recordKey}</Mono></>}
+        synthetic={src.ok && !!src.data?.source.isDemoFixture}
+        title={open ? <>Audit trail, awaiting<br />a review decision.</> : <>Audit trail, closed<br />by a signed decision.</>}
         lede={`From the source observation to ${open ? (inc.status === 'QUARANTINED' ? 'a quarantined candidate' : 'a held candidate') : 'a signed decision'}. Facts, AI advice, policy and people are recorded apart, each under its own actor.`}
         status={<>
           <Dk k="Latest entry" style={{ fontSize: 13 }}>{latest ? <Mono>{latest.eventType}</Mono> : '—'}</Dk>
@@ -45,16 +50,16 @@ export default async function RecordPage({ params }: { params: Promise<{ inciden
       />
 
       <Band id="record" labelledBy="h-rec" first>
-        <Rail layer="src" id="h-rec" title="Record">The append-only trail for this incident. Each entry sits in the lane of the authority that wrote it. Select one to see its evidence.</Rail>
+        <Rail layer="src" id="h-rec" title="Record">Each entry sits in the lane of the authority that wrote it.</Rail>
         <div className="main">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}><h3 className="h3">From observation to decision</h3><span className="meta">AI advises. Policy governs. Humans decide.</span></div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}><h3 className="h3">Audit ledger</h3><span className="meta">AI advises. Policy governs. Humans decide.</span></div>
           {!audit.ok ? <ReadError {...audit.error} /> : (
             <RecordLedger initial={audit.data} ctx={{
-              incidentId: inc.id, recordKey: f.recordKey, candidateId: inc.candidateVersion.id, candidateLabel: cand,
-              previousId: inc.previousVersion?.id ?? null, previousLabel: inc.previousVersion?.upstreamLabel ?? null,
+              incidentId: inc.id, recordKey: sum.recordKey, candidateId: inc.candidateVersionId, candidateLabel: cand,
+              previousId: prevV?.id ?? null, previousLabel: inc.previousLabel,
               servedLabel: g?.served?.label ?? null, appName: g?.appName ?? null, open, approveAllowed, versionLabel,
-              change: f.primary ? { field: f.primary.fieldPath, old: f.oldV, new: f.newV, arabic: !!f.oldV && isArabic(f.oldV) } : null,
-              analysisMode: inc.analysis?.meta.mode ?? null,
+              change: sum.diff ? { field: sum.fieldPath, old: oldV, new: newV, arabic: !!oldV && isArabic(oldV) } : null,
+              analysisMode: inc.analysisMode,
               links: { source: `${base}#source`, facts: `${base}#facts`, advisory: `${base}#advisory`, behavior: `${base}#behavior`, exposure: `${base}#exposure`, containment: `${base}#containment`, decision: `${base}#decision`, blast: `${base}/blast-radius`, gateway: g?.appId ? `/gateway/${g.appId}` : '/gateway', sources: `/sources/${inc.sourceId}` },
             }} />
           )}
@@ -70,9 +75,9 @@ export default async function RecordPage({ params }: { params: Promise<{ inciden
       </Band>
 
       <Band id="integrity" labelledBy="h-int">
-        <Rail layer="det" id="h-int" title="Integrity">What protects this trail, stated exactly. No stronger claim is made.</Rail>
+        <Rail layer="det" id="h-int" title="Integrity">What protects the trail, stated exactly.</Rail>
         <div className="main">
-          <h3 className="h3">Has anything been altered?</h3>
+          <h3 className="h3">Ledger integrity</h3>
           <div className="sub" style={{ rowGap: 32, alignItems: 'start' }}>
             <div className="c1-6 plate l" style={{ marginRight: 0, paddingTop: 8, paddingBottom: 8 }}>
               <div className="grd"><span className="dot" style={{ background: 'var(--tq)' }} /><span className="w2"><b>Past entries cannot be changed</b><span>A database trigger rejects every update and delete on the audit table.</span></span><span className="mono gk">audit_events_append_only</span></div>
@@ -91,7 +96,7 @@ export default async function RecordPage({ params }: { params: Promise<{ inciden
       {open ? (
         <SummaryDock
           railText="Nothing above decides. The record waits for a signature."
-          left={f.policyCode ? <HeldBy code={f.policyCode} /> : <Chip tone="am">Held for review</Chip>} right={<HandedToYou />}
+          left={sum.policyCode ? <HeldBy code={sum.policyCode} /> : <Chip tone="am">Held for review</Chip>} right={<HandedToYou />}
           question="The next entry is yours."
           body={<>Signing appends one <span className="mono" style={{ fontSize: 13.5 }}>REVIEW_DECISION</span>.{approveAllowed && <> An approval also appends <span className="mono" style={{ fontSize: 13.5 }}>VERSION_PROMOTED</span> in the same transaction.</>}</>}
           href={`${base}#decision`} cta="Review the evidence and decide" helper="Entries already recorded cannot be edited"

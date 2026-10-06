@@ -66,3 +66,70 @@ details[open]>summary~*{animation:strata-in .2s var(--ease) both}
   .handoff{flex-wrap:wrap}.handoff .chip{white-space:normal}
   .verdict{margin-right:-16px !important;padding:16px !important}
 }
+
+/* ---- Icon language: layer marks render as Lucide line icons (generated from components/strata/icons.tsx data).
+   source=database · deterministic=fingerprint · AI=sparkles · policy=scale · human=user-check. 16px; 14px in chips/handoffs. ---- */
+.mk.mk-src,.mk.mk-det,.mk.mk-ai,.mk.mk-pol,.mk.mk-hum{width:16px !important;height:16px !important;border:0 !important;border-radius:0 !important;transform:none !important;box-sizing:border-box;-webkit-mask:var(--mk-i) center/contain no-repeat;mask:var(--mk-i) center/contain no-repeat;vertical-align:-3px}
+.mk.mk-src{--mk-i:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cellipse%20cx%3D%2212%22%20cy%3D%225%22%20rx%3D%229%22%20ry%3D%223%22%2F%3E%3Cpath%20d%3D%22M3%205V19A9%203%200%200%200%2021%2019V5%22%2F%3E%3Cpath%20d%3D%22M3%2012A9%203%200%200%200%2021%2012%22%2F%3E%3C%2Fsvg%3E");background-color:var(--ink-2)}
+.mk.mk-det{--mk-i:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2010a2%202%200%200%200-2%202c0%201.02-.1%202.51-.26%204%22%2F%3E%3Cpath%20d%3D%22M14%2013.12c0%202.38%200%206.38-1%208.88%22%2F%3E%3Cpath%20d%3D%22M17.29%2021.02c.12-.6.43-2.3.5-3.02%22%2F%3E%3Cpath%20d%3D%22M2%2012a10%2010%200%200%201%2018-6%22%2F%3E%3Cpath%20d%3D%22M2%2016h.01%22%2F%3E%3Cpath%20d%3D%22M21.8%2016c.2-2%20.131-5.354%200-6%22%2F%3E%3Cpath%20d%3D%22M5%2019.5C5.5%2018%206%2015%206%2012a6%206%200%200%201%20.34-2%22%2F%3E%3Cpath%20d%3D%22M8.65%2022c.21-.66.45-1.32.57-2%22%2F%3E%3Cpath%20d%3D%22M9%206.8a6%206%200%200%201%209%205.2v2%22%2F%3E%3C%2Fsvg%3E");background-color:var(--tq)}
+.mk.mk-ai{--mk-i:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M11.017%202.814a1%201%200%200%201%201.966%200l1.051%205.558a2%202%200%200%200%201.594%201.594l5.558%201.051a1%201%200%200%201%200%201.966l-5.558%201.051a2%202%200%200%200-1.594%201.594l-1.051%205.558a1%201%200%200%201-1.966%200l-1.051-5.558a2%202%200%200%200-1.594-1.594l-5.558-1.051a1%201%200%200%201%200-1.966l5.558-1.051a2%202%200%200%200%201.594-1.594z%22%2F%3E%3Cpath%20d%3D%22M20%202v4%22%2F%3E%3Cpath%20d%3D%22M22%204h-4%22%2F%3E%3Ccircle%20cx%3D%224%22%20cy%3D%2220%22%20r%3D%222%22%2F%3E%3C%2Fsvg%3E");background-color:var(--pu)}
+.mk.mk-pol{--mk-i:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%203v18%22%2F%3E%3Cpath%20d%3D%22m19%208%203%208a5%205%200%200%201-6%200zV7%22%2F%3E%3Cpath%20d%3D%22M3%207h1a17%2017%200%200%200%208-2%2017%2017%200%200%200%208%202h1%22%2F%3E%3Cpath%20d%3D%22m5%208%203%208a5%205%200%200%201-6%200zV7%22%2F%3E%3Cpath%20d%3D%22M7%2021h10%22%2F%3E%3C%2Fsvg%3E");background-color:var(--ink-2)}
+.mk.mk-hum{--mk-i:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.75%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m16%2011%202%202%204-4%22%2F%3E%3Cpath%20d%3D%22M16%2021v-2a4%204%200%200%200-4-4H6a4%204%200%200%200-4%204v2%22%2F%3E%3Ccircle%20cx%3D%229%22%20cy%3D%227%22%20r%3D%224%22%2F%3E%3C%2Fsvg%3E");background-color:var(--ink)}
+.chip .mk.mk-src,.chip .mk.mk-det,.chip .mk.mk-ai,.chip .mk.mk-pol,.chip .mk.mk-hum,.handoff .mk,.lk .mk,.prov .mk{width:14px !important;height:14px !important}
+.rail>.mk:first-child{width:16px !important;height:16px !important}
+
+/* Brand lockup (official assets, transparent) */
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);height:42px}
+.brand img{display:block;height:34px;width:auto}
+.brand .brand-on-dark{display:none}
+.s.dark .brand .brand-on-dark{display:block}.s.dark .brand .brand-on-light{display:none}
+/* the shared ≤1400 rule hides .brand-latin; the official wordmark stays (search was removed, so the row fits) */
+@media(min-width:761px){.s .brand img.brand-latin.brand-on-light{display:block !important}.s.dark .brand img.brand-latin.brand-on-light{display:none !important}.s.dark .brand img.brand-latin.brand-on-dark{display:block !important}}
+@media(max-width:760px){.s .brand .brand-latin{display:none !important}}
+.ic{flex-shrink:0}
+
+/* ---- Section eyebrows (replaces the presentation-style left rail) ----
+   The rail's mark, label and sentence become one compact line above the section; the instrument owns
+   the full width. Bands are tighter. Markup is unchanged, so every screen follows one rule. */
+.rail{grid-column:1 / -1 !important;display:flex !important;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:0 !important;margin:0 0 14px !important}
+.rail>.mk:first-child{align-self:center}
+.rail h2{font-size:12px;line-height:16px;letter-spacing:.08em}
+.rail p{font-size:13px;line-height:18px;color:var(--ink-3);max-width:none}
+.rail p::before{content:'·';margin-right:10px;color:var(--ink-4)}
+.main{grid-column:1 / -1 !important}
+.band{padding-top:64px}
+.band>.wrap::after{margin-top:64px}
+
+/* Breadcrumbs recede: one short trail, no pills */
+.crumbs{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:13px;line-height:18px;color:var(--ink-4)}
+.crumbs a{color:var(--ink-3);text-decoration:none}.crumbs a:hover{color:var(--ink)}
+.crumbs .mono{color:var(--ink-3)}
+
+/* ---- Reveal: CSS only. Sections fade up as they enter the viewport (scroll-driven, where supported;
+   elsewhere they are simply shown). No DOM mutation, so nothing can mismatch hydration. ---- */
+@keyframes trace{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes node-in{from{opacity:0;transform:translate(-7px,4px) scale(.96)}to{opacity:1}}
+@keyframes card-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes resolve-imp{0%{box-shadow:0 0 0 1px var(--am),var(--float-shadow);border-color:var(--am)}100%{box-shadow:0 0 0 1px var(--co),var(--float-shadow);border-color:var(--co)}}
+@keyframes nd-imp{0%{background:var(--am)}100%{background:var(--co)}}
+@supports (animation-timeline: view()){
+  .band>.wrap{animation:strata-in linear both;animation-timeline:view();animation-range:entry 0% entry 22%}
+  .track svg{animation:trace linear both;animation-timeline:view();animation-range:entry 20% cover 45%}
+}
+
+/* Dependency trace (Blast Radius, on load): edges draw left→right; nodes surface by depth;
+   the impacted protected app resolves amber → coral last. Interaction is never blocked. */
+.graph .edges{animation:trace 1.05s cubic-bezier(.4,0,.2,1) both}
+.graph .node:not(.card){animation:node-in .3s var(--ease) both;animation-delay:calc(var(--d) * 140ms)}
+.graph .node.card{animation:card-in .32s var(--ease) both;animation-delay:calc(var(--d) * 140ms)}
+.graph .node.card.imp{animation:card-in .32s var(--ease) both,resolve-imp .5s var(--ease) both;animation-delay:calc(var(--d) * 140ms),calc(var(--d) * 140ms + 260ms)}
+.graph .node.card.imp .nd{animation:nd-imp .5s var(--ease) both;animation-delay:calc(var(--d) * 140ms + 260ms)}
+
+/* State changes (Now ↔ If approved; selection): crisp, short, never blocking */
+.graph .node .nd{transition:transform .18s var(--ease),box-shadow .2s var(--ease),border-color .3s var(--ease),background-color .3s var(--ease)}
+.graph .node.card{transition:transform .2s var(--ease),box-shadow .25s var(--ease),border-color .35s var(--ease),outline-color .2s var(--ease)}
+.graph .edges path{transition:stroke .35s var(--ease),stroke-dasharray .35s var(--ease)}
+@keyframes flip{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+.graph .node.changed .nd{animation:flip .45s var(--ease)}
+@keyframes march{from{stroke-dashoffset:24}to{stroke-dashoffset:0}}
+.graph.after .e-mat{animation:march .6s linear 1}

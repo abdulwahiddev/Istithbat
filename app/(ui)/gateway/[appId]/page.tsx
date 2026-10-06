@@ -2,10 +2,9 @@ import { notFound } from 'next/navigation';
 import { GateInstrument } from '@/components/gateway/GateInstrument';
 import { FOLDED, LANE_MARK, narrate } from '@/components/strata/events';
 import { dayTime, evTime } from '@/components/strata/format';
-import { Band, Chip, Dk, Ev, HandedToYou, HeadRow, HeldBy, Lnk, Mk, Mono, PageHeader, Rail, ReadError, Sep, SummaryDock, SyntheticPill } from '@/components/strata/primitives';
-import { aiSuggestion } from '@/components/strata/semantics';
-import { incidentFacts } from '@/components/strata/incident-model';
-import { readAudit, readGatewayInventory, readGatewayState, readIncidentDetail, readSources } from '../../_data/read';
+import { Band, Chip, Dk, Ev, HandedToYou, HeadRow, HeldBy, Lnk, Mk, Mono, PageHeader, Rail, ReadError, Sep, SummaryDock } from '@/components/strata/primitives';
+import { summarizeIncident } from '../../_data/incident-summary';
+import { readAudit, readGatewayInventory, readGatewayState, readIncidentItem, readSources } from '../../_data/read';
 
 export const metadata = { title: 'Trust Gateway · Istithbat' };
 export const dynamic = 'force-dynamic';
@@ -25,9 +24,9 @@ export default async function GatewayPage({ params }: { params: Promise<{ appId:
   const g = state.data;
   const sources = await readSources();
   const source = sources.ok ? sources.data.find((s) => s.id === g.sourceId) ?? null : null;
-  const heldInc = g.heldCandidate ? await readIncidentDetail(g.heldCandidate.incidentId) : null;
-  const inc = heldInc?.ok ? heldInc.data : null;
-  const f = inc ? incidentFacts(inc) : null;
+  const heldItem = g.heldCandidate ? await readIncidentItem(g.heldCandidate.incidentId) : null;
+  const inc = heldItem?.ok ? heldItem.data : null;
+  const f = inc ? await summarizeIncident(inc) : null;
   const audit = await readAudit(inc ? { incidentId: inc.id, limit: 100 } : { limit: 100 });
   const versionIds = new Set([g.latestSeen.id, g.served.id, g.latestTrusted?.id].filter(Boolean) as string[]);
   const labelOf = new Map([g.latestSeen, g.served, g.latestTrusted].filter(Boolean).map((v) => [v!.id, vr(v)]));
@@ -37,14 +36,15 @@ export default async function GatewayPage({ params }: { params: Promise<{ appId:
   const held = g.heldCandidate;
   const candidateLabel = held ? held.version.label : null;
   const heldState = held ? (held.incidentStatus === 'QUARANTINED' ? 'Quarantined' : held.incidentStatus === 'ANALYZING' ? 'Investigating' : 'Held for review') : null;
-  const policyCode = inc?.policyEvaluation?.policyCode ?? null;
+  const policyCode = f?.policyCode ?? null;
   const allowCase = policyCode === 'POL-005';
   const synthetic = source?.isDemoFixture ?? false;
 
   return (
     <main id="main" className="scr-gateway">
       <PageHeader
-        crumbs={<><span>Trust Gateway</span><Sep /><span>{g.sourceName.split(' — ')[0]}</span><span aria-hidden="true">→</span><span>{g.appName}</span>{synthetic && <SyntheticPill />}</>}
+        crumbs={<><span>Trust Gateway</span><Sep /><span>{g.appName}</span></>}
+        synthetic={synthetic}
         title={held ? <>{held.version.label} is held.<br />{g.served.label} keeps serving.</> : <>Nothing is held.<br />{g.served.label} is serving.</>}
         lede={held ? 'Production reads only the trusted version. The newest upstream version waits at the gate until a person signs.' : 'Production reads only the trusted version. Any new upstream version will wait at the gate until policy or a person releases it.'}
         status={<>
@@ -55,7 +55,7 @@ export default async function GatewayPage({ params }: { params: Promise<{ appId:
       />
 
       <Band id="gate" labelledBy="h-gate" first>
-        <Rail layer="pol" id="h-gate" title="The gate">What production reads, and what is waiting outside.</Rail>
+        <Rail layer="pol" id="h-gate" title="Gateway">What production reads and what waits outside.</Rail>
         <div className="main">
           <GateInstrument appName={g.appName} trusted={g.latestTrusted?.label ?? '—'} served={g.served.label}
             candidate={held ? { label: held.version.label, state: heldState!, policyCode } : null} />
@@ -63,9 +63,9 @@ export default async function GatewayPage({ params }: { params: Promise<{ appId:
       </Band>
 
       <Band id="bindings" labelledBy="h-bind">
-        <Rail layer="det" id="h-bind" title="Bindings">One row per protected app and source. The gateway reads nothing else.</Rail>
+        <Rail layer="det" id="h-bind" title="Bindings">One row per protected app and source.</Rail>
         <div className="main">
-          <HeadRow title="Who reads what" right={<span className="meta mono">gateway_bindings</span>} />
+          <HeadRow title="Gateway bindings" right={<span className="meta mono">gateway_bindings</span>} />
           <div className="plate tight" style={{ overflowX: 'auto' }}>
             <table className="tb">
               <thead><tr><th>Protected app</th><th>Source</th><th>Serves</th><th>Latest seen</th><th>Status</th><th style={{ textAlign: 'right' }}>Updated</th></tr></thead>
@@ -101,9 +101,9 @@ export default async function GatewayPage({ params }: { params: Promise<{ appId:
       </Band>
 
       <Band id="opening" labelledBy="h-open">
-        <Rail layer="pol" id="h-open" title="Opening the gate">Two keys exist. Nothing else, including AI, can move a version to trusted.</Rail>
+        <Rail layer="pol" id="h-open" title="Promotion">Only a signed approval or POL-005 can trust a version.</Rail>
         <div className="main">
-          <HeadRow title="Only two keys open it" />
+          <HeadRow title="Promotion paths" />
           <div className="sub" style={{ rowGap: 16, alignItems: 'stretch' }}>
             <div className="c1-5 plate in l" style={{ marginLeft: -24, padding: '20px 20px 20px 24px', display: 'flex', flexDirection: 'column', gap: 10, boxShadow: held && !allowCase ? '0 0 0 1px var(--ink),var(--plate-shadow)' : undefined }}>
               <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}><b style={{ fontSize: 17, fontWeight: 600 }}>Signed human approval</b>
@@ -113,12 +113,12 @@ export default async function GatewayPage({ params }: { params: Promise<{ appId:
             </div>
             <div className="c6-10 plate in r" style={{ marginRight: -24, padding: '20px 24px 20px 20px', display: 'flex', flexDirection: 'column', gap: 10, background: 'transparent', border: '1px dashed var(--line-2)', boxShadow: 'none' }}>
               <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}><b style={{ fontSize: 17, fontWeight: 600 }}><span className="mono">POL-005</span> allow</b><Chip tone="n4" small>{held ? 'Not applicable' : 'Not in use'}</Chip></span>
-              <p className="body">Deterministic fast path for metadata, whitespace, Unicode or serialization-only changes.{held && f?.primary?.fieldRole ? ` ${held.version.label} changed a ${f.primary.fieldRole === 'SCHOLAR_JUDGMENT' ? 'judgment' : f.primary.fieldRole.toLowerCase().replace(/_/g, ' ')}, so it cannot use it.` : ''}</p>
+              <p className="body">Deterministic fast path for metadata, whitespace, Unicode or serialization-only changes.{held && inc?.primaryChange?.fieldRole ? ` ${held.version.label} changed a ${inc.primaryChange.fieldRole === 'SCHOLAR_JUDGMENT' ? 'judgment' : inc.primaryChange.fieldRole.toLowerCase().replace(/_/g, ' ')}, so it cannot use it.` : ''}</p>
               <span className="meta"><span className="mono">ALLOW · no incident</span></span>
             </div>
           </div>
           <div className="plate" style={{ paddingTop: 28, paddingBottom: 28 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap', marginBottom: 20 }}><b style={{ fontSize: 17, fontWeight: 600 }}>When a reviewer approves: one transaction</b><span className="meta mono">promoteCandidateTx</span></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap', marginBottom: 20 }}><b style={{ fontSize: 17, fontWeight: 600 }}>Promotion transaction</b><span className="meta mono">promoteCandidateTx</span></div>
             <ol className="steps">
               <li><span className="n">1</span><span className="t">Lock the source, its bindings, the candidate, the trusted version and the policy evaluation</span><span className="m mono">FOR UPDATE</span></li>
               <li><span className="n">2</span><span className="t">Assert the transition is legal: every binding still serves the trusted version</span><span className="m mono">INVALID_REVIEW_TRANSITION</span></li>
@@ -138,9 +138,9 @@ export default async function GatewayPage({ params }: { params: Promise<{ appId:
       </Band>
 
       <Band id="record" labelledBy="h-rec">
-        <Rail layer="det" id="h-rec" title="Record">Every change to what the gateway serves, append-only.</Rail>
+        <Rail layer="det" id="h-rec" title="Audit">Changes to what this binding serves.</Rail>
         <div className="main">
-          <HeadRow title="Gateway history for this binding" right={inc ? <Lnk href={`/incidents/${inc.id}/record`}>Full record</Lnk> : undefined} />
+          <HeadRow title="Binding history" right={inc ? <Lnk href={`/incidents/${inc.id}/record`}>Full record</Lnk> : undefined} />
           {!audit.ok ? <ReadError {...audit.error} /> : (
             <div className="plate tight">
               {held && <Ev mark={<Mk layer="hum" style={{ background: 'var(--ink-4)' }} />} time="pending" title={`Decision on ${held.version.label}`} note="Not yet signed. The gate stays locked." code={<span style={{ fontFamily: 'inherit' }}>Reviewer</span>} />}
@@ -162,7 +162,7 @@ export default async function GatewayPage({ params }: { params: Promise<{ appId:
           question={<>Should <span className="mono" style={{ fontSize: 25 }}>{held.version.label}</span> replace <span className="mono" style={{ fontSize: 25 }}>{g.served.label}</span> in production?</>}
           body="Review the evidence and sign on the incident. Approving runs the transaction above."
           href={`/incidents/${inc.id}#decision`} cta="Review the evidence and decide"
-          helper={[aiSuggestion(f?.analysis ?? null), 'policy requires a human'].filter(Boolean).join(' · ')}
+          helper={f?.policyAction === 'QUARANTINE' ? 'Policy requires a human for this change' : 'Held until a person decides'}
         />
       ) : (
         <SummaryDock

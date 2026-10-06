@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { SourcesScreen } from '@/components/sources/SourcesScreen';
 import type { SourceView } from '@/components/sources/types';
-import { lowerWord, word } from '@/components/strata/format';
+import { plural, word } from '@/components/strata/format';
 import { Chip, Dk, HandedToYou, PageHeader, ReadError, Sep, SummaryDock } from '@/components/strata/primitives';
 import { readGatewayInventory, readSourceDetail, readSources } from '../_data/read';
 import { sourceModel } from '../_data/source-model';
@@ -43,7 +43,7 @@ export async function SourcesPage({ selectedId }: { selectedId?: string }) {
     <main id="main" className="scr-sources">
       <PageHeader
         crumbs={<><span>Sources</span><Sep /><span>{models.length} connectors · {records} records</span></>}
-        title={<>{word(models.length)} sources.<br />{real && synth ? `${word(real)} real, ${lowerWord(synth)} synthetic.` : real ? 'All real.' : 'All synthetic.'}</>}
+        title={<>{plural(models.length, 'source')} monitored.<br />{real && synth ? `${real} real, ${synth} synthetic.` : real ? 'All real.' : 'All synthetic.'}</>}
         lede={lede}
         status={<>
           <Dk k="Connectors"><Chip tone={healthy === models.length ? 'tq' : 'am'}>{healthy} of {models.length} healthy</Chip></Dk>
@@ -54,12 +54,12 @@ export async function SourcesPage({ selectedId }: { selectedId?: string }) {
       <SourcesScreen views={views} initialId={initial} />
       {leadHeld ? (
         <SummaryDock
-          railText={`Sources never decide. The held ${leadHeld.facts.real ? leadHeld.facts.title : 'sandbox'} candidate waits for a signature.`}
-          left={<Chip tone="co">{leadHeld.facts.real ? leadHeld.facts.title : 'Sandbox'} <span className="mono">{leadHeld.latest?.label}</span> held</Chip>}
+          railText={`Sources never decide. The held ${leadHeld.facts.title} candidate waits for a signature.`}
+          left={<Chip tone="co">{leadHeld.facts.title} <span className="mono">{leadHeld.latest?.label}</span> held</Chip>}
           right={<HandedToYou />}
           question={held.length === 1 ? 'One source has a candidate waiting.' : `${word(held.length)} sources have candidates waiting.`}
           body={models.filter((m) => m.state === 'agreement').length ? `${models.filter((m) => m.state === 'agreement').map((m) => m.facts.title).join(' and ')} need nothing: they match their trusted baselines.` : 'Every other source needs a look as well.'}
-          href={`/incidents/${leadHeld.held!.incidentId}#decision`} cta={`Review the ${leadHeld.facts.real ? leadHeld.facts.title : 'sandbox'} change`}
+          href={`/incidents/${leadHeld.held!.incidentId}#decision`} cta={`Review the ${leadHeld.facts.title} change`}
           helper={leadHeld.held?.policyAction === 'QUARANTINE' ? 'Policy requires a human for this change' : 'Held for review until a person decides'}
         />
       ) : (

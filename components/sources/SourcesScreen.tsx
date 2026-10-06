@@ -18,9 +18,9 @@ export function SourcesScreen({ views, initialId }: { views: SourceView[]; initi
     <>
       <section id="lineage" className="band" aria-labelledby="h-lin" style={{ paddingTop: 0 }}>
         <div className="wrap g">
-          <div className="rail"><span className="mk mk-src" /><h2 id="h-lin">Lineage</h2><p>From the upstream provider to what production actually reads. Select a source to inspect it.</p></div>
+          <div className="rail"><span className="mk mk-src" /><h2 id="h-lin">Lineage</h2><p>Upstream to production; select a source.</p></div>
           <div className="main">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}><h3 className="h3">Upstream → snapshot → trusted → served</h3><span className="meta">Trusted is not the same as served</span></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}><h3 className="h3">Version lineage</h3><span className="meta">Trusted is not the same as served</span></div>
             <div className="plate tight" style={{ overflowX: 'auto' }}>
               <div className="lhead" aria-hidden="true"><span>Source</span><span>Upstream</span><span>Latest snapshot</span><span>Trusted baseline</span><span>Protected-app binding</span></div>
               <div role="list" aria-label="Sources">
@@ -58,7 +58,7 @@ export function SourcesScreen({ views, initialId }: { views: SourceView[]; initi
 
       <section id="detail" className="band" aria-labelledby="h-det">
         <div className="wrap g">
-          <div className="rail"><span className="mk mk-det" /><h2 id="h-det">Source</h2><p>Connector identity, versioning, integrity and checks for the selected source.</p></div>
+          <div className="rail"><span className="mk mk-det" /><h2 id="h-det">Source</h2><p>Identity, versioning and checks.</p></div>
           <div className="main" key={sel.id}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -106,7 +106,7 @@ export function SourcesScreen({ views, initialId }: { views: SourceView[]; initi
               <span className="cap">Recent checks</span>
               <div className="plate tight">
                 {sel.checks.length ? sel.checks.map((k, i) => (
-                  <div key={i} className="ev"><span className="mk" style={css(k.mk)} aria-hidden="true" /><span className="tm mono">{k.when}</span><span className="w"><b>{k.title}</b><span>{k.note}</span></span><span className="who-l mono">{k.code}</span></div>
+                  <div key={i} className="ev"><span className="dot" style={css(k.mk)} aria-hidden="true" /><span className="tm mono">{k.when}</span><span className="w"><b>{k.title}</b><span>{k.note}</span></span><span className="who-l mono">{k.code}</span></div>
                 )) : <p className="body" style={{ padding: '16px 0' }}>No check is recorded for this source.</p>}
               </div>
             </div>

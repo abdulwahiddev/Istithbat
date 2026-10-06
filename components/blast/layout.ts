@@ -9,7 +9,7 @@ export type PlacedEdge = { id: string; from: string; to: string; d: string; kind
  * assets by path length), rows spread around the centre line. Within a column, branches that lead
  * to a protected app sit below the others (the frozen boards' reading order). Pure.
  */
-export function layoutGraph(br: Pick<BlastRadius, 'nodes' | 'edges'>, opts: { xs: number[]; centre: number; gap: number; height: number; skipSource?: boolean }) {
+export function layoutGraph(br: Pick<BlastRadius, 'nodes' | 'edges'>, opts: { xs: number[]; centre: number; gap: number; height: number; skipSource?: boolean; minGap?: number }) {
   const kids = new Map<string, string[]>();
   for (const e of br.edges) kids.set(e.from, [...(kids.get(e.from) ?? []), e.to]);
   const byId = new Map(br.nodes.map((n) => [n.id, n]));
@@ -30,11 +30,16 @@ export function layoutGraph(br: Pick<BlastRadius, 'nodes' | 'edges'>, opts: { xs
   for (const n of nodes) cols.set(depth(n), [...(cols.get(depth(n)) ?? []), n]);
   const placed: Placed[] = [];
   const minDepth = opts.skipSource ? 1 : 0;
+  // Grow the instrument when a column holds more nodes than the frozen height can space legibly.
+  const maxRows = Math.max(1, ...[...cols.values()].map((l) => l.length));
+  const minGap = opts.minGap ?? 96;
+  const height = Math.max(opts.height, (maxRows - 1) * minGap + 120);
+  const centre = height === opts.height ? opts.centre : height / 2;
   for (const [d, list] of cols) {
     list.sort((a, b) => Number(leadsTo(a.id)) - Number(leadsTo(b.id)) || a.name.localeCompare(b.name));
     const k = list.length;
-    const gap = k > 1 ? Math.min(opts.gap, (opts.height - 80) / (k - 1)) : 0;
-    list.forEach((n, i) => placed.push({ ...n, depth: d, x: opts.xs[Math.min(d - minDepth, opts.xs.length - 1)], y: opts.centre + (i - (k - 1) / 2) * gap, protectedApp: isProtected(n), app: n.assetType === 'APPLICATION' }));
+    const gap = k > 1 ? Math.min(opts.gap, (height - 80) / (k - 1)) : 0;
+    list.forEach((n, i) => placed.push({ ...n, depth: d, x: opts.xs[Math.min(d - minDepth, opts.xs.length - 1)], y: centre + (i - (k - 1) / 2) * gap, protectedApp: isProtected(n), app: n.assetType === 'APPLICATION' }));
   }
   const at = new Map(placed.map((p) => [p.id, p]));
   const edges: PlacedEdge[] = br.edges.filter((e) => at.has(e.from) && at.has(e.to)).map((e) => {
@@ -44,8 +49,15 @@ export function layoutGraph(br: Pick<BlastRadius, 'nodes' | 'edges'>, opts: { xs
       : b.impact === 'IMPACTED' ? 'imp' : a.derivationMode === 'MATERIALIZED' && b.derivationMode === 'MATERIALIZED' ? 'mat' : 'exp';
     return { id: e.id, from: e.from, to: e.to, d, kind };
   });
-  return { nodes: placed, edges };
+  // Column headings name the asset types actually present at each depth.
+  const headings = [...cols.entries()].sort((a, b) => a[0] - b[0]).map(([d, list]) => ({
+    depth: d, x: opts.xs[Math.min(d - minDepth, opts.xs.length - 1)],
+    label: [...new Set(list.map((n) => TYPE_LABEL[n.assetType] ?? n.assetType.charAt(0) + n.assetType.slice(1).toLowerCase().replace(/_/g, ' ')))].join(' · '),
+  }));
+  return { nodes: placed, edges, height, headings };
 }
+
+const TYPE_LABEL: Record<string, string> = { SOURCE: 'Source', RECORD: 'Record', DATASET: 'Dataset', RAG_CHUNK: 'Chunk', KNOWLEDGE_INDEX: 'Index', API: 'API', APPLICATION: 'Application' };
 
 /** D-07 preview: what each asset would be if the candidate were promoted, from the same stored facts. */
 export function afterApproval(n: Node, br: Pick<BlastRadius, 'previousVersionId' | 'trustedVersionId'>): Node['impact'] {

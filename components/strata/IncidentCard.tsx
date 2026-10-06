@@ -1,14 +1,14 @@
 import Link from 'next/link';
-import type { IncidentAggregate, IncidentListItem } from '@/lib/contracts';
+import type { IncidentListItem } from '@/lib/contracts';
 import { InlineDiff } from './arabic';
 import { dayTime } from './format';
-import { incidentFacts, modeLabel } from './incident-model';
+import { modeLabel, type IncidentSummary } from './incident-model';
+import { isArabic } from './diff';
 import { Chip, type Tone } from './primitives';
 import { incidentSem } from './semantics';
 
 /** One open incident as a link card (Overview "Incidents" row; also the /incidents list). */
-export function IncidentCard({ item, detail }: { item: IncidentListItem; detail: IncidentAggregate | null }) {
-  const f = detail ? incidentFacts(detail) : null;
+export function IncidentCard({ item, summary: f }: { item: IncidentListItem; summary: IncidentSummary | null }) {
   const sem = incidentSem(item);
   return (
     <Link className="plate inc" href={`/incidents/${item.id}`}>
@@ -20,7 +20,7 @@ export function IncidentCard({ item, detail }: { item: IncidentListItem; detail:
             {item.riskLevel && <span className="chip" style={{ padding: '1px 9px 1px 7px', fontSize: 12, borderStyle: 'dashed', borderColor: 'var(--pu-line)', color: 'var(--pu-ink)' }}>Risk {item.riskLevel.toLowerCase()} · advisory</span>}
           </span>
           <b style={{ fontSize: 20, lineHeight: '28px', fontWeight: 600 }}>{f ? f.headline.replace(/\.$/, '') : item.title}</b>
-          {f?.diff && <InlineDiff oldSegs={f.diff.old} newSegs={f.diff.new} />}
+          {f?.diff && <InlineDiff oldSegs={f.diff.old} newSegs={f.diff.new} arabic={isArabic(f.diff.old.map((x) => x.text).join(' '))} />}
         </div>
         <div className="c7-10">
           <div className="kv"><span>Held by</span>{f?.policyCode ? <span className="mono">{f.policyCode}</span> : <span>{item.pipelineStatus === 'RUNNING' ? 'Policy pending' : '—'}</span>}</div>

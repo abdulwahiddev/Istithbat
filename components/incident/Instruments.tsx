@@ -2,32 +2,30 @@ import type { BlastRadius } from '@/lib/contracts';
 import { layoutGraph } from '@/components/blast/layout';
 
 const STATE_COL: Record<string, string> = { IMPACTED: 'var(--co)', EXPOSED: 'var(--am)', STALE: 'var(--am)', HEALTHY: 'var(--tq)' };
-const COLH: Record<number, string> = { 1: 'Record', 2: 'Dataset', 3: 'Chunk', 4: 'Index', 5: 'API', 6: 'Protected surface' };
 const XS = [1, 17, 33, 49, 65, 79];
 const text = (impact: string) => impact.charAt(0) + impact.slice(1).toLowerCase();
 
 /** Exposure track (Incident Review §05): record → protected surfaces, from the persisted graph. */
 export function ExposureTrack({ br }: { br: BlastRadius }) {
-  const { nodes, edges } = layoutGraph(br, { xs: XS, centre: 124, gap: 120, height: 248, skipSource: true });
+  const { nodes, edges, height, headings } = layoutGraph(br, { xs: XS, centre: 124, gap: 120, height: 248, skipSource: true, minGap: 104 });
   const apps = nodes.filter((n) => n.app && n.depth >= 6);
   const stations = nodes.filter((n) => !(n.app && n.depth >= 6));
-  const depths = [...new Set(nodes.map((n) => n.depth))].sort((a, b) => a - b);
   const aria = `${nodes.find((n) => n.assetType === 'RECORD')?.name ?? 'The changed record'} propagates to ${stations.filter((n) => n.assetType !== 'RECORD').map((n) => n.name).join(', ')}, then to ${apps.map((a) => `${a.name} (${text(a.impact).toLowerCase()}${a.protectedApp ? '' : ', not a protected app'})`).join(' and ')}.`;
   return (
-    <div className="track" role="img" aria-label={aria}>
-      {depths.map((d) => <span key={d} className="colh" style={{ left: `${XS[Math.min(d - 1, XS.length - 1)]}%` }}>{COLH[d] ?? `Hop ${d}`}</span>)}
-      <svg style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%' }} viewBox="0 0 100 248" preserveAspectRatio="none" aria-hidden="true">
+    <div className="track" style={{ height }} role="img" aria-label={aria}>
+      {headings.map((h) => <span key={h.depth} className="colh" style={{ left: `${h.x}%` }}>{h.depth >= 6 ? 'Protected surface' : h.label}</span>)}
+      <svg style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%' }} viewBox={`0 0 100 ${height}`} preserveAspectRatio="none" aria-hidden="true">
         {edges.map((e) => <path key={e.id} d={e.d} stroke={e.kind === 'origin' || e.kind === 'imp' ? 'var(--co)' : 'var(--am)'} strokeWidth={e.kind === 'origin' || e.kind === 'imp' ? 3 : 2} fill="none" vectorEffect="non-scaling-stroke" />)}
       </svg>
       {stations.map((n) => (
-        <div key={n.id} className="stn" style={{ left: `${n.x}%`, top: n.y }}>
+        <div key={n.id} className="stn" style={{ left: `${n.x}%`, top: n.y, ['--d' as string]: n.depth - 1 }}>
           {n.assetType === 'RECORD'
             ? <><span className="n" style={{ background: 'var(--co)', borderRadius: 3 }} /><b className="mono" style={{ fontSize: 14 }}>{n.name}</b><i>Changed record</i></>
             : <><span className="n" style={{ border: `2px solid ${STATE_COL[n.impact]}`, background: 'var(--ground)' }} /><b style={{ whiteSpace: 'normal', maxWidth: 136 }}>{n.name}</b><i>{text(n.impact)}</i></>}
         </div>
       ))}
       {apps.map((a) => (
-        <div key={a.id} className="float" style={{ position: 'absolute', left: '79%', right: 0, top: a.y + 8, transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', gap: 6, padding: '12px 16px 14px', borderRadius: 16, ...(a.impact === 'IMPACTED' ? { borderColor: 'var(--co)', boxShadow: '0 0 0 1px var(--co),var(--float-shadow)' } : {}) }}>
+        <div key={a.id} className="float app" style={{ ['--d' as string]: a.depth - 1, position: 'absolute', left: '79%', right: 0, top: a.y + 8, transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', gap: 6, padding: '12px 16px 14px', borderRadius: 16, ...(a.impact === 'IMPACTED' ? { borderColor: 'var(--co)', boxShadow: '0 0 0 1px var(--co),var(--float-shadow)' } : {}) }}>
           <b style={{ fontSize: 16, lineHeight: '22px', fontWeight: 600 }}>{a.name}</b>
           <span style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px 10px', fontSize: 13, color: 'var(--ink-3)' }}><span className="chip" style={{ padding: '1px 9px 1px 7px', fontSize: 12 }}><span className="dot" style={{ background: STATE_COL[a.impact] }} />{text(a.impact)}</span>{a.protectedApp ? <span style={{ whiteSpace: 'nowrap' }}>Protected{a.regressionRunIds.length ? ` · ${a.regressionRunIds.length} material ${a.regressionRunIds.length === 1 ? 'run' : 'runs'}` : ' app'}</span> : 'Not a protected app'}</span>
         </div>

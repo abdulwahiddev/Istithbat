@@ -2,6 +2,7 @@
 import { useMemo, useState } from 'react';
 import type { BlastRadius } from '@/lib/contracts';
 import { afterApproval, layoutGraph, type Placed } from './layout';
+import { plural } from '@/components/strata/format';
 
 type Impact = BlastRadius['nodes'][number]['impact'];
 export type BlastLabels = {
@@ -14,7 +15,6 @@ export type BlastLabels = {
 };
 
 const XS = [0, 12.5, 25, 37.5, 50, 66, 82];
-const COLH = ['Source', 'Record', 'Dataset', 'Chunk', 'Index', 'API', 'Application'];
 const C = { co: 'var(--co)', am: 'var(--am)', tq: 'var(--tq)', n: 'var(--ink-4)' };
 const TYPE_SUB: Record<string, string> = { DATASET: 'Dataset', RAG_CHUNK: 'Chunk', KNOWLEDGE_INDEX: 'Lexical index', API: 'API', APPLICATION: 'Application' };
 
@@ -57,8 +57,18 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
     if (n.derivationMode === 'MATERIALIZED') return i === 'STALE' ? `A materialized copy of ${vl(n.derivedFromVersionId)}. After promotion it keeps the superseded version until rebuilt.` : 'It depends on the changed record. Its copy is materialized, so it would go stale after promotion.';
     return after ? `Reads through the gateway, so it switches to ${L.candidate} in the same transaction as the binding.` : 'It depends on the changed record. Exposure is a dependency fact; behavior is not tested at this layer.';
   };
+  /** Material runs grouped by batch and baseline, so repeated runs read as a count rather than a list. */
+  const groupEvidence = (n: Placed) => {
+    const out = new Map<string, { batch: string; oldVersionId: string; matches: boolean; runs: number }>();
+    for (const r of n.regressionEvidence) {
+      const batch = L.runBatch[r.id] ?? `run ${r.id.slice(0, 8)}`;
+      const k = `${batch}|${r.oldVersionId}|${r.baselineMatchesIncident}`;
+      const g = out.get(k); if (g) g.runs++; else out.set(k, { batch, oldVersionId: r.oldVersionId, matches: r.baselineMatchesIncident, runs: 1 });
+    }
+    return [...out.values()];
+  };
   const evidenceOf = (n: Placed) => {
-    if (n.regressionEvidence.length) return n.regressionEvidence.map((r) => `${L.runBatch[r.id] ?? r.id.slice(0, 8)} · material change · baseline ${vl(r.oldVersionId)}${r.baselineMatchesIncident ? '' : ' (not the incident baseline)'}`).join('; ');
+    if (n.regressionEvidence.length) return groupEvidence(n).map((g) => `${plural(g.runs, 'material run')} · ${g.batch} · baseline ${vl(g.oldVersionId)}${g.matches ? '' : ' (not the incident baseline)'}`).join('; ');
     if (n.assetType === 'SOURCE' || n.assetType === 'RECORD') return '—';
     if (n.app && !n.protectedApp) return 'None possible: not protected';
     if (n.protectedApp) return 'No material run recorded';
@@ -71,21 +81,20 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
   const ss = sel ? stateOf(sel) : null;
   const path = sel ? (sel.dependencyPaths[0] ?? [sel.id]) : [];
   const short = (n: Placed | undefined) => (!n ? '' : n.assetType === 'SOURCE' ? L.sourceName : n.name);
-  const depths = [...new Set(lay.nodes.map((n) => n.depth))].sort((a, b) => a - b);
   const dotStyle = (s: { s: string; c: string; stale?: boolean }): React.CSSProperties => (s.stale ? { border: '1.5px dashed var(--am)', background: 'transparent', width: 8, height: 8, boxSizing: 'border-box' } : { background: s.c });
 
   const rows = down.map((n) => ({ id: n.id, name: n.name, type: n.assetType, mode: n.derivationMode ?? '—', reads: readsOf(n), st: stateOf(n),
-    evidence: n.regressionEvidence.length ? `${n.regressionEvidence.map((r) => L.runBatch[r.id] ?? r.id.slice(0, 8)).join(', ')} · material` : n.app && !n.protectedApp ? 'Not protected' : '—' }));
+    evidence: n.regressionEvidence.length ? groupEvidence(n).map((g) => `${plural(g.runs, 'material run')} · ${g.batch}`).join('; ') : n.app && !n.protectedApp ? 'Not protected' : '—' }));
   const protectedNames = down.filter((n) => n.protectedApp).map((n) => n.name);
   const frozen = down.filter((n) => n.derivationMode === 'MATERIALIZED').map((n) => n.name);
   return (
     <>
     <section id="radius" className="band" aria-labelledby="h-radius" style={{ paddingTop: 0 }}>
       <div className="wrap g">
-        <div className="rail"><span className="mk mk-det" /><h2 id="h-radius">Radius</h2><p>Every asset that depends on the changed record, and what is proven about each.</p></div>
+        <div className="rail"><span className="mk mk-det" /><h2 id="h-radius">Exposure</h2><p>Every asset downstream of the changed record.</p></div>
         <div className="main">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
-        <h3 className="h3">{after ? `If ${L.candidate} is approved` : 'Where the change could travel'}</h3>
+        <h3 className="h3">{after ? `Dependency graph · if ${L.candidate} is approved` : 'Dependency graph'}</h3>
         {L.incidentHeld && (
           <div className="mseg" role="group" aria-label="Radius view" style={{ marginTop: -7 }}>
             <button type="button" aria-pressed={!after} onClick={() => setView('now')}>Now</button>
@@ -108,15 +117,15 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
           </div>
         </div>
         <div style={{ overflowX: 'auto', margin: '0 -8px', padding: '0 8px' }}>
-          <div className={`graph${after ? ' after' : ''}`} role="group" aria-label="Dependency graph. Select an asset to inspect it.">
-            {depths.map((d) => <span key={d} className="colh" style={{ left: `${XS[Math.min(d, XS.length - 1)]}%` }}>{COLH[d] ?? `Hop ${d}`}</span>)}
-            <svg className="edges" viewBox="0 0 100 400" preserveAspectRatio="none" aria-hidden="true">
+          <div className={`graph${after ? ' after' : ''}`} style={{ height: lay.height }} role="group" aria-label="Dependency graph. Select an asset to inspect it.">
+            {lay.headings.map((h) => <span key={h.depth} className="colh" style={{ left: `${h.x}%` }}>{h.label}</span>)}
+            <svg className="edges" viewBox={`0 0 100 ${lay.height}`} preserveAspectRatio="none" aria-hidden="true">
               {lay.edges.map((e) => <path key={e.id} className={`e-${e.kind}`} d={e.d} />)}
             </svg>
-            {lay.nodes.map((n) => {
+            {[...lay.nodes].sort((a, b) => a.depth - b.depth || a.y - b.y).map((n) => { // DOM order = reading order, so Tab follows the trace
               const st = stateOf(n), on = n.id === sel?.id, card = n.app;
-              const cls = `node${card ? ' card' : ''}${n.assetType === 'SOURCE' ? ' src' : n.assetType === 'RECORD' ? ' rec' : ''}${on ? ' on' : ''}${st.stale ? ' stale' : ''}${impactOf(n) === 'IMPACTED' ? ' imp' : ''}`;
-              const pos: React.CSSProperties = card ? { left: `${n.x}%`, right: 0, top: n.y - 30 } : { left: `${n.x}%`, top: n.y - 7 };
+              const cls = `node${card ? ' card' : ''}${n.assetType === 'SOURCE' ? ' src' : n.assetType === 'RECORD' ? ' rec' : ''}${on ? ' on' : ''}${st.stale ? ' stale' : ''}${impactOf(n) === 'IMPACTED' ? ' imp' : ''}${after && impactOf(n) !== n.impact ? ' changed' : ''}`;
+              const pos: React.CSSProperties = { ...(card ? { left: `${n.x}%`, right: 0, top: n.y - 30 } : { left: `${n.x}%`, top: n.y - 7 }), ['--d' as string]: n.depth };
               const dot: React.CSSProperties = n.assetType === 'RECORD' ? { background: st.c, borderRadius: 3 }
                 : n.assetType === 'SOURCE' || impactOf(n) === 'IMPACTED' ? { background: st.c }
                 : st.stale ? { border: `2px dashed ${st.c}`, background: 'transparent' } : { border: `2px solid ${st.c}`, background: 'var(--plate-a)' };
@@ -161,9 +170,9 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
 
     <section id="assets" className="band" aria-labelledby="h-assets">
       <div className="wrap g">
-        <div className="rail"><span className="mk mk-det" /><h2 id="h-assets">Assets</h2><p>Each downstream asset, how it reads the source, and its state.</p></div>
+        <div className="rail"><span className="mk mk-det" /><h2 id="h-assets">Assets</h2><p>How each asset reads the source.</p></div>
         <div className="main">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}><h3 className="h3">All {rows.length === 7 ? 'seven' : rows.length}, side by side</h3><span className="meta mono">incident_asset_impacts</span></div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}><h3 className="h3">Downstream assets · {rows.length}</h3><span className="meta mono">incident_asset_impacts</span></div>
           <div className="plate tight" style={{ overflowX: 'auto' }}>
             <table className="tb">
               <caption className="sr-only">Downstream assets{after ? ' if the candidate is approved (preview)' : ''}</caption>

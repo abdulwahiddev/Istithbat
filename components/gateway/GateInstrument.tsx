@@ -22,7 +22,7 @@ const chip = (bg: string, text: string) => <span className="chip" style={{ paddi
 export function GateInstrument({ appName, trusted, served, candidate }: GateProps) {
   const [view, setView] = useState<'now' | 'after'>('now');
   const after = view === 'after' && !!candidate;
-  const title = after ? `If a reviewer approves ${candidate!.label}` : `Production is reading ${served}`;
+  const title = after ? `Serving state · if ${candidate!.label} is approved` : `Serving state · ${served}`;
   const aria = after
     ? `Preview: ${candidate!.label} passes the gate and ${appName} reads ${candidate!.label}; ${trusted} is superseded.`
     : candidate ? `${candidate.label} is stopped at the Trust Gateway${candidate.policyCode ? ` by ${candidate.policyCode}` : ''}. ${served} passes through and is served to ${appName}.`

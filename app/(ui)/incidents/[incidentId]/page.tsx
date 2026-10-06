@@ -4,12 +4,13 @@ import { notFound } from 'next/navigation';
 import type { ContextPacket } from '@/lib/analysis/context';
 import { canReview } from '@/lib/governance/transitions';
 import { Behavior, type BehaviorQuestion } from '@/components/incident/Behavior';
+import { ExactDiff } from '@/components/strata/ExactDiff';
 import { DecisionDock } from '@/components/incident/DecisionDock';
 import { ExposureTrack, GateMini } from '@/components/incident/Instruments';
-import { atPath, isArabic, sameJson, valueText } from '@/components/strata/diff';
+import { atPath, isArabic, sameJson } from '@/components/strata/diff';
 import { cap, dayTime, dayYear, plural, shortHash } from '@/components/strata/format';
 import { incidentFacts } from '@/components/strata/incident-model';
-import { Band, Chip, HandedToYou, HeadRow, HeldBy, Kv, Lnk, Mk, Mono, Rail, ReadError, SyntheticPill } from '@/components/strata/primitives';
+import { Band, Chip, HandedToYou, HeadRow, HeldBy, Kv, Lnk, Mk, Mono, Rail, ReadError, SyntheticRow } from '@/components/strata/primitives';
 import { aiSuggestion, analysisText, deltaText, incidentSem, policyFacts, RESULT_TEXT, ROLE_TEXT, twoLines } from '@/components/strata/semantics';
 import { readGatewayInventory, readIncidentDetail, readRegressions, readSourceDetail } from '../../_data/read';
 import { readReviewer } from '../../_data/session';
@@ -18,7 +19,7 @@ export const metadata = { title: 'Incident Review · Istithbat' };
 export const dynamic = 'force-dynamic';
 
 const ROLE_GROUP: Record<string, string> = {
-  AUTHORITATIVE_TEXT: 'Text and translation', TRANSLATION: 'Text and translation', PROVENANCE: 'Grader, reference, narrators',
+  AUTHORITATIVE_TEXT: 'Authoritative text and translation', TRANSLATION: 'Authoritative text and translation', PROVENANCE: 'Provenance fields',
   OPERATIONAL_METADATA: 'Metadata', COMMENTARY: 'Commentary', SCHOLAR_JUDGMENT: 'Judgment', UNCLASSIFIED: 'Other fields',
 };
 const MODE: Record<string, string> = { replay: 'Replayed response', mock: 'Mock response, not a model', live: 'Live response' };
@@ -41,7 +42,6 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
   const level = source?.source.contentLevel ?? null;
   const cand = inc.candidateVersion.upstreamLabel, prev = inc.previousVersion?.upstreamLabel ?? 'the previous version';
   const served = g?.served?.label ?? source?.source.servedLabel ?? '—';
-  const trusted = g?.latestTrusted?.label ?? source?.source.trustedLabel ?? '—';
   const appName = g?.appName ?? 'the protected app';
   const sem = incidentSem({ status: inc.status, pipelineStatus: inc.pipeline?.status });
   const running = inc.pipeline?.status === 'RUNNING';
@@ -118,10 +118,9 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
       <AutoRefresh active={inc.pipeline?.status === 'RUNNING'} />
       <section style={{ padding: '72px 0 56px' }}>
         <div className="wrap g" style={{ rowGap: 28, alignItems: 'end' }}>
-          <div style={{ gridColumn: '1 / -1', display: 'flex', flexWrap: 'wrap', gap: '8px 16px', alignItems: 'center', fontSize: 14, color: 'var(--ink-3)' }}>
-            <Link href="/incidents" style={{ color: 'var(--ink-3)', textDecoration: 'none' }}>Incidents</Link><span aria-hidden="true">/</span><span>{source?.source.name.split(' — ')[0] ?? inc.sourceId}</span>
-            {synthetic && <SyntheticPill />}
-          </div>
+          <nav aria-label="Breadcrumb" className="crumbs" style={{ gridColumn: '1 / -1' }}>
+            <Link href="/incidents">Incidents</Link><span aria-hidden="true">/</span><Mono>{f.recordKey}</Mono>
+          </nav>
           <div className="ph-lead" style={{ gridColumn: '1 / span 8', display: 'flex', flexDirection: 'column', gap: 20 }}>
             <h1 style={{ margin: 0, fontSize: 60, lineHeight: '64px', fontWeight: 600, letterSpacing: '-.034em' }}>{h1a}{h1b && <><br />{h1b}</>}</h1>
             <p className="meta" style={{ margin: 0, fontSize: 15 }}>Record <Mono style={{ color: 'var(--ink)' }}>{f.recordKey}</Mono> · field <Mono style={{ color: 'var(--ink)' }}>{field}</Mono> · upstream <Mono style={{ color: 'var(--ink)' }}>{prev} → {cand}{inc.candidateVersion.revisionNumber > 1 ? ` r${inc.candidateVersion.revisionNumber}` : ''}</Mono>{inc.candidateVersion.upstreamPublishedAt ? `, published ${dayYear(inc.candidateVersion.upstreamPublishedAt)}` : `, observed ${dayYear(inc.candidateVersion.detectedAt)}`}</p>
@@ -129,7 +128,9 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
           <dl className="plate in ph-status" style={{ gridColumn: '9 / span 4', margin: '0 -24px', padding: '8px 24px' }}>
             <div className="kv"><dt>Status</dt><dd style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: sem.tone === 'co' ? 'var(--co-ink)' : sem.tone === 'am' ? 'var(--am-ink)' : 'var(--ink-2)', fontWeight: 600 }}><span className="dot" style={{ background: `var(--${sem.tone === 'n4' ? 'ink-4' : sem.tone})` }} />{sem.text}</dd></div>
             <div className="kv"><dt>Held by</dt><dd>{f.policyCode ? <Mono>{f.policyCode}</Mono> : inc.pipeline?.status === 'RUNNING' ? 'Policy pending' : '—'}</dd></div>
-            <div className="kv"><dt>Waiting on</dt><dd style={{ fontWeight: 600 }}>{inc.status === 'RESOLVED' ? 'Nobody · decided' : inc.pipeline?.status === 'RUNNING' ? 'The pipeline' : 'You'}</dd></div>
+            <div className="kv"><dt>Source</dt><dd>{source?.source.name.split(' — ')[0] ?? inc.sourceId}</dd></div>
+            <div className="kv"><dt>Waiting on</dt><dd style={{ fontWeight: 600 }}>{inc.status === 'RESOLVED' ? 'Nobody · decided' : inc.pipeline?.status === 'RUNNING' ? 'The pipeline' : 'Review decision'}</dd></div>
+            {synthetic && <SyntheticRow />}
           </dl>
         </div>
       </section>
@@ -137,20 +138,20 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
       <section aria-labelledby="brief-h">
         <div className="wrap">
           <div className="plate tight">
-            <h2 id="brief-h" style={{ margin: 0, padding: '18px 0 14px', fontSize: 14, fontWeight: 600, color: 'var(--ink-3)' }}>The case in seven lines. Each one is proven below.</h2>
-            <a className="brief" href="#source"><span className="q"><Mk layer="src" />What changed</span>
+            <h2 id="brief-h" style={{ margin: 0, padding: '18px 0 14px', fontSize: 14, fontWeight: 600, color: 'var(--ink-3)' }}>Case summary</h2>
+            <a className="brief" href="#source"><span className="q"><Mk layer="src" />Change</span>
               <span className="a">{removedWords.length && !f.diff?.added.length ? <>«<bdi className={isArabic(removedWords.join(' ')) ? 'ar' : ''} lang={isArabic(removedWords.join(' ')) ? 'ar' : undefined} style={isArabic(removedWords.join(' ')) ? { fontSize: 21 } : undefined}>{removedWords.join(' ')}</bdi>» was removed from the {ROLE_TEXT[f.primary?.fieldRole ?? 'UNCLASSIFIED']?.toLowerCase() ?? 'field'} field.</> : <>{f.headline}</>}{' '}{otherIdentical !== null ? (otherIdentical === 0 ? 'No other field is present.' : `The other ${otherIdentical} ${otherIdentical === 1 ? 'field is' : 'fields are'} byte-identical.`) : ''}</span><span className="go">Source <span aria-hidden="true">→</span></span></a>
-            <a className="brief" href="#facts"><span className="q"><Mk layer="det" />Why it matters</span>
+            <a className="brief" href="#facts"><span className="q"><Mk layer="det" />Policy trigger</span>
               <span className="a">{policy && f.policyCode ? <>A {ROLE_TEXT[f.primary?.fieldRole ?? 'UNCLASSIFIED']?.toLowerCase()} field{level ? ` on Level ${level} content` : ''} changed, so rule <Mono>{f.policyCode}</Mono> {policy.floorAction === 'ALLOW' ? 'allows it' : 'holds it'}, whatever AI says.</> : 'Policy has not evaluated this candidate yet. It stays unserved meanwhile.'}</span><span className="go">Facts <span aria-hidden="true">→</span></span></a>
-            <a className="brief" href="#advisory"><span className="q"><Mk layer="ai" />What AI observed</span>
-              <span className="a" style={{ color: 'var(--pu-ink-2)' }}>{out?.why_it_matters ?? 'No AI reading is recorded yet.'}</span><span className="go">Advisory <span aria-hidden="true">→</span></span></a>
-            <a className="brief" href="#behavior"><span className="q"><Mk layer="det" />Did behavior change</span>
+            <a className="brief" href="#advisory"><span className="q"><Mk layer="ai" />AI assessment</span>
+              <span className="a" style={{ color: 'var(--pu-ink-2)' }}>{out ? [out.risk_level && `${cap(out.risk_level)} risk`, out.confidence && `${out.confidence.toLowerCase()} confidence`].filter(Boolean).join(', ') + (out.risk_level || out.confidence ? '. ' : '') + firstSentence(out.why_it_matters ?? out.executive_summary ?? '') : 'No AI reading is recorded yet.'}</span><span className="go">Advisory <span aria-hidden="true">→</span></span></a>
+            <a className="brief" href="#behavior"><span className="q"><Mk layer="det" />Behavioral impact</span>
               <span className="a">{resultRows.length && !batchDone ? `Regression is still running: ${resultRows.filter((r) => r.status === 'COMPLETE').length} of ${resultRows.length} matched questions compared so far.` : resultRows.length ? <>{matCount ? <span style={{ color: 'var(--co-ink)', fontWeight: 600 }}>Yes.</span> : <span style={{ fontWeight: 600 }}>No.</span>} With identical model settings, {matCount} of {resultRows.length} matched questions got materially different answers.</> : 'No matched regression is recorded yet.'}</span><span className="go">Behavior <span aria-hidden="true">→</span></span></a>
-            <a className="brief" href="#exposure"><span className="q"><Mk layer="det" />What is exposed</span>
+            <a className="brief" href="#exposure"><span className="q"><Mk layer="det" />Exposure</span>
               <span className="a">{br ? <>{plural(downstream.length, 'downstream asset')}. {!blastDone && !impactedApps.length ? 'Impact is not proven until the regression and trace steps finish' : impactedApps.length ? <span style={{ color: 'var(--co-ink)' }}>{impactedApps.map((a) => a.name).join(' and ')} {impactedApps.length === 1 ? 'is' : 'are'} impacted</span> : 'No protected app is proven impacted'}; {br.counts.exposed} {br.counts.exposed === 1 ? 'is' : 'are'} <span style={{ color: 'var(--am-ink)' }}>exposed</span>.</> : 'The blast radius has not been traced yet.'}</span><span className="go">Exposure <span aria-hidden="true">→</span></span></a>
-            <a className="brief" href="#containment"><span className="q"><Mk layer="pol" />Why production is safe</span>
+            <a className="brief" href="#containment"><span className="q"><Mk layer="pol" />Production safeguard</span>
               <span className="a">{inc.status === 'RESOLVED' ? <>The Trust Gateway serves <Mono>{served}</Mono>.</> : <>The Trust Gateway still serves <Mono>{served}</Mono>. <Mono>{cand}</Mono> is {heldText.toLowerCase()} and unserved.</>}</span><span className="go">Containment <span aria-hidden="true">→</span></span></a>
-            <a className="brief" href="#decision"><span className="q" style={{ color: 'var(--ink)' }}><Mk layer="hum" />What you decide</span>
+            <a className="brief" href="#decision"><span className="q" style={{ color: 'var(--ink)' }}><Mk layer="hum" />Review decision</span>
               <span className="a">{inc.status === 'RESOLVED' && decided ? <>Decided: {decided.decision.toLowerCase().replace('_', ' ')} by {decided.reviewer}.</> : <>Approve, reject, keep quarantined or escalate <Mono>{cand}</Mono>.</>}</span><span className="go" style={{ color: 'var(--ink)' }}>Decide <span aria-hidden="true">→</span></span></a>
           </div>
         </div>
@@ -158,12 +159,13 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
 
       {/* 01 SOURCE */}
       <Band id="source" labelledBy="h-src">
-        <Rail layer="src" id="h-src" title="Source">Upstream values exactly as received. Never normalized or paraphrased.</Rail>
+        <Rail layer="src" id="h-src" title="Source">Values exactly as received, never normalized.</Rail>
         <div className="main">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16 }}><h3 className="h3">The exact change</h3><span className="meta">Field <Mono style={{ color: 'var(--ink-2)' }}>{field}</Mono></span></div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16 }}><h3 className="h3">Exact change</h3><span className="meta">Field <Mono style={{ color: 'var(--ink-2)' }}>{field}</Mono></span></div>
           <div className="plate tight">
-            <DiffLine label={prev} chip={<Chip tone="tq">Trusted{inc.status !== 'RESOLVED' ? ', served' : ''}</Chip>} value={f.oldV} ops={f.diff?.ops ?? null} side="old" />
-            <DiffLine label={cand} chip={<Chip tone="co">Candidate, {inc.status === 'RESOLVED' ? 'decided' : 'held'}</Chip>} value={f.newV} ops={f.diff?.ops ?? null} side="new" border />
+            <ExactDiff oldValue={f.primary?.oldValue ?? null} newValue={f.primary?.newValue ?? null} oldLabel={prev} newLabel={cand}
+              oldChip={<Chip tone="tq">Trusted{inc.status !== 'RESOLVED' ? ', served' : ''}</Chip>} newChip={<Chip tone="co">Candidate, {inc.status === 'RESOLVED' ? 'decided' : 'held'}</Chip>}
+              flags={f.primary?.flags ?? []} />
             <div className="sub" style={{ rowGap: 16, padding: '18px 0 22px', borderTop: '1px solid var(--line)' }}>
               <div className="c1-2 lv"><span>Snapshot</span><span className="mono">{inc.candidateVersion.rawSnapshotPath ? inc.candidateVersion.rawSnapshotPath.split('/').slice(-3).join('/') : shortHash(inc.candidateVersion.rawSha256)}</span></div>
               <div className="lv" style={{ gridColumn: '3 / span 2' }}><span>Received</span><span>{dayTime(inc.candidateVersion.detectedAt)}</span></div>
@@ -198,9 +200,9 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
 
       {/* 02 FACTS */}
       <Band id="facts" labelledBy="h-facts">
-        <Rail layer="det" id="h-facts" title="Facts">Computed from the bytes and reproducible. Only facts can trigger policy.</Rail>
+        <Rail layer="det" id="h-facts" title="Deterministic">Reproducible from the bytes; only facts trigger policy.</Rail>
         <div className="main">
-          <h3 className="h3">What the bytes prove</h3>
+          <h3 className="h3">Deterministic evidence</h3>
           <div className="plate tight">
             <div className="sub">
               <div className="c1-5">
@@ -221,10 +223,10 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
 
       {/* 03 AI ADVISORY */}
       <Band id="advisory" labelledBy="h-ai">
-        <Rail layer="ai" id="h-ai" title="AI advisory" titleStyle={{ color: 'var(--pu-ink)' }}>A reading of the change, with its uncertainty. It can raise the response, never lower it.</Rail>
+        <Rail layer="ai" id="h-ai" title="AI advisory" titleStyle={{ color: 'var(--pu-ink)' }}>Advisory only; it can raise the response, never lower it.</Rail>
         <div className="main">
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 16px', alignItems: 'center' }}>
-            <h3 className="h3">What the model read</h3>
+            <h3 className="h3">AI assessment</h3>
             {inc.analysis && <span className="pill" style={{ border: '1px dashed var(--pu-line)', color: 'var(--pu-ink-2)' }}>{analysisText(inc.analysis.analysisType)}</span>}
             {inc.analysis && <span style={{ marginLeft: 'auto' }} className="meta">{inc.analysis.meta.mode === 'replay' ? `Replayed response${inc.analysis.meta.recordedAt ? ` (recorded ${dayTime(inc.analysis.meta.recordedAt)})` : ''}` : MODE[inc.analysis.meta.mode]} · {inc.analysis.meta.promptVersion}</span>}
           </div>
@@ -259,10 +261,10 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
 
       {/* 04 BEHAVIOR */}
       <Band id="behavior" labelledBy="h-beh">
-        <Rail layer="det" id="h-beh" title="Behavior">Matched regression against the protected app. Only the knowledge version changes.</Rail>
+        <Rail layer="det" id="h-beh" title="Behavior">Matched regression; only the knowledge version changes.</Rail>
         <div className="main" style={{ gap: 32 }}>
           <div className="sub" style={{ alignItems: 'start', rowGap: 12 }}>
-            <h3 className="c1-7" style={{ margin: 0, fontSize: 32, lineHeight: '40px', fontWeight: 600, letterSpacing: '-.022em' }}>Same model. Different knowledge.</h3>
+            <h3 className="h3 c1-7">Behavioral regression</h3>
             <p className="c8-10 body" style={{ color: 'var(--ink-3)', paddingBottom: 2 }}>Each question was asked twice with the same model, prompt and retrieval. Only the version of {f.recordKey} differed.</p>
           </div>
           {questions.length === 0 ? (
@@ -279,9 +281,9 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
 
       {/* 05 EXPOSURE */}
       <Band id="exposure" labelledBy="h-exp">
-        <Rail layer="det" id="h-exp" title="Exposure">The graph proves exposure. Only a regression run proves impact.</Rail>
+        <Rail layer="det" id="h-exp" title="Exposure">The graph proves exposure; regression proves impact.</Rail>
         <div className="main">
-          <HeadRow title="Where the change could travel" right={<Lnk href={`/incidents/${inc.id}/blast-radius`}>Open Blast Radius</Lnk>} />
+          <HeadRow title="Dependency exposure" right={<Lnk href={`/incidents/${inc.id}/blast-radius`}>Open Blast Radius</Lnk>} />
           {!br ? <div className="plate"><b>The blast radius has not been traced yet.</b></div> : (
             <div className="plate" style={{ paddingTop: 28, paddingBottom: 32 }}>
               <div className="sub" style={{ alignItems: 'center', rowGap: 16, paddingBottom: 28, marginBottom: 28, borderBottom: '1px solid var(--line)' }}>
@@ -306,9 +308,9 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
 
       {/* 06 POLICY */}
       <Band id="containment" labelledBy="h-pol">
-        <Rail layer="pol" id="h-pol" title="Policy">The rule that held the candidate, and why production is unaffected.</Rail>
+        <Rail layer="pol" id="h-pol" title="Policy">The rule holding the candidate.</Rail>
         <div className="main">
-          <HeadRow title={held ? 'Held at the gate. Production unaffected.' : inc.status === 'RESOLVED' ? 'Decided. The gate followed the decision.' : 'Unserved while the pipeline runs.'} right={<Lnk href={g?.appId ? `/gateway/${g.appId}` : '/gateway'}>Open Trust Gateway</Lnk>} />
+          <HeadRow title={held ? 'Production safeguards' : inc.status === 'RESOLVED' ? 'Production safeguards · decided' : 'Production safeguards · pipeline running'} right={<Lnk href={g?.appId ? `/gateway/${g.appId}` : '/gateway'}>Open Trust Gateway</Lnk>} />
           <div className="plate" style={{ paddingTop: 24, paddingBottom: 24 }}>
             {held && <div style={{ overflowX: 'auto', margin: '0 -8px', padding: '0 8px' }}><GateMini candidate={cand} trusted={served} appName={appName} policyCode={f.policyCode} heldText={heldText} /></div>}
             <div style={{ marginTop: held ? 20 : 0, borderTop: held ? '1px solid var(--line)' : 0 }}>
@@ -335,7 +337,7 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
       {/* 07 HUMAN DECISION */}
       <section id="decision" aria-labelledby="h-dec" style={{ padding: '64px 0 120px' }}>
         <div className="wrap g">
-          <Rail layer="hum" id="h-dec" title="Your decision" decision>{inc.status === 'RESOLVED' ? 'Decided and recorded. The record is append-only.' : 'AI has advised and policy has held. Nothing changes until you sign.'}</Rail>
+          <Rail layer="hum" id="h-dec" title="Review decision" decision>{inc.status === 'RESOLVED' ? 'Decided and recorded.' : 'Nothing changes until a reviewer signs.'}</Rail>
           <div className="main" style={{ gap: 0 }}>
             <div className="handoff">
               {f.policyCode ? <HeldBy code={f.policyCode} /> : <Chip tone="am">Policy pending</Chip>}
@@ -354,26 +356,8 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
   );
 }
 
-/** One version of the changed value at instrument scale (96px Amiri for Arabic). */
-function DiffLine({ label, chip, value, ops, side, border }: { label: string; chip: React.ReactNode; value: string | null; ops: import('@/components/strata/diff').Seg[] | null; side: 'old' | 'new'; border?: boolean }) {
-  const ar = value != null && isArabic(value);
-  const style: React.CSSProperties = ar ? { margin: 0, paddingInlineStart: 48, fontSize: 96, lineHeight: 1.45, textAlign: 'right' } : { margin: 0, fontSize: 40, lineHeight: 1.3, overflowWrap: 'anywhere' };
-  return (
-    <div className="sub" style={{ alignItems: 'center', padding: '32px 0', ...(border ? { borderTop: '1px solid var(--line)' } : {}) }}>
-      <div className="c1-2" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}><span className="mono" style={{ fontSize: 16 }}>{label}</span><span style={{ alignSelf: 'flex-start' }}>{chip}</span></div>
-      <p className={`c3-10${ar ? ' ar' : ''}`} lang={ar ? 'ar' : undefined} dir={ar ? 'rtl' : undefined} style={style}>
-        {value == null ? <span style={{ color: 'var(--ink-3)', fontSize: 18 }}>{side === 'old' ? 'Not present' : 'Removed'}</span>
-          : !ops ? value
-          : ops.filter((o) => (side === 'old' ? o.kind !== 'added' : true)).map((o, i) => (
-            <span key={i}>{i > 0 && ' '}{
-              o.kind === 'same' ? o.text
-              : side === 'old' ? <span title={`Removed in ${'the candidate'}`} style={{ color: 'var(--co-ink)', textDecoration: 'underline 2px var(--co)', textUnderlineOffset: '.4em', textDecorationSkipInk: 'none' }}>{o.text}</span>
-              : o.kind === 'removed' ? <span role="img" aria-label="word removed" style={{ display: 'inline-block', width: `${Math.max(1.2, Math.min(3.2, o.text.length * 0.37)).toFixed(2)}em`, height: '.06em', borderBottom: '2px dashed var(--co)', opacity: 0.7, verticalAlign: 'middle', marginLeft: '.3em' }} />
-              : <span title="Added in the candidate" style={{ color: 'var(--co-ink)', textDecoration: 'underline 2px var(--co)', textUnderlineOffset: '.4em', textDecorationSkipInk: 'none' }}>{o.text}</span>
-            }</span>
-          ))}
-      </p>
-    </div>
-  );
+/** The first sentence of an AI paragraph, for the one-line case summary; the full text stays in the advisory section. */
+function firstSentence(t: string): string {
+  const m = t.match(/^[\s\S]*?[.!?؟](?=\s|$)/);
+  return (m ? m[0] : t).trim();
 }
-
