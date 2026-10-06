@@ -17,6 +17,8 @@ export type BlastLabels = {
   incidentHeld: boolean;
 };
 
+type Filter = 'all' | 'exposed' | 'impacted' | 'stale';
+const FILTERS: [Filter, string][] = [['all', 'All'], ['exposed', 'Exposed'], ['impacted', 'Impacted'], ['stale', 'Stale']];
 const XS = [1.5, 13.5, 25.5, 37.5, 49.5, 64, 80];
 const C = { co: 'var(--co)', am: 'var(--am)', tq: 'var(--tq)', n: 'var(--ink-4)' };
 /** Columns longer than this fold their lowest-priority assets into one expandable summary. */
@@ -35,6 +37,8 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
   const full = useMemo(() => layoutGraph(br, { xs: XS, centre: 200, gap: 200, height: 400 }), [br]);
   const def = lay.nodes.find((n) => n.protectedApp && n.impact === 'IMPACTED') ?? lay.nodes.find((n) => n.protectedApp) ?? lay.nodes.find((n) => n.impact === 'IMPACTED') ?? lay.nodes.at(-1);
   const [selId, setSelId] = useState(def?.id ?? '');
+  const [hoverId, setHoverId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<Filter>('all');
   const byId = new Map(full.nodes.map((n) => [n.id, n]));
   const sel = (byId.get(selId) && !byId.get(selId)!.summary ? byId.get(selId) : undefined) ?? def;
   const impactOf = (n: Placed): Impact => (after ? afterApproval(n, br) : n.impact);
@@ -99,6 +103,17 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
   const tally = down.map((n) => stateOf(n)).sort((a, b) => (a.s === 'Impacted' ? -1 : b.s === 'Impacted' ? 1 : Number(!!a.stale) - Number(!!b.stale)));
   const ss = sel ? stateOf(sel) : null;
   const path = sel ? (sel.dependencyPaths[0] ?? [sel.id]) : [];
+  // Path emphasis: the hovered asset previews its trace, otherwise the selected one's. Every stored
+  // dependency path of that asset is lit (presentation only; the paths are the persisted graph's).
+  const focus = (hoverId ? byId.get(hoverId) : undefined) ?? sel;
+  const lit = useMemo(() => {
+    const nodesOn = new Set<string>(), edgesOn = new Set<string>();
+    for (const p of focus?.dependencyPaths ?? []) p.forEach((id, i) => { nodesOn.add(id); if (i) edgesOn.add(`${p[i - 1]}>${id}`); });
+    if (focus) nodesOn.add(focus.id);
+    return { nodesOn, edgesOn };
+  }, [focus]);
+  /** A filter dims, it never removes: the source and record stay as the trace's origin. */
+  const passes = (n: Placed) => filter === 'all' || n.assetType === 'SOURCE' || n.assetType === 'RECORD' || (!n.summary && stateOf(n).k === filter);
   const short = (n: Placed | undefined) => (!n ? '' : n.assetType === 'SOURCE' ? L.sourceName : n.name);
   // Flow signals in pixel space (edges are re-drawn in px once the instrument is measured).
   const px = (x: number) => (x / 100) * W;
@@ -108,6 +123,11 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
     const tone = from.assetType === 'SOURCE' ? 'var(--ink-3)' : STATE_COLOR[k === 'neutral' ? 'exposed' : k];
     return { ...e, path: edgePath({ x: px(e.a.x), y: e.a.y }, { x: px(e.b.x), y: e.b.y }), tone, fromDepth: from.depth, toNode: e.to, strong: k === 'impacted' && to.app };
   }) : [];
+  const nodeAt = new Map(lay.nodes.map((n) => [n.id, n]));
+  const edgeCls = (e: { from: string; to: string; kind: string }) => {
+    const to = nodeAt.get(e.to);
+    return `e-${e.kind}${lit.edgesOn.has(`${e.from}>${e.to}`) ? ' lit' : ''}${to && !passes(to) ? ' dim' : ''}`;
+  };
   const toggleColumn = (d: number) => setExpanded((cur) => { const n = new Set(cur); if (n.has(d)) n.delete(d); else n.add(d); return n; });
 
   const rows = down.map((n) => ({ id: n.id, name: n.name, type: n.assetType, mode: n.derivationMode ?? '—', reads: readsOf(n), st: stateOf(n),
@@ -143,7 +163,45 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
             <span className="cnt"><b style={{ color: stl ? 'var(--am-ink)' : 'var(--ink-3)' }}>{stl}</b><span className="cap">Stale</span></span>
           </div>
         </div>
-        <div style={{ overflowX: 'auto', margin: '0 -8px', padding: '0 8px' }}>
+        <div className="bfil">
+          <div className="mseg" role="group" aria-label="Show assets">
+            {FILTERS.map(([k, label]) => {
+              const n = k === 'all' ? down.length : k === 'impacted' ? imp : k === 'stale' ? stl : exp;
+              return <button key={k} type="button" aria-pressed={filter === k} onClick={() => setFilter(k)}>{label}<span className="bfil-n">{n}</span></button>;
+            })}
+          </div>
+          <ul className="blgd" aria-label="Legend">
+            <li><span className="lg-n lg-chg" aria-hidden="true" />Changed record</li>
+            <li><span className="lg-n lg-imp" aria-hidden="true" />Impacted</li>
+            <li><span className="lg-n lg-exp" aria-hidden="true" />Exposed</li>
+            <li><span className="lg-n lg-stl" aria-hidden="true" />Stale</li>
+            <li><span className="lg-e" aria-hidden="true" />Selected path</li>
+          </ul>
+        </div>
+        {filter !== 'all' && (filter === 'impacted' ? imp : filter === 'stale' ? stl : exp) === 0 && (
+          <p className="body bfil-empty" role="status">{filter === 'stale' ? (after ? 'No asset would go stale: none keeps a materialized copy of the trusted version.' : 'No asset is stale. Stale applies only to frozen copies, and only after a promotion.') : `No asset is ${filter} in this view.`}</p>
+        )}
+        <ol className="btrace" aria-label="Dependency trace">
+          {full.headings.map((h) => (
+            <li key={h.depth}>
+              <span className="cap">{h.label}</span>
+              <ul>
+                {full.nodes.filter((n) => n.depth === h.depth).sort((a, b) => a.y - b.y).map((n) => {
+                  const st = stateOf(n), on = n.id === sel?.id;
+                  return (
+                    <li key={n.id}>
+                      <button type="button" className={`bt-n st-${st.k}${on ? ' on' : ''}${lit.nodesOn.has(n.id) ? ' lit' : ''}${passes(n) ? '' : ' dim'}`} aria-pressed={on} onClick={() => setSelId(n.id)}>
+                        <span className="nd"><EntityIcon type={n.assetType} size={14} /></span>
+                        <span className="nl"><b className={n.assetType === 'RECORD' ? 'mono' : ''} dir="auto">{n.assetType === 'SOURCE' ? short(n).split(' — ')[0] : n.name}</b><span>{n.assetType === 'RECORD' ? `${L.changedField ?? 'Record'} changed` : `${typeLabel(n.assetType)} · ${st.s}${n.app ? ` · ${readsOf(n)}` : ''}`}</span></span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </li>
+          ))}
+        </ol>
+        <div className="bgraph-scroll" style={{ overflowX: 'auto', margin: '0 -8px', padding: '0 8px' }}>
           <div ref={host} className={`graph${after ? ' after' : ''}`} style={{ height: lay.height }} role="group" aria-label="Dependency graph. Select an asset to inspect it.">
             {lay.headings.map((h) => {
               const foldable = full.headings.find((x) => x.depth === h.depth) && full.nodes.filter((n) => n.depth === h.depth).length > MAX_PER_COLUMN;
@@ -151,11 +209,11 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
             })}
             {W ? (
               <svg className="edges" viewBox={`0 0 ${W} ${lay.height}`} aria-hidden="true">
-                {lay.edges.map((e) => <path key={e.id} className={`e-${e.kind}`} d={edgePath({ x: px(e.a.x), y: e.a.y }, { x: px(e.b.x), y: e.b.y })} />)}
+                {lay.edges.map((e) => <path key={e.id} className={edgeCls(e)} d={edgePath({ x: px(e.a.x), y: e.a.y }, { x: px(e.b.x), y: e.b.y })} />)}
               </svg>
             ) : (
               <svg className="edges" viewBox={`0 0 100 ${lay.height}`} preserveAspectRatio="none" aria-hidden="true">
-                {lay.edges.map((e) => <path key={e.id} className={`e-${e.kind}`} d={e.d} />)}
+                {lay.edges.map((e) => <path key={e.id} className={edgeCls(e)} d={e.d} />)}
               </svg>
             )}
             {W > 0 && <FlowLayer edges={flow} width={W} height={lay.height} host={host} cycleKey={`${view}|${[...expanded].join(',')}`} />}
@@ -164,7 +222,7 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
                 const card = n.app || n.summary.types.includes('APPLICATION');
                 const what = n.summary.types.length === 1 ? typeLabel(n.summary.types[0]).toLowerCase() + (n.summary.ids.length === 1 ? '' : 's') : 'assets';
                 return (
-                  <button key={n.id} type="button" data-node={n.id} className={`node sum${card ? ' card' : ''}`} style={{ ...(card ? { left: `${n.x}%`, right: 0, top: n.y - 28 } : { left: `${n.x}%`, top: n.y - 14 }), ['--d' as string]: n.depth }}
+                  <button key={n.id} type="button" data-node={n.id} className={`node sum${card ? ' card' : ''}${filter !== 'all' ? ' dim' : ''}`} style={{ ...(card ? { left: `${n.x}%`, right: 0, top: n.y - 28 } : { left: `${n.x}%`, top: n.y - 14 }), ['--d' as string]: n.depth }}
                     aria-expanded={false} onClick={() => toggleColumn(n.depth)} aria-label={`${n.summary.ids.length} more ${what}: ${memberCounts(n)}. Show all.`}>
                     <span className="ping" aria-hidden="true" />
                     <span className="nd nd-sum">+{n.summary.ids.length}</span>
@@ -174,11 +232,11 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
                 );
               }
               const st = stateOf(n), on = n.id === sel?.id, card = n.app;
-              const cls = `node${card ? ' card' : ''} st-${st.k}${on ? ' on' : ''}${after && impactOf(n) !== n.impact ? ' changed' : ''}`;
+              const cls = `node${card ? ' card' : ''} st-${st.k}${on ? ' on' : ''}${lit.nodesOn.has(n.id) ? ' lit' : ''}${passes(n) ? '' : ' dim'}${after && impactOf(n) !== n.impact ? ' changed' : ''}`;
               const pos: React.CSSProperties = { ...(card ? { left: `${n.x}%`, right: 0, top: n.y - 28 } : { left: `${n.x}%`, top: n.y - 14 }), ['--d' as string]: n.depth };
               const name = n.assetType === 'SOURCE' ? short(n).split(' — ')[0] : n.name;
               return (
-                <button key={n.id} type="button" data-node={n.id} className={cls} style={pos} aria-pressed={on} onClick={() => setSelId(n.id)} aria-label={`${typeLabel(n.assetType)} ${short(n)}, ${st.s}`}>
+                <button key={n.id} type="button" data-node={n.id} className={cls} style={pos} aria-pressed={on} onClick={() => setSelId(n.id)} onPointerEnter={() => setHoverId(n.id)} onPointerLeave={() => setHoverId(null)} onFocus={() => setHoverId(n.id)} onBlur={() => setHoverId(null)} aria-label={`${typeLabel(n.assetType)} ${short(n)}, ${st.s}`}>
                   <span className="ping" aria-hidden="true" />
                   <span className="nd"><EntityIcon type={n.assetType} size={card ? 16 : 15} /></span>
                   <span className="nl"><b className={n.assetType === 'RECORD' ? 'mono' : ''} dir="auto" title={name}>{name}</b>
@@ -221,13 +279,13 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
       <div className="wrap g">
         <div className="rail"><span className="mk mk-det" /><h2 id="h-assets">Assets</h2><p>How each asset reads the source.</p></div>
         <div className="main">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}><h3 className="h3">Downstream assets · {rows.length}</h3><span className="meta mono">incident_asset_impacts</span></div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}><h3 className="h3">Downstream assets · {filter === 'all' ? rows.length : `${rows.filter((r) => r.st.k === filter).length} of ${rows.length}`}</h3><span className="meta mono">incident_asset_impacts</span></div>
           <div className="plate tight" style={{ overflowX: 'auto' }}>
             <table className="tb">
               <caption className="sr-only">Downstream assets{after ? ' if the candidate is approved (preview)' : ''}</caption>
               <thead><tr><th scope="col">Asset</th><th scope="col">Type</th><th scope="col">Derivation</th><th scope="col">Reads</th><th scope="col">State</th><th scope="col" style={{ textAlign: 'right' }}>Evidence</th></tr></thead>
               <tbody>
-                {rows.map((r) => (
+                {rows.filter((r) => filter === 'all' || r.st.k === filter).map((r) => (
                   <tr key={r.id}>
                     <td><span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}><EntityIcon type={r.type} size={15} style={{ color: 'var(--ink-3)', flex: 'none' }} /><b style={{ fontWeight: 600 }} dir="auto">{r.name}</b></span></td>
                     <td><span className="mono" style={{ fontSize: 13, color: 'var(--ink-2)' }}>{r.type}</span></td>
@@ -237,6 +295,7 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
                     <td style={{ textAlign: 'right', color: 'var(--ink-3)' }}>{r.evidence}</td>
                   </tr>
                 ))}
+                {filter !== 'all' && !rows.some((r) => r.st.k === filter) && <tr><td colSpan={6} style={{ color: 'var(--ink-3)' }}>No {filter} asset in this view.</td></tr>}
               </tbody>
             </table>
           </div>

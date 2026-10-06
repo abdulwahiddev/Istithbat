@@ -342,3 +342,65 @@ details.quiet>.raw{margin-top:12px}
 .sbx-disclosure{display:flex;align-items:flex-start;gap:8px;margin:0;font-size:13.5px;line-height:20px;color:var(--ink-2)}
 .sbx-disclosure .ic{flex:none;margin-top:3px;color:var(--am)}
 .sbx-disclosure.top{margin:-12px 0 24px;max-width:72ch}
+
+/* ---- Blast Radius polish: filters, legend, path emphasis, mobile trace (presentation only) ---- */
+.scr-blast .bfil{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 24px;padding:16px 0 4px}
+.scr-blast .bfil .mseg button{display:inline-flex;align-items:center;gap:8px;padding:7px 14px}
+.scr-blast .bfil-n{font-size:12px;font-weight:600;color:var(--ink-4);font-variant-numeric:tabular-nums}
+.scr-blast .bfil .mseg button[aria-pressed="true"] .bfil-n{color:var(--ink-2)}
+.scr-blast .bfil-empty{margin:8px 0 0;color:var(--ink-3)}
+.blgd{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0;padding:0;list-style:none;font-size:12px;line-height:16px;color:var(--ink-3)}
+.blgd li{display:inline-flex;align-items:center;gap:7px}
+.lg-n{width:12px;height:12px;border-radius:50%;box-sizing:border-box;border:1.5px solid var(--am);background:var(--plate-a)}
+.lg-chg{background:var(--co);border-color:var(--co);border-radius:3px}
+.lg-imp{background:var(--co);border-color:var(--co)}
+.lg-stl{border-style:dashed}
+.lg-e{width:18px;height:0;border-top:3px solid var(--ink-2);border-radius:2px}
+/* Selected / hovered path: its edges firm up, the rest step back */
+.scr-blast .graph .edges path.lit{stroke-opacity:1!important;stroke-width:3.5}
+.scr-blast .graph .edges path.e-src.lit{stroke:var(--ink-3)}
+.scr-blast .graph:has(.edges path.lit) .edges path:not(.lit){stroke-opacity:.32}
+.scr-blast .graph .edges path.dim:not(.lit){stroke-opacity:.12!important}
+/* Dim the node's contents, not the node: its entry animation holds the node's own opacity */
+.scr-blast .node>*{transition:opacity .25s var(--ease)}
+.scr-blast .node.dim>*{opacity:.28}
+.scr-blast .node.dim.lit>*{opacity:.6}
+.scr-blast .node.dim:hover>*,.scr-blast .node.dim:focus-visible>*{opacity:.8}
+.scr-blast .node.card.dim{box-shadow:none}
+.scr-blast .node.lit:not(.on):not(.card) .nl b{color:var(--ink)}
+.scr-blast .node:focus-visible{outline:2px solid var(--tq);outline-offset:4px;border-radius:12px}
+.scr-blast .node.card:focus-visible{border-radius:18px}
+.scr-blast .node:not(.card):hover .nl b{text-decoration:underline 1px;text-underline-offset:4px}
+.scr-blast .node.card:hover{box-shadow:0 0 0 1px var(--line-2),var(--float-shadow)}
+.scr-blast .node.card.st-impacted:hover{box-shadow:0 0 0 1px var(--co),var(--float-shadow)}
+/* Exposed reads as an open ring, impacted as solid coral, stale as a dashed ring with a hollow centre */
+.scr-blast .node.st-exposed .nd{background:color-mix(in srgb,var(--am) 9%,var(--plate-a))}
+.scr-blast .node.st-stale .nd{border-width:2px;background:var(--plate-a)}
+/* Mobile: the wide graph becomes a vertical trace, one column per hop */
+.scr-blast .btrace{display:none;margin:12px 0 0;padding:0;list-style:none}
+.scr-blast .btrace>li{position:relative;padding:0 0 14px 22px}
+.scr-blast .btrace>li::before{content:"";position:absolute;left:6px;top:20px;bottom:0;border-left:1.5px solid var(--line-2)}
+.scr-blast .btrace>li:last-child::before{display:none}
+.scr-blast .btrace>li::after{content:"";position:absolute;left:2px;top:5px;width:9px;height:9px;border-radius:50%;background:var(--plate-a);box-shadow:inset 0 0 0 1.5px var(--ink-4)}
+.scr-blast .btrace ul{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.bt-n{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:8px 12px;box-sizing:border-box;border:1px solid var(--line);border-radius:14px;background:var(--plate-a);font:inherit;color:var(--ink);text-align:start;cursor:pointer;--sc:var(--am);--si:var(--am-ink);transition:opacity .25s var(--ease),border-color .2s var(--ease)}
+.bt-n.st-neutral{--sc:var(--ink-4);--si:var(--ink-2)}
+.bt-n.st-impacted,.bt-n.st-changed{--sc:var(--co);--si:var(--co-ink)}
+.bt-n .nd{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;box-sizing:border-box;border:1.5px solid var(--sc);color:var(--si);background:var(--plate-a)}
+.bt-n.st-impacted .nd,.bt-n.st-changed .nd{background:var(--sc);color:var(--on-solid)}
+.bt-n.st-stale .nd{border-style:dashed;border-width:2px}
+.bt-n .nl{display:flex;flex-direction:column;gap:2px;min-width:0}
+.bt-n .nl b{font-size:14px;line-height:19px;font-weight:600;overflow-wrap:anywhere}
+.bt-n .nl>span{font-size:12px;line-height:16px;color:var(--ink-3)}
+.bt-n.lit{border-color:var(--line-2)}
+.bt-n.st-impacted.lit{border-color:var(--co)}
+.bt-n.on{outline:2px solid var(--ink);outline-offset:2px}
+.bt-n.dim{opacity:.3}
+@media(max-width:720px){
+  .scr-blast .btrace{display:block}
+  .scr-blast .bgraph-scroll{display:none}
+  .scr-blast .bfil{flex-direction:column;align-items:stretch}
+  .scr-blast .bfil .mseg{display:flex;overflow-x:auto}
+  .scr-blast .bfil .mseg button{flex:1 0 auto;justify-content:center;padding:7px 10px}
+}
+@media (prefers-reduced-motion: reduce){.scr-blast .node>*,.bt-n{transition:none}}
