@@ -66,7 +66,7 @@ and on-screen sync follow automatically.
 
 ## Music
 
-`public/audio/music.wav` is a generated, quiet modal pad (`npm run music`, no drums or risers),
+`public/audio/music.mp3` is a generated, quiet modal pad (`npm run music`, no drums or risers),
 mixed at ~−24 dB under the voice (`MUSIC_GAIN` in `src/Video.tsx`). Replace it with any licensed
 instrumental of 114 s or longer; no code changes needed.
 

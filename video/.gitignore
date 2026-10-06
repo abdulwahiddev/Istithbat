@@ -2,3 +2,4 @@ node_modules/
 .kokoro/
 out/*
 !out/.gitkeep
+!out/istithbat-demo-first-pass.mp4

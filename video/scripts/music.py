@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Generate the temporary background bed: a slow, quiet, non-cinematic pad (no drums, no risers).
 
-Writes public/audio/music.wav (48 kHz stereo, peak ~ -12 dBFS). The composition plays it at a
-low volume under the narration. Replace public/audio/music.wav with a licensed instrumental of
+Writes public/audio/music.mp3 (48 kHz stereo, 192 kb/s, peak ~ -12 dBFS). The composition plays it at a
+low volume under the narration. Replace public/audio/music.mp3 with a licensed instrumental of
 any length >= 114 s to swap it; no code edits needed.
 """
 from pathlib import Path
@@ -54,10 +54,10 @@ fade = np.clip(t / 3.0, 0, 1) * np.clip((DUR - t) / 5.0, 0, 1)
 st = np.stack([L * fade, R * fade], axis=1)
 st *= 0.25 / np.max(np.abs(st))  # ~ -12 dBFS peak
 
-out = Path(__file__).resolve().parent.parent / "public/audio/music.wav"
+out = Path(__file__).resolve().parent.parent / "public/audio/music.mp3"
 with tempfile.TemporaryDirectory() as td:
     raw = Path(td) / "m.raw"
     st.astype(np.float32).tofile(raw)
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "f32le", "-ar", str(SR), "-ac", "2", "-i", str(raw),
-                    "-c:a", "pcm_s16le", str(out)], check=True)
+                    "-c:a", "libmp3lame", "-b:a", "192k", str(out)], check=True)
 print("wrote", out)

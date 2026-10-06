@@ -32,7 +32,7 @@ export function IstithbatDemo() {
       })}
       <Captions />
       <Html5Audio src={staticFile('audio/voiceover.wav')} volume={1} />
-      <Html5Audio src={staticFile('audio/music.wav')}
+      <Html5Audio src={staticFile('audio/music.mp3')}
         volume={(f) => MUSIC_GAIN * interpolate(f, [0, FPS * 1.5, DURATION - FPS * 4, DURATION], [0, 1, 1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' })} />
     </AbsoluteFill>
   );
