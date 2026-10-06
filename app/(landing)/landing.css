@@ -71,7 +71,7 @@ body:has(.lnd){margin:0;background:#08090B}
 .lh-eqn .op{font:300 30px/44px var(--sans);color:var(--ink-4);margin-top:18px}
 .lh-eqn .co{color:var(--co-ink)}
 .lh-eqn .op .co{color:var(--co)}
-.lh-eqn .roll{display:grid}
+.lh-eqn .roll{display:grid;overflow:hidden;padding:0 2px;margin:0 -2px}
 .lh-eqn .roll>*{grid-area:1/1}
 .lh-eqn .roll .r13{opacity:0;color:var(--ink)}
 .lh-eqn .op.roll .r13{color:var(--ink-4)}

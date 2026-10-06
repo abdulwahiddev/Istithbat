@@ -78,13 +78,14 @@ export const TRACKS: Track[] = [
   // F: the human decision is pending
   { sel: '[data-a=rev]', kf: fade(5900, 7000, 4, 450, 300) },
   // readout: v13 = v13 = v13 rolls to v14 ≠ v13 = v13 in B, and back on return
+  // Clipped roll (the container hides overflow): the old value leaves before the new one lands.
   { sel: '[data-a=r13]', kf: [
-    [0, { opacity: 1, transform: 'none' }], [1150, { opacity: 1, transform: 'none', easing: INOUT }], [1500, { opacity: 0, transform: 'translateY(-45%)' }],
-    [7150, { opacity: 0, transform: 'translateY(45%)', easing: INOUT }], [7500, { opacity: 1, transform: 'none' }], [LOOP, { opacity: 1, transform: 'none' }],
+    [0, { opacity: 1, transform: 'none' }], [1150, { opacity: 1, transform: 'none', easing: IN }], [1350, { opacity: 0, transform: 'translateY(-70%)' }],
+    [7280, { opacity: 0, transform: 'translateY(70%)', easing: OUT }], [7520, { opacity: 1, transform: 'none' }], [LOOP, { opacity: 1, transform: 'none' }],
   ] },
   { sel: '[data-a=r14]', kf: [
-    [0, { opacity: 0, transform: 'translateY(45%)' }], [1150, { opacity: 0, transform: 'translateY(45%)', easing: INOUT }], [1500, { opacity: 1, transform: 'none' }],
-    [7150, { opacity: 1, transform: 'none', easing: INOUT }], [7500, { opacity: 0, transform: 'translateY(-45%)' }], [LOOP, { opacity: 0, transform: 'translateY(45%)' }],
+    [0, { opacity: 0, transform: 'translateY(70%)' }], [1300, { opacity: 0, transform: 'translateY(70%)', easing: OUT }], [1540, { opacity: 1, transform: 'none' }],
+    [7100, { opacity: 1, transform: 'none', easing: IN }], [7300, { opacity: 0, transform: 'translateY(-70%)' }], [LOOP, { opacity: 0, transform: 'translateY(70%)' }],
   ] },
   { sel: '[data-a=heldst]', kf: op([[0, 0], [1450, 0], [1800, 1], [7100, 1], [7400, 0], [LOOP, 0]]) },
 ];
