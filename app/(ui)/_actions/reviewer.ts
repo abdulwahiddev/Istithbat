@@ -1,28 +1,23 @@
 'use server';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
-import { makeModeCookie, validateSecret } from '@/lib/server/demo-auth';
-import { REVIEWER_NAME_COOKIE } from '../_data/session';
+import { makeModeCookie, validateReviewCredentials } from '@/lib/server/demo-auth';
 
 /**
- * D-11 reviewer mode. The secret is checked on the server with the timing-safe helper and never
- * returned or stored client-side; the review credential is the httpOnly, HMAC-signed cookie that
- * lib/server/demo-auth issues. The reviewer's display name is a separate httpOnly cookie used only
- * to label the signature (the review route records it as `reviewer`).
+ * D-11 reviewer mode. Both fields are checked on the server. The session is the existing
+ * httpOnly, HMAC-signed cookie; credentials are never returned or stored client-side.
  */
 export type UnlockState = { ok: boolean; error?: string };
 
 export async function unlockReviewer(_prev: UnlockState, form: FormData): Promise<UnlockState> {
-  const secret = String(form.get('secret') ?? '');
-  const name = String(form.get('name') ?? '').trim().slice(0, 60);
-  if (!name) return { ok: false, error: 'Enter the name to sign with.' };
+  const username = String(form.get('username') ?? '');
+  const password = String(form.get('password') ?? '');
   let valid = false;
-  try { valid = secret.length > 0 && validateSecret('review', secret); } catch { return { ok: false, error: 'Reviewer mode is not configured on this server.' }; }
-  if (!valid) return { ok: false, error: 'That review credential was not accepted.' };
+  try { valid = validateReviewCredentials(username, password); } catch { return { ok: false, error: 'Reviewer mode is not configured on this server.' }; }
+  if (!valid) return { ok: false, error: 'Username or password was not accepted.' };
   const jar = await cookies();
   const c = makeModeCookie('review');
   jar.set(c.name, c.value, c.options);
-  jar.set(REVIEWER_NAME_COOKIE, name, { ...c.options });
   revalidatePath('/', 'layout');
   return { ok: true };
 }
@@ -30,6 +25,6 @@ export async function unlockReviewer(_prev: UnlockState, form: FormData): Promis
 export async function lockReviewer(): Promise<void> {
   const jar = await cookies();
   jar.delete('istithbat_review');
-  jar.delete(REVIEWER_NAME_COOKIE);
+  jar.delete('istithbat_reviewer'); // Remove the legacy unsigned display-name cookie.
   revalidatePath('/', 'layout');
 }
