@@ -96,7 +96,7 @@ Both real APIs are read-only. Raw, canonical, record and field hashes were ident
 
 ## Validation and safety model
 
-The final engineering suite passed **202 application tests**; eight optional database tests were skipped in the standard run. Typecheck, Production build and the repository secret check passed. The separate frozen 40-case evaluation tested deterministic mutation/policy behavior and measured advisory AI performance. Full-corpus validation checked source acquisition and repeat-fetch integrity; it did **not** ingest the entire corpus into Production or establish religious correctness. See [technical evidence](docs/technical-evidence.md) and [evaluation](docs/evaluation.md).
+The final engineering suite passed **205 application tests**; eight optional database tests were skipped in the standard run. Typecheck, Production build and the repository secret check passed. The separate frozen 40-case evaluation tested deterministic mutation/policy behavior and measured advisory AI performance. Full-corpus validation checked source acquisition and repeat-fetch integrity; it did **not** ingest the entire corpus into Production or establish religious correctness. See [technical evidence](docs/technical-evidence.md) and [evaluation](docs/evaluation.md).
 
 AI cannot grant `TRUSTED` or lower the deterministic policy floor. A substantive candidate remains held through REVIEW or QUARANTINE until an authorized human decision; only the deterministic POL-005 equivalent/operational path can allow automatic promotion. Failures stay visible and fail closed. Human approval uses an atomic release transaction; the audit trail is append-only.
 
