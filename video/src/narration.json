@@ -1,37 +1,37 @@
 {
-  "voice": "kokoro-v1.0/am_michael",
+  "voice": "kokoro-v1.0/am_fenrir",
   "durationSec": 114,
   "scenes": [
     {
       "id": "s01-hook",
-      "speed": 1.08,
+      "speed": 0.97,
       "sentences": [
         {
           "text": "AI systems increasingly depend on trusted knowledge.",
           "start": 0.35,
-          "end": 4.019,
+          "end": 3.699,
           "captions": [
             {
               "text": "AI systems increasingly depend on trusted knowledge.",
               "start": 0.35,
-              "end": 4.019
+              "end": 3.699
             }
           ]
         },
         {
           "text": "But what happens when that knowledge changes after it reaches your system?",
-          "start": 4.339,
-          "end": 8.35,
+          "start": 4.119,
+          "end": 8.13,
           "captions": [
             {
               "text": "But what happens when that knowledge changes",
-              "start": 4.339,
-              "end": 6.757
+              "start": 4.119,
+              "end": 6.537
             },
             {
               "text": "after it reaches your system?",
-              "start": 6.757,
-              "end": 8.35
+              "start": 6.537,
+              "end": 8.13
             }
           ]
         }
@@ -39,22 +39,22 @@
     },
     {
       "id": "s02-trust-state",
-      "speed": 1.0,
+      "speed": 0.98,
       "sentences": [
         {
           "text": "Istithbat separates what is newest from what is trusted — and what applications are actually allowed to serve.",
           "start": 9.15,
-          "end": 15.827,
+          "end": 15.55,
           "captions": [
             {
               "text": "Istithbat separates what is newest from what is trusted —",
               "start": 9.15,
-              "end": 12.642
+              "end": 12.497
             },
             {
               "text": "and what applications are actually allowed to serve.",
-              "start": 12.642,
-              "end": 15.827
+              "start": 12.497,
+              "end": 15.55
             }
           ]
         }
@@ -62,27 +62,27 @@
     },
     {
       "id": "s03-publish",
-      "speed": 1.0,
+      "speed": 1.02,
       "sentences": [
         {
           "text": "In this controlled demo, we start from a trusted baseline and publish one known mutation of real HadeethEnc record 10618.",
           "start": 17.35,
-          "end": 27.249,
+          "end": 25.798,
           "captions": [
             {
               "text": "In this controlled demo, we start from a trusted baseline",
               "start": 17.35,
-              "end": 22.091
+              "end": 21.397
             },
             {
               "text": "and publish one known mutation",
-              "start": 22.091,
-              "end": 24.587
+              "start": 21.397,
+              "end": 23.526
             },
             {
               "text": "of real HadeethEnc record 10618.",
-              "start": 24.587,
-              "end": 27.249
+              "start": 23.526,
+              "end": 25.798
             }
           ]
         }
@@ -90,42 +90,42 @@
     },
     {
       "id": "s04-pipeline",
-      "speed": 1.04,
+      "speed": 1.03,
       "sentences": [
         {
           "text": "Istithbat snapshots and fingerprints the source, detects the exact field change, analyzes its semantic significance, runs matched behavioral regression, traces downstream exposure, and evaluates deterministic policy.",
           "start": 30.35,
-          "end": 46.179,
+          "end": 44.323,
           "captions": [
             {
               "text": "Istithbat snapshots and fingerprints the source,",
               "start": 30.35,
-              "end": 33.951
+              "end": 33.529
             },
             {
               "text": "detects the exact field change,",
-              "start": 33.951,
-              "end": 36.277
+              "start": 33.529,
+              "end": 35.582
             },
             {
               "text": "analyzes its semantic significance,",
-              "start": 36.277,
-              "end": 38.902
+              "start": 35.582,
+              "end": 37.9
             },
             {
               "text": "runs matched behavioral regression,",
-              "start": 38.902,
-              "end": 41.528
+              "start": 37.9,
+              "end": 40.217
             },
             {
               "text": "traces downstream exposure,",
-              "start": 41.528,
-              "end": 43.554
+              "start": 40.217,
+              "end": 42.005
             },
             {
               "text": "and evaluates deterministic policy.",
-              "start": 43.554,
-              "end": 46.179
+              "start": 42.005,
+              "end": 44.323
             }
           ]
         }
@@ -133,34 +133,34 @@
     },
     {
       "id": "s05-exact-change",
-      "speed": 1.0,
+      "speed": 0.95,
       "sentences": [
         {
           "text": "The hadith text does not change.",
           "start": 46.95,
-          "end": 49.083,
+          "end": 48.678,
           "captions": [
             {
               "text": "The hadith text does not change.",
               "start": 46.95,
-              "end": 49.083
+              "end": 48.678
             }
           ]
         },
         {
           "text": "Only the grading field changes: an explicit exception disappears.",
-          "start": 49.403,
-          "end": 53.969,
+          "start": 49.178,
+          "end": 53.487,
           "captions": [
             {
               "text": "Only the grading field changes:",
-              "start": 49.403,
-              "end": 51.615
+              "start": 49.178,
+              "end": 51.265
             },
             {
               "text": "an explicit exception disappears.",
-              "start": 51.615,
-              "end": 53.969
+              "start": 51.265,
+              "end": 53.487
             }
           ]
         }
@@ -168,41 +168,41 @@
     },
     {
       "id": "s06-regression",
-      "speed": 1.0,
+      "speed": 0.99,
       "sentences": [
         {
           "text": "The same model is then tested under matched conditions.",
           "start": 57.35,
-          "end": 60.87,
+          "end": 60.529,
           "captions": [
             {
               "text": "The same model is then tested under matched conditions.",
               "start": 57.35,
-              "end": 60.87
+              "end": 60.529
             }
           ]
         },
         {
           "text": "Only the knowledge version changes.",
-          "start": 61.19,
-          "end": 63.43,
+          "start": 60.929,
+          "end": 62.87,
           "captions": [
             {
               "text": "Only the knowledge version changes.",
-              "start": 61.19,
-              "end": 63.43
+              "start": 60.929,
+              "end": 62.87
             }
           ]
         },
         {
           "text": "All three comparisons were classified materially different.",
-          "start": 63.75,
-          "end": 67.441,
+          "start": 63.27,
+          "end": 66.619,
           "captions": [
             {
               "text": "All three comparisons were classified materially different.",
-              "start": 63.75,
-              "end": 67.441
+              "start": 63.27,
+              "end": 66.619
             }
           ]
         }
@@ -210,34 +210,34 @@
     },
     {
       "id": "s07-blast-radius",
-      "speed": 1.0,
+      "speed": 1.04,
       "sentences": [
         {
           "text": "Blast Radius deterministically traces where the change can travel.",
           "start": 70.35,
-          "end": 74.873,
+          "end": 74.105,
           "captions": [
             {
               "text": "Blast Radius deterministically traces where the change can travel.",
               "start": 70.35,
-              "end": 74.873
+              "end": 74.105
             }
           ]
         },
         {
           "text": "Six downstream assets are exposed, and one protected application shows material behavioral impact.",
-          "start": 75.193,
-          "end": 82.275,
+          "start": 74.365,
+          "end": 80.765,
           "captions": [
             {
               "text": "Six downstream assets are exposed,",
-              "start": 75.193,
-              "end": 77.675
+              "start": 74.365,
+              "end": 76.608
             },
             {
               "text": "and one protected application shows material behavioral impact.",
-              "start": 77.675,
-              "end": 82.275
+              "start": 76.608,
+              "end": 80.765
             }
           ]
         }
@@ -245,34 +245,34 @@
     },
     {
       "id": "s08-gateway",
-      "speed": 1.0,
+      "speed": 0.98,
       "sentences": [
         {
           "text": "But impact does not become trust.",
           "start": 83.35,
-          "end": 85.419,
+          "end": 85.121,
           "captions": [
             {
               "text": "But impact does not become trust.",
               "start": 83.35,
-              "end": 85.419
+              "end": 85.121
             }
           ]
         },
         {
           "text": "POL-002 quarantines the candidate, while the previous trusted version continues serving without interruption.",
-          "start": 85.739,
-          "end": 94.507,
+          "start": 85.571,
+          "end": 93.357,
           "captions": [
             {
               "text": "POL-002 quarantines the candidate,",
-              "start": 85.739,
-              "end": 88.5
+              "start": 85.571,
+              "end": 88.022
             },
             {
               "text": "while the previous trusted version continues serving without interruption.",
-              "start": 88.5,
-              "end": 94.507
+              "start": 88.022,
+              "end": 93.357
             }
           ]
         }
@@ -280,34 +280,34 @@
     },
     {
       "id": "s09-human-review",
-      "speed": 1.0,
+      "speed": 0.95,
       "sentences": [
         {
           "text": "The reviewer receives every evidence layer in one place.",
           "start": 96.35,
-          "end": 99.657,
+          "end": 99.443,
           "captions": [
             {
               "text": "The reviewer receives every evidence layer in one place.",
               "start": 96.35,
-              "end": 99.657
+              "end": 99.443
             }
           ]
         },
         {
           "text": "AI can raise concern, but it cannot promote knowledge or replace expert judgment.",
-          "start": 99.977,
-          "end": 105.843,
+          "start": 99.893,
+          "end": 105.291,
           "captions": [
             {
               "text": "AI can raise concern, but it cannot promote knowledge",
-              "start": 99.977,
-              "end": 103.863
+              "start": 99.893,
+              "end": 103.469
             },
             {
               "text": "or replace expert judgment.",
-              "start": 103.863,
-              "end": 105.843
+              "start": 103.469,
+              "end": 105.291
             }
           ]
         }
@@ -315,17 +315,17 @@
     },
     {
       "id": "s10-close",
-      "speed": 1.0,
+      "speed": 0.94,
       "sentences": [
         {
           "text": "Istithbat. Know when trusted knowledge changes.",
           "start": 107.35,
-          "end": 110.593,
+          "end": 110.145,
           "captions": [
             {
               "text": "Istithbat. Know when trusted knowledge changes.",
               "start": 107.35,
-              "end": 110.593
+              "end": 110.145
             }
           ]
         }

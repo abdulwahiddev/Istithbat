@@ -1,5 +1,5 @@
 {
-  "_doc": "Single source of truth for scene timing + narration. scripts/tts.py reads this to synthesize public/audio/voiceover.wav and write src/narration.json (sentence/caption timings). Captions are the on-screen text; `tts` (optional) is what the voice reads when pronunciation differs.",
+  "_doc": "Single source of truth for scene timing + narration. scripts/tts.py reads this to synthesize public/audio/voiceover.wav and write src/narration.json (sentence/caption timings). Captions are the on-screen text; `tts` (optional) is what the voice reads when pronunciation differs. Per scene, `speed` (base pace) and `gap` (pause between sentences) shape the delivery arc; `tts` holds the spoken form where on-screen notation would read badly (IDs, codes).",
   "fps": 30,
   "durationSec": 114,
   "scenes": [
@@ -21,7 +21,10 @@
             "after it reaches your system?"
           ]
         }
-      ]
+      ],
+      "speed": 0.97,
+      "gap": 0.42,
+      "mood": "curious, serious"
     },
     {
       "id": "s02-trust-state",
@@ -36,7 +39,10 @@
             "and what applications are actually allowed to serve."
           ]
         }
-      ]
+      ],
+      "speed": 0.98,
+      "gap": 0.32,
+      "mood": "curious, serious"
     },
     {
       "id": "s03-publish",
@@ -45,14 +51,17 @@
       "sentences": [
         {
           "text": "In this controlled demo, we start from a trusted baseline and publish one known mutation of real HadeethEnc record 10618.",
-          "tts": "In this controlled demo, we start from a trusted baseline, and publish one known mutation of real HadeethEnc record, one zero six one eight.",
+          "tts": "In this controlled demo, we start from a trusted baseline, and publish one known mutation of real HadeethEnc record one oh six one eight.",
           "captions": [
             "In this controlled demo, we start from a trusted baseline",
             "and publish one known mutation",
             "of real HadeethEnc record 10618."
           ]
         }
-      ]
+      ],
+      "speed": 1.02,
+      "gap": 0.3,
+      "mood": "engaged, forward-moving"
     },
     {
       "id": "s04-pipeline",
@@ -70,7 +79,10 @@
             "and evaluates deterministic policy."
           ]
         }
-      ]
+      ],
+      "speed": 1.03,
+      "gap": 0.28,
+      "mood": "engaged, forward-moving"
     },
     {
       "id": "s05-exact-change",
@@ -91,7 +103,10 @@
             "an explicit exception disappears."
           ]
         }
-      ]
+      ],
+      "speed": 0.95,
+      "gap": 0.5,
+      "mood": "precise"
     },
     {
       "id": "s06-regression",
@@ -116,7 +131,10 @@
             "All three comparisons were classified materially different."
           ]
         }
-      ]
+      ],
+      "speed": 0.99,
+      "gap": 0.4,
+      "mood": "analytical, confident"
     },
     {
       "id": "s07-blast-radius",
@@ -136,7 +154,10 @@
             "and one protected application shows material behavioral impact."
           ]
         }
-      ]
+      ],
+      "speed": 1.04,
+      "gap": 0.26,
+      "mood": "strongest momentum"
     },
     {
       "id": "s08-gateway",
@@ -151,13 +172,16 @@
         },
         {
           "text": "POL-002 quarantines the candidate, while the previous trusted version continues serving without interruption.",
-          "tts": "P O L zero zero two quarantines the candidate, while the previous trusted version continues serving without interruption.",
+          "tts": "Policy zero zero two quarantines the candidate, while the previous trusted version continues serving without interruption.",
           "captions": [
             "POL-002 quarantines the candidate,",
             "while the previous trusted version continues serving without interruption."
           ]
         }
-      ]
+      ],
+      "speed": 0.98,
+      "gap": 0.45,
+      "mood": "decisive"
     },
     {
       "id": "s09-human-review",
@@ -177,7 +201,10 @@
             "or replace expert judgment."
           ]
         }
-      ]
+      ],
+      "speed": 0.95,
+      "gap": 0.45,
+      "mood": "calm, authoritative"
     },
     {
       "id": "s10-close",
@@ -190,7 +217,10 @@
             "Istithbat. Know when trusted knowledge changes."
           ]
         }
-      ]
+      ],
+      "speed": 0.94,
+      "gap": 0.3,
+      "mood": "resolved"
     }
   ]
 }

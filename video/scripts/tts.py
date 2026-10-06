@@ -27,7 +27,7 @@ from kokoro_onnx import Kokoro
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = json.loads((ROOT / "src/script.json").read_text())
 KDIR = Path(os.environ.get("KOKORO_DIR", ROOT / ".kokoro"))
-VOICE = os.environ.get("KOKORO_VOICE", "am_michael")
+VOICE = os.environ.get("KOKORO_VOICE", "am_fenrir")
 BASE_SPEED = float(os.environ.get("KOKORO_SPEED", "1.0"))
 LEAD_IN, GAP, TAIL = 0.35, 0.32, 0.25  # seconds
 
@@ -59,11 +59,13 @@ out_scenes = []
 
 for sc in SCRIPT["scenes"]:
     window = sc["end"] - sc["start"]
-    speed = BASE_SPEED
+    # per-scene delivery (mood arc): base pace and the pause between sentences, from script.json
+    speed = sc.get("speed", BASE_SPEED)
+    GAP = sc.get("gap", 0.32)
     while True:
         clips = [speak(s.get("tts", s["text"]), speed) for s in sc["sentences"]]
         need = LEAD_IN + sum(len(c) / SR for c in clips) + GAP * (len(clips) - 1) + TAIL
-        if need <= window or speed >= 1.12:
+        if need <= window or speed >= sc.get("speed", BASE_SPEED) + 0.1:
             break
         speed = round(speed + 0.04, 2)
     if need > window:

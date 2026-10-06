@@ -82,8 +82,11 @@ https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0) write
 `public/audio/voiceover.wav` and `src/narration.json`. Captions and on-screen sync follow
 automatically.
 
-- **Voice:** Kokoro `am_michael`, an adult male with a calm, documentary delivery. It was picked from
-  an audition of ten male voices transcribed by Whisper-small; all ten were 100% intelligible.
+- **Voice:** Kokoro `am_fenrir` (male, US), chosen from a six-voice audition (`scripts/audition.py`).
+  A per-scene pace and pause (`speed`/`gap` in `src/script.json`) gives the delivery a restrained arc:
+  curious → forward-moving → precise → analytical → momentum → decisive → calm → resolved.
+- **Spoken IDs:** `10618` is said "one oh six one eight", `POL-002` "Policy zero zero two" (hidden
+  `tts` text); the screen and captions keep the exact notation.
 - **Istithbat (استثبات):** spoken from the explicit IPA `istiθbˈaːt`, which follows the Arabic sounds
   one for one: i‑s‑t‑i‑θ‑b‑aː‑t. That gives a real *th* (ث), a clear *b*, a long final *ā*, and
   stress on the final long syllable. The same voice says it inside the same sentence, so there is no
