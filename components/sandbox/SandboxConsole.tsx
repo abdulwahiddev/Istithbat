@@ -6,12 +6,15 @@ import { demoStages, pipelineFingerprint, stageStatus } from '@/lib/contracts/sa
 import { ExactDiff } from '@/components/strata/ExactDiff';
 import { Icon } from '@/components/strata/icons';
 import { dayTime, versionHint, versionText } from '@/components/strata/format';
-import { Band, Chip, Dk, HeadRow, Kv, Mk, Mono, PageHeader, Rail, Sep, type Layer, type Tone } from '@/components/strata/primitives';
+import { Band, Chip, HeadRow, Kv, Mk, Mono, Rail, SyntheticRow, type Layer, type Tone } from '@/components/strata/primitives';
+import type { SandboxScenario } from '@/app/(sandbox)/sandbox/scenario';
 
 /**
- * Hadith Evidence Sandbox: the controlled synthetic upstream source, presented in the Strata
- * product shell. The data flow is unchanged: state is read from /api/sandbox/status, the pipeline
- * is polled from /api/pipeline/{id}, and publish/reset require the demo-control session.
+ * Demo sandbox: the operator console for the controlled test. One flow, always stated:
+ * unlock demo control → clean baseline → publish the controlled candidate → watch Istithbat → open
+ * the incident. The data flow is unchanged: state is read from /api/sandbox/status, the pipeline is
+ * polled from /api/pipeline/{id}, and publish/reset require the demo-control session. Scenario
+ * facts (fixtures, versions, the changed field and its exact values) come from the server.
  */
 function signalDemoChange(runId: string | null) {
   // Notify other open Istithbat tabs to re-read; never manufacture a backend state.
@@ -33,9 +36,12 @@ const statusTone = (s: string | null | undefined): Tone =>
   !s ? 'n4' : /QUARANTINED|REJECTED|FAILED/.test(s) ? 'co' : /TRUSTED|HEALTHY|SERVING/.test(s) ? 'tq' : /ANALYZING|NEEDS|DEGRADED|PENDING/.test(s) ? 'am' : 'n4';
 const STAGE_LAYER: Record<string, Layer> = { Detect: 'det', Understand: 'ai', Test: 'det', Trace: 'det', Contain: 'pol' };
 const STAGE_HREF: Record<string, string> = { Detect: '#source', Understand: '#advisory', Test: '#behavior', Trace: '/blast-radius', Contain: '#containment' };
-const BASELINE_JUDGMENT = 'إسناده صحيح', CANDIDATE_JUDGMENT = 'صحيح';
+const vlab = (v: Version) => (v ? versionText(v.label, v.revision, 'label') : '—');
+const FLOW = 'Detect → Understand → Test → Trace → Contain → Human decision';
 
-export function SandboxConsole() {
+type Stage = 'loading' | 'locked' | 'ready' | 'published' | 'off-baseline' | 'running';
+
+export function SandboxConsole({ scenario: sc }: { scenario: SandboxScenario }) {
   const [state, setState] = useState<State | null>(null);
   const [auth, setAuth] = useState(false);
   const [configured, setConfigured] = useState(true);
@@ -100,7 +106,7 @@ export function SandboxConsole() {
   async function action(kind: 'publish' | 'reset') {
     setBusy(true); setError(''); setNotice('');
     try {
-      const result = await readJson(kind === 'publish' ? '/api/sandbox/publish' : '/api/demo/reset', { method: 'POST', headers: { 'content-type': 'application/json' }, body: kind === 'publish' ? JSON.stringify({ fixture: 'had-4821.v14.json' }) : '{}' });
+      const result = await readJson(kind === 'publish' ? '/api/sandbox/publish' : '/api/demo/reset', { method: 'POST', headers: { 'content-type': 'application/json' }, body: kind === 'publish' ? JSON.stringify({ fixture: sc.candidateFixture }) : '{}' });
       setNotice(kind === 'reset' ? 'Demo reset to v13. Audit history is retained.' : result.status === 'NO_CHANGE' ? 'Already published: the existing observation and pipeline are reused.' : 'Published upstream. Source update sent to Istithbat.');
       await readState(); signalDemoChange(result.runId ?? null); setPollEpoch((n) => n + 1); setConfirmReset(false);
     } catch (err) { setError((err as Error).message); await readState().catch(() => {}); }
@@ -109,122 +115,157 @@ export function SandboxConsole() {
   async function refresh() { setError(''); try { await readState(); setPollEpoch((n) => n + 1); setPaused(false); } catch (err) { setError((err as Error).message); } }
 
   const record = state?.payload.records[0];
-  const judgment = String(record?.content.judgment ?? '');
-  const primaryPublished = state?.fixture === 'had-4821.v14.json';
-  const canPublish = state?.fixture === 'had-4821.v13.json';
+  const judgment = sc.field ? String(record?.content[sc.field] ?? '') : '';
   const run = state?.pipeline;
   const incidentHref = run?.incidentId ? `/incidents/${run.incidentId}` : null;
+  const atBaseline = state?.fixture === sc.baselineFixture;
+  const published = state?.fixture === sc.candidateFixture;
+  const stage: Stage = !state ? 'loading' : running ? 'running' : published ? 'published' : !atBaseline ? 'off-baseline' : auth ? 'ready' : 'locked';
+  const served = state?.served[0];
+  const versions = state ? <>Latest <Mono>{vlab(state.latestSeen)}</Mono> · Trusted <Mono>{vlab(state.trusted)}</Mono> · Served <Mono>{vlab(served?.version ?? null)}</Mono></> : null;
+
+  const unlockForm = (quiet = false) => (
+    <form onSubmit={login} className="sbx-unlock">
+      <label htmlFor="control-password">Demo-control credential</label>
+      <div className="sbx-row">
+        <input id="control-password" className="field" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={busy || !configured} />
+        <button type="submit" className={`btn ${quiet ? 'btn-ghost' : 'btn-go'} sbx-btn-s`} disabled={busy || !configured}><Icon name="lock-open" size={16} />{busy ? 'Checking…' : 'Unlock demo control'}</button>
+      </div>
+      {!configured && <p className="meta" role="note">Demo control is not configured on this server.</p>}
+    </form>
+  );
+  const resetControl = (label: string) => confirmReset ? (
+    <div className="sbx-confirm" role="alertdialog" aria-label="Confirm demo reset">
+      <p><b>This clears the current sandbox investigation.</b> Return upstream, trusted and served to <span className="mono">{sc.baselineLabel}</span>? Audit history is retained.</p>
+      <div className="sbx-row">
+        <button type="button" className="btn btn-go sbx-btn-s" disabled={busy || !auth || running} onClick={() => action('reset')}>{busy ? 'Resetting…' : `Confirm reset to ${sc.baselineLabel}`}</button>
+        <button type="button" className="btn btn-ghost sbx-btn-s" disabled={busy} onClick={() => setConfirmReset(false)}>Cancel</button>
+      </div>
+    </div>
+  ) : <button type="button" className="btn btn-ghost sbx-btn-s" disabled={!auth || busy || running} onClick={() => setConfirmReset(true)}><Icon name="refresh-cw" size={15} />{label}</button>;
+
+  // What the operator sees right now: state, the one next action, and why anything else is unavailable.
+  const panel: Record<Stage, { tone: Tone; chip: string; title: string; body: ReactNode; primary: ReactNode; secondary?: ReactNode }> = {
+    loading: { tone: 'n4', chip: 'Reading', title: 'Reading the demo state…', body: 'The current upstream, trusted and served versions are being read from the persisted state.', primary: null },
+    locked: { tone: 'n4', chip: 'Locked', title: 'Unlock demo control', body: 'Required to reset or publish the controlled test.', primary: unlockForm() },
+    ready: {
+      tone: 'tq', chip: 'Ready to run', title: 'Ready to run', body: <>Clean baseline: upstream, trusted and served are all <span className="mono">{sc.baselineLabel}</span>. Publishing sends one signed source update with the prepared <span className="mono">{sc.candidateLabel}</span> candidate.</>,
+      primary: <button type="button" className="btn btn-go sbx-cta" onClick={() => action('publish')} disabled={busy || !auth || !atBaseline || running}><Icon name="arrow-up-right" size={18} />{busy ? 'Publishing…' : 'Publish controlled candidate'}</button>,
+      secondary: resetControl('Reset baseline'),
+    },
+    published: {
+      tone: 'co', chip: 'Candidate already published', title: 'Candidate already published', body: <>The controlled candidate has been processed; its incident is open for review. Reset to <span className="mono">{sc.baselineLabel}</span> before running the demo again.</>,
+      primary: incidentHref ? <Link prefetch={false} className="btn btn-go sbx-cta" href={incidentHref}><Icon name="arrow-up-right" size={18} />Open incident</Link> : <span className="meta">No incident is recorded for this run.</span>,
+      secondary: auth ? resetControl(`Reset demo to ${sc.baselineLabel}`) : <span className="sbx-why">Unlock demo control to reset the demo. {unlockForm(true)}</span>,
+    },
+    'off-baseline': {
+      tone: 'am', chip: 'Not at baseline', title: 'Reset to the baseline first', body: <>The source is at a different fixture ({state ? <span className="mono">{state.fixture}</span> : '—'}). Reset to <span className="mono">{sc.baselineLabel}</span> to start the controlled test.</>,
+      primary: auth ? resetControl(`Reset demo to ${sc.baselineLabel}`) : unlockForm(),
+    },
+    running: {
+      tone: 'am', chip: 'Processing', title: 'Processing controlled candidate…', body: <>Istithbat is working through the pipeline below. Publishing again is disabled until it finishes.</>,
+      primary: <a className="btn btn-ghost sbx-btn-s" href="#pipeline">Watch progress<Icon name="arrow-right" size={15} style={{ transform: 'rotate(90deg)' }} /></a>,
+    },
+  };
+  const P = panel[stage];
+  const step = (n: number) => {
+    const done = n === 1 ? auth : n === 2 ? atBaseline || published || running : n === 3 ? published || running : n === 4 ? !!run && !running && published : n === 5 && false;
+    const now = { locked: 1, 'off-baseline': auth ? 2 : 1, ready: 3, running: 4, published: 5, loading: 0 }[stage] === n;
+    return done && !now ? 'done' : now ? 'now' : 'todo';
+  };
+  const STEPS = ['Unlock demo control', 'Ensure clean baseline', 'Publish controlled candidate', 'Watch Istithbat process it', 'Open incident'];
 
   return (
     <>
-      <PageHeader
-        crumbs={<><span>Sandbox</span><Sep /><span>Controlled synthetic upstream source</span></>}
-        synthetic
-        title={<>Hadith Evidence<br />Sandbox</>}
-        lede="Publish a controlled change to a synthetic upstream source and watch Istithbat detect it, test it and hold it for a human decision. Its text, evaluator and references are fictional; it is not a religious authority or a real hadith provider."
-        status={state ? <>
-          <Dk k="Upstream publishes"><span title={versionHint(state.payload.upstreamVersionLabel)}><Mono>{versionText(state.payload.upstreamVersionLabel, null, 'label')}</Mono></span></Dk>
-          <Dk k="Latest seen by Istithbat"><span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><Mono>{ver(state.latestSeen)}</Mono>{state.latestSeen?.status && <Chip tone={statusTone(state.latestSeen.status)} small>{human(state.latestSeen.status)}</Chip>}</span></Dk>
-          <Dk k="Trusted"><Mono>{ver(state.trusted)}</Mono></Dk>
-          {state.served.map((g) => (
-            <Dk key={g.appId} k={<>Served · <Mono>{g.appId}</Mono></>}><span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><Mono>{ver(g.version)}</Mono><Chip tone={statusTone(g.gatewayStatus)} small>{human(g.gatewayStatus)}</Chip></span></Dk>
-          ))}
-        </> : <Dk k="Release state"><span className="meta" role="status">Reading persisted state…</span></Dk>}
-      />
+      <section className="sbx-top">
+        <div className="wrap">
+          <p className="sbx-kicker"><Icon name="flask-conical" size={15} />Controlled Istithbat demo</p>
+          <h1 className="sbx-h1">Trigger one known source change and watch Istithbat respond.</h1>
+          <p className="sbx-flowline" aria-label={`Istithbat will ${FLOW}`}>{FLOW.split(' → ').map((x, i) => <span key={x}>{i > 0 && <i aria-hidden="true">→</i>}{x}</span>)}</p>
 
-      {(error || notice) && (
-        <section className="sbx-msgs"><div className="wrap">
-          {error && <p className="sbx-msg err" role="alert"><Icon name="triangle-alert" size={16} />{error}</p>}
-          {notice && <p className="sbx-msg ok" role="status"><Icon name="check" size={16} />{notice}</p>}
-        </div></section>
-      )}
-
-      {/* 01 · the controlled change, with the control session beside the action it unlocks */}
-      <Band id="change" labelledBy="h-change" first>
-        <Rail layer="src" id="h-change" title="Source change">Publish the prepared v14 fixture; only the judgment wording changes.</Rail>
-        <div className="main">
-          <HeadRow title="Controlled source change" right={<button type="button" className="lnk sbx-lnk" onClick={refresh} disabled={busy}><Icon name="refresh-cw" size={14} />Check again</button>} />
-          <div className="sub" style={{ rowGap: 24, alignItems: 'start' }}>
-            <div className="c1-6 plate in l sbx-change" style={{ marginLeft: -24, paddingLeft: 24 }}>
-              <ExactDiff oldValue={BASELINE_JUDGMENT} newValue={CANDIDATE_JUDGMENT} oldLabel="v13" newLabel="v14"
-                oldChip={<Chip tone="tq" small>Baseline fixture</Chip>} newChip={<Chip tone="co" small>Candidate fixture</Chip>} />
-              <div className="sbx-act">
-                {state && primaryPublished
-                  ? <span className="sbx-state"><Chip tone="co">v14 is published upstream</Chip><span className="meta">The observation and its pipeline are preserved; follow them below.</span></span>
-                  : <button type="button" className="btn btn-go" onClick={() => action('publish')} disabled={!state || !auth || busy || !canPublish || running}>
-                      {busy ? 'Publishing…' : 'Publish v14'}<Icon name="arrow-up-right" size={16} />
-                    </button>}
-                {state && !canPublish && !primaryPublished && <p className="meta">This source is beyond the baseline. Reset the demo before starting the primary v13 → v14 scenario.</p>}
-                {state && canPublish && !auth && <p className="meta">Sign in to demo control to publish.</p>}
-              </div>
-            </div>
-            <div className="c7-10 plate in r sbx-control" style={{ marginRight: -24, paddingRight: 24 }}>
-              <ControlHead auth={auth} />
-              {auth ? <>
-                <p className="body">The control session can publish fixtures and reset the demo. It does not grant reviewer permission.</p>
-                <button type="button" className="btn btn-ghost sbx-btn-s" disabled={busy} onClick={signOut}>Sign out of demo control</button>
-              </> : (
-                <form onSubmit={login} className="sbx-form">
-                  <label htmlFor="control-password">Control credential</label>
-                  <input id="control-password" className="field" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={busy || !configured} />
-                  <button type="submit" className="btn btn-go sbx-btn-s" disabled={busy || !configured}>{busy ? 'Checking…' : 'Sign in to demo control'}</button>
-                  {!configured && <p className="meta" role="note">Demo control is not configured on this server.</p>}
-                  <p className="meta">Separate from Reviewer Mode: control publishes and resets fixtures; only a reviewer can sign a decision.</p>
-                </form>
+          {/* Demo run: the operator console */}
+          <div className="plate sbx-run" aria-labelledby="sbx-run-h">
+            <ol className="sbx-steps" aria-label="Demo run">
+              {STEPS.map((t, i) => { const st = step(i + 1); return <li key={t} data-st={st}><span className="sbx-n" aria-hidden="true">{st === 'done' ? <Icon name="check" size={13} stroke={2.4} /> : i + 1}</span><span>{t}</span>{st === 'now' && <span className="sr-only"> (current step)</span>}</li>; })}
+            </ol>
+            <div className="sbx-now" aria-live="polite">
+              <span className="sbx-now-h"><Chip tone={P.tone}>{P.chip}</Chip>{state && <span className="meta">{versions}</span>}</span>
+              <h2 id="sbx-run-h" className="sbx-now-t">{P.title}</h2>
+              <p className="body">{P.body}</p>
+              {P.primary && <div className="sbx-primary">{P.primary}</div>}
+              {P.secondary && <div className="sbx-secondary">{P.secondary}</div>}
+              {auth && stage !== 'locked' && (
+                <p className="meta sbx-session"><Chip tone="tq" small>Demo control active</Chip>Not a reviewer permission. <button type="button" className="sbx-textbtn" disabled={busy} onClick={signOut}>Sign out of demo control</button></p>
               )}
             </div>
           </div>
-        </div>
-      </Band>
 
-      {/* 02 · what Istithbat did with it */}
+          {(error || notice) && <div className="sbx-msgs">
+            {error && <p className="sbx-msg err" role="alert"><Icon name="triangle-alert" size={16} />{error}</p>}
+            {notice && <p className="sbx-msg ok" role="status"><Icon name="check" size={16} />{notice}</p>}
+          </div>}
+        </div>
+      </section>
+
+      {/* What Istithbat did with it */}
       <Band id="pipeline" labelledBy="h-pipe">
         <Rail layer="det" id="h-pipe" title="Pipeline">From the source update to a human review, from persisted steps.</Rail>
         <div className="main">
-          <HeadRow title="Source update → human review" right={run ? <span className="meta">{run.status === 'RUNNING' ? (paused ? 'Live refresh paused · Check again to reconnect' : 'Processing · live from persisted steps') : run.status === 'FAILED_CLOSED' ? 'Failed closed · held for a person' : 'Pipeline complete'}</span> : undefined} />
+          <HeadRow title="Source update → human review" right={<span style={{ display: 'inline-flex', gap: 16, alignItems: 'center' }}>{run && <span className="meta">{run.status === 'RUNNING' ? (paused ? 'Live refresh paused' : 'Processing · live from persisted steps') : run.status === 'FAILED_CLOSED' ? 'Failed closed · held for a person' : 'Pipeline complete'}</span>}<button type="button" className="lnk sbx-lnk" onClick={refresh} disabled={busy}><Icon name="refresh-cw" size={14} />Check again</button></span>} />
           {!state ? <div className="plate"><p className="body" role="status">Reading the current run…</p></div>
             : !run ? (
-              <div className="plate sbx-empty"><Mk layer="det" /><div><b>No pipeline for this source version yet</b><p className="body">Publishing v14 sends a signed source update. Istithbat fetches the upstream source and starts its persisted pipeline here.</p></div></div>
+              <div className="plate sbx-empty"><Mk layer="det" /><div><b>No pipeline for this source version yet</b><p className="body">Publishing the controlled candidate sends a signed source update. Istithbat fetches the upstream source and its persisted pipeline appears here.</p></div></div>
             ) : <>
               <div className="plate" style={{ paddingTop: 24, paddingBottom: 24 }}>
                 <ol className="flow sbx-flow">
-                  {demoStages.map((stage) => {
-                    const status = stageStatus(run, stage.steps);
-                    return <Step key={stage.name} href={incidentHref ? incidentHref + STAGE_HREF[stage.name] : null}
-                      layer={STAGE_LAYER[stage.name]} title={stage.name} sub={stage.description} state={status} now={status === 'Running'} />;
+                  {demoStages.map((stg) => {
+                    const status = stageStatus(run, stg.steps);
+                    return <Step key={stg.name} href={incidentHref ? incidentHref + STAGE_HREF[stg.name] : null} layer={STAGE_LAYER[stg.name]} title={stg.name} sub={stg.description} state={status} now={status === 'Running'} />;
                   })}
                   <Step href={incidentHref ? `${incidentHref}#decision` : null} layer="hum" title="Human decision"
                     sub={run.status === 'RUNNING' ? 'The investigation is still running' : run.status === 'FAILED_CLOSED' ? 'Failed closed · review the recorded failure' : 'AI advises · policy governs · humans decide'}
                     state={run.status === 'RUNNING' ? 'Pending' : run.incidentId ? 'Now' : 'No incident'} now={run.status !== 'RUNNING' && !!run.incidentId} />
                 </ol>
               </div>
-              <div className="sbx-runfoot">
-                <span className="meta">Run <Mono>{run.id.slice(0, 8)}</Mono></span>
-                {incidentHref && <Link prefetch={false} className="btn btn-go sbx-btn-s" href={incidentHref}>Open the incident<Icon name="arrow-up-right" size={16} /></Link>}
-              </div>
+              <div className="sbx-runfoot"><span className="meta">Run <Mono>{run.id.slice(0, 8)}</Mono></span>{incidentHref && <Link prefetch={false} className="lnk" href={incidentHref}>Open incident <Icon name="arrow-up-right" size={14} /></Link>}</div>
               {run.steps.some((s) => s.errorCode) && <p className="sbx-msg err" role="note"><Icon name="triangle-alert" size={16} />Recorded step errors: {run.steps.filter((s) => s.errorCode).map((s) => `${s.step}: ${s.errorCode}`).join('; ')}. A completed pipeline can still include failed analysis steps; the policy decision remains authoritative.</p>}
               {state.lastCheck?.status === 'FAILED' && <p className="sbx-msg err" role="note"><Icon name="triangle-alert" size={16} />The latest source check failed: {state.lastCheck.errorCode}. Published upstream and latest seen may differ.</p>}
             </>}
         </div>
       </Band>
 
-      {/* 03 · the record exactly as the upstream publishes it */}
+      {/* The scenario: derived from the baseline and candidate fixtures on the server */}
+      <Band id="change" labelledBy="h-change">
+        <Rail layer="src" id="h-change" title="The controlled change">Exactly what the candidate changes, field by field.</Rail>
+        <div className="main">
+          <HeadRow title={<>Controlled candidate · <span className="mono">{sc.recordKey}</span></>} right={<span className="meta">{sc.changedFields} of {sc.totalFields} fields changed{sc.field && <> · <span className="mono">{sc.field}</span></>}</span>} />
+          <div className="plate tight">
+            {sc.field ? <ExactDiff oldValue={sc.oldValue} newValue={sc.newValue} oldLabel={sc.baselineLabel} newLabel={sc.candidateLabel}
+              oldChip={<Chip tone="tq" small>Baseline</Chip>} newChip={<Chip tone="co" small>Candidate</Chip>} /> : <p className="body" style={{ padding: '16px 0' }}>The baseline and candidate fixtures are identical.</p>}
+          </div>
+        </div>
+      </Band>
+
+      {/* What the upstream publishes right now */}
       <Band id="source" labelledBy="h-src">
-        <Rail layer="src" id="h-src" title="Upstream">What the synthetic provider publishes right now.</Rail>
+        <Rail layer="src" id="h-src" title="Upstream">What the controlled upstream publishes right now.</Rail>
         <div className="main">
           <HeadRow title="Published source" right={state ? <span className="meta">Last publish or reset · <time dateTime={state.publishedAt}>{dayTime(state.publishedAt)}</time></span> : undefined} />
           {!state ? <div className="plate"><p className="body" role="status">Reading the current source…</p></div> : (
             <div className="sub" style={{ rowGap: 24, alignItems: 'start' }}>
               <div className="c1-6 plate in l sbx-record" style={{ marginLeft: -24, paddingLeft: 24 }}>
-                <span style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}><Chip tone="am" small>Synthetic record</Chip><Mono>{record?.canonical_key}</Mono></span>
+                <span style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>{sc.synthetic && <Chip tone="am" small>Synthetic record</Chip>}<Mono>{record?.canonical_key}</Mono></span>
                 <p className="ar sbx-ar" dir="rtl" lang="ar">{String(record?.content.arabic_text ?? '')}</p>
-                <div className="sbx-judg"><span className="cap">Current judgment</span><span className="ar" dir="rtl" lang="ar">{judgment}</span></div>
+                {sc.field && <div className="sbx-judg"><span className="cap">Current <span className="mono">{sc.field}</span></span><span className="ar" dir="rtl" lang="ar">{judgment}</span></div>}
               </div>
               <div className="c7-10 plate in r" style={{ marginRight: -24, paddingRight: 24 }}>
                 <Kv k="Published label"><span title={versionHint(state.payload.upstreamVersionLabel)}><Mono>{versionText(state.payload.upstreamVersionLabel, null, 'label')}</Mono></span></Kv>
                 <Kv k="Connector health"><Chip tone={statusTone(state.health)} small>{human(state.health)}</Chip></Kv>
-                <Kv k="Latest seen by Istithbat"><Mono>{ver(state.latestSeen)}</Mono></Kv>
+                <Kv k="Latest seen by Istithbat"><span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}><Mono>{ver(state.latestSeen)}</Mono>{state.latestSeen?.status && <Chip tone={statusTone(state.latestSeen.status)} small>{human(state.latestSeen.status)}</Chip>}</span></Kv>
+                <Kv k="Trusted"><Mono>{ver(state.trusted)}</Mono></Kv>
+                {state.served.map((g) => <Kv key={g.appId} k={<>Served · <Mono>{g.appId}</Mono></>}><span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}><Mono>{ver(g.version)}</Mono><Chip tone={statusTone(g.gatewayStatus)} small>{human(g.gatewayStatus)}</Chip></span></Kv>)}
                 <Kv k="Fixture"><Mono>{state.fixture}</Mono></Kv>
+                {sc.synthetic && <SyntheticRow />}
               </div>
             </div>
           )}
@@ -232,38 +273,19 @@ export function SandboxConsole() {
         </div>
       </Band>
 
-      {/* 04 · reset, deliberately last and confirmed */}
-      <Band id="reset" labelledBy="h-reset">
-        <Rail layer="pol" id="h-reset" title="Reset">Return the demo to its baseline.</Rail>
+      {/* About: the longer explanation, below the operator flow */}
+      <Band id="about" labelledBy="h-about">
+        <Rail layer="pol" id="h-about" title="About this sandbox">How the controlled test is isolated.</Rail>
         <div className="main">
-          <div className="plate sbx-reset">
-            <div>
-              <b>Reset the demo to v13</b>
-              <p className="body">Returns upstream to v13, restores trusted and served v13, and clears sandbox candidate incidents, reviews and pipeline state. Existing audit history is retained.</p>
-              {!auth && <p className="meta">Requires the demo-control session.</p>}
-              {running && <p className="meta">Wait for the active pipeline to finish before resetting.</p>}
-            </div>
-            {confirmReset ? (
-              <div className="sbx-confirm" role="alertdialog" aria-label="Confirm demo reset">
-                <p><b>This clears the current sandbox investigation.</b> Reset now?</p>
-                <div className="sbx-row">
-                  <button type="button" className="btn btn-go sbx-btn-s" disabled={busy || !auth || running} onClick={() => action('reset')}>{busy ? 'Resetting…' : 'Confirm reset to v13'}</button>
-                  <button type="button" className="btn btn-ghost sbx-btn-s" disabled={busy} onClick={() => setConfirmReset(false)}>Cancel</button>
-                </div>
-              </div>
-            ) : <button type="button" className="btn btn-ghost sbx-btn-s" disabled={!auth || busy || running} onClick={() => setConfirmReset(true)}>Reset demo to v13</button>}
+          <div className="plate sbx-about">
+            <p className="body">The sandbox is a controlled upstream source inside the same Istithbat app and backend. Publishing replaces its current fixture with the prepared candidate and sends one signed source update; Istithbat then fetches, fingerprints, analyses, tests, traces and applies policy exactly as for any source, and a human decides.</p>
+            <p className="body">Demo control can publish and reset fixtures only. It is separate from Reviewer Mode: it cannot sign a review decision. Reset returns upstream, trusted and served to the baseline and clears sandbox candidate incidents, reviews and pipeline state; the audit history is retained.</p>
+            {sc.synthetic && <p className="meta">Controlled fixtures only. Their text, evaluator and references are fictional; this is not a religious authority or a real hadith provider.</p>}
           </div>
-          <p className="meta">Controlled fixtures only. No real upstream religious content is edited.</p>
         </div>
       </Band>
       <div style={{ height: 96 }} />
     </>
-  );
-}
-
-function ControlHead({ auth }: { auth: boolean }) {
-  return (
-    <span className="sbx-chead"><b>Demo control</b>{auth ? <Chip tone="tq" small>Session active</Chip> : <span className="chip" style={{ color: 'var(--ink-2)' }}><Icon name="lock" size={14} />Locked</span>}</span>
   );
 }
 
