@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { IncidentAnalysisSchema } from '@/lib/ai/schemas/incident-analysis';
-import { BehaviorDeltaSchema } from '@/lib/ai/schemas/regression';
+import { BehaviorDeltaSchema, QaAnswerSchema } from '@/lib/ai/schemas/regression';
 export const VersionStatus=z.enum(['PENDING','ANALYZING','QUARANTINED','TRUSTED','REJECTED','SUPERSEDED']);
 export const IncidentStatus=z.enum(['ANALYZING','NEEDS_REVIEW','QUARANTINED','RESOLVED']);
 export const RiskLevel=z.enum(['LOW','MEDIUM','HIGH','CRITICAL']);
@@ -64,7 +64,21 @@ export const GatewayInventoryItem=z.object({appId:z.string().nullable(),appName:
 export const GatewayInventory=z.object({items:z.array(GatewayInventoryItem)});
 export const AuditEvent=z.object({id:z.string(),eventType:z.string(),entityType:z.string(),entityId:z.string(),actor:z.string(),metadata:z.record(z.string(),z.unknown()),idempotencyKey:z.string().nullable().optional(),createdAt:z.string()});
 export const AuditPage=z.object({events:z.array(AuditEvent),nextCursor:z.string().nullable()});
-export const RegressionDetailResponse=z.object({incidentId:z.string(),regressions:z.array(RegressionDetail.extend({comparison:BehaviorDeltaSchema.nullable()}))});
+export const RegressionComparisonEvidence=z.object({
+  deterministic:z.object({old_answer_sha256:z.string(),new_answer_sha256:z.string(),
+    answer_text_changed:z.boolean(),normalized_text_changed:z.boolean(),cited_keys_changed:z.boolean(),
+    structured_output_changed:z.boolean(),base_record_hashes:z.array(z.string()),candidate_record_hashes:z.array(z.string())}),
+  advisory:BehaviorDeltaSchema.nullable(),
+  classification:z.enum(['NO_CHANGE','NON_MATERIAL_CHANGE','MATERIAL_CHANGE','INCONCLUSIVE']),
+  classification_source:z.enum(['deterministic-identical-output','structured-ai']),
+  matched_config:z.boolean(),model_config_hash:z.string().nullable(),
+});
+export const RegressionVersionIdentity=z.object({id:z.string(),label:z.string(),revisionNumber:z.number().int()});
+export const RegressionDetailResponse=z.object({incidentId:z.string(),regressions:z.array(RegressionDetail.extend({
+  oldOutput:QaAnswerSchema.nullable(),newOutput:QaAnswerSchema.nullable(),
+  comparison:RegressionComparisonEvidence.nullable(),
+  oldVersion:RegressionVersionIdentity,newVersion:RegressionVersionIdentity,
+}))});
 export const Endpoints={sandboxCurrent:'/api/sandbox/current',sandboxPublish:'/api/sandbox/publish',demoReset:'/api/demo/reset',demoQa:'/api/demo/qa',webhook:'/api/webhooks/source-update',sources:'/api/sources',source:(sourceId:string)=>`/api/sources/${encodeURIComponent(sourceId)}`,sourceCheck:(sourceId:string)=>`/api/sources/${encodeURIComponent(sourceId)}/check`,incidents:'/api/incidents',incident:(incidentId:string)=>`/api/incidents/${encodeURIComponent(incidentId)}`,incidentBlastRadius:(incidentId:string)=>`/api/incidents/${encodeURIComponent(incidentId)}/blast-radius`,incidentRegressions:(incidentId:string)=>`/api/incidents/${encodeURIComponent(incidentId)}/regressions`,incidentReview:(incidentId:string)=>`/api/incidents/${encodeURIComponent(incidentId)}/review`,pipeline:(runId:string)=>`/api/pipeline/${encodeURIComponent(runId)}`,gatewayInventory:'/api/gateway',gateway:(appId:string,sourceId:string)=>`/api/gateway/${encodeURIComponent(appId)}/sources/${encodeURIComponent(sourceId)}`,audit:'/api/audit'};
 export type SourceSummary=z.infer<typeof SourceSummary>;
 export type SourceDetail=z.infer<typeof SourceDetail>;
