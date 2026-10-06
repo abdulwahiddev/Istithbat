@@ -101,7 +101,7 @@ export const Sep = () => <span aria-hidden="true">/</span>;
 /** The controlled-synthetic notice (D-13), as a fact in the case's state panel rather than in navigation. */
 export function SyntheticRow() {
   return (
-    <div className="kv"><dt>Source data</dt><dd><span className="pill" style={{ padding: '2px 10px', border: '1px solid var(--am-soft)', background: 'var(--am-soft)', color: 'var(--am-ink)', fontSize: 12.5 }}><Dot tone="am" />Synthetic, not real hadith data</span></dd></div>
+    <div className="kv"><dt>Source data</dt><dd><span className="pill" style={{ padding: '2px 10px', border: '1px solid var(--am-soft)', background: 'var(--am-soft)', color: 'var(--am-ink)', fontSize: 12.5 }}><Dot tone="am" />Controlled test data · see source provenance</span></dd></div>
   );
 }
 

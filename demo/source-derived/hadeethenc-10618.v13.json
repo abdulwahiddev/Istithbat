@@ -1,0 +1,225 @@
+{
+  "upstreamVersionLabel": "v13",
+  "upstreamPublishedAt": "2026-10-06T00:00:00.000Z",
+  "metadata": {
+    "synthetic": true,
+    "source_derived": true,
+    "scenario": "hadeethenc-10618",
+    "provider": "Istithbat controlled integrity simulator",
+    "version_scope": "Sandbox test versions; not HadeethEnc-published versions",
+    "original_provider_version": "unversioned",
+    "disclosure": "Original record from HadeethEnc · candidate mutation created by Istithbat for demonstration and was not published by HadeethEnc."
+  },
+  "records": [
+    {
+      "canonical_key": "SANDBOX-HENC-10618",
+      "upstream_record_id": "10618",
+      "content": {
+        "ar": {
+          "attribution": "رواه أبو داود والترمذي وأحمد",
+          "categories": [
+            "458"
+          ],
+          "explanation": "كان النبي صلى الله عليه وسلم نازلاً في الأبطح في أعلى مكة، فخرج بلال بفضل وَضُوءِ النبي صلى الله عليه وسلم ، وجعَلَ الناس يتبركون به، وَأذَّن بلال.\nقال أبو جحيفة: فجعلت أتتبع فم بلال، وهو يلتفت يميناً وشمالا عند قوله \"حي على الفلاح\"؛ ليسمع الناس، حيث إن الصيغتين حث على المجيء إلى الصلاة.\nثم رُكِزت لرسول الله صلى الله عليه وسلم رمح قصيرة؛ لتكون سترة له في صلاته، فصلى الظهر ركعتين.\nثم لم يزل يصلى الرباعية ركعتين حتى رجع إلى المدينة، لكونه مسافراً.",
+          "grade": "صحيح دون قوله: (ولم يستدر)",
+          "hadeeth": "عن أبي جحيفة رضي الله عنه قال: رأيت بلالًا يؤذِّن ويدور ويتبع فاه هاهنا، وهاهنا، وإصبعاه في أُذنيه، ورسول الله صلى الله عليه وسلم في قُبَّةٍ له حمراء -أُراه قال: من أَدَمٍ- فخرج بلال بين يديه بِالعَنَزَةِ فركزها بِالبَطْحَاءِ، «فصلى إليها رسول الله صلى الله عليه وسلم، يمر بين يديه الكلب والحمار، وعليه حُلَّةٌ حمراء»، كأني أنظر إلى بَرِيقِ ساقيه. وفي رواية: رأيت بلالًا خرج إلى الأبطح فأذَّن فلما بلغ حي على الصلاة، حي على الفلاح، لوى عنقه يمينا وشمالا، ولم يستدِر.",
+          "hints": [
+            "مشروعية الالتفات في الحيعلتين يميناً وشمالاً.",
+            "ظاهر الحديث أنه يلتفت في كل الجملة (حي على..) لا في بعضها، وأما ما يفعله بعض المؤذنين من أنه يقول: (حيَّ على) ثم يلتفت، فهذا خلاف السنة.",
+            "للالتفات فائدتان: الأولى: أنه أرفع للصوت وأبلغ في الإعلام، لا سيما في الحيعلتين؛ لأنهما خطاب ونداء، وغيرهما من الألفاظ ذِكْرٌ. الثانية: أنه علامة للمؤذن، ليعرف من يراه على بُعْدٍ أو من كان به صمم أنه يؤذن.",
+            "مشروعية وضع الإصبعين في الأذنين لقوله: (وإصبعاه في أذنيه) لأنه أجمع للصوت، ولأنه علامة على المؤذن.",
+            "مشروعية الأذان، وأنه من شعائر الدين الظاهرة.",
+            "استحباب استقبال القبلة في الأذان."
+          ],
+          "id": "10618",
+          "reference": "تسهيل الإلمام بفقه الأحاديث من بلوغ المرام للحافظ أحمد بن علي بن حجر العسقلاني، شرحه الشيخ د. صالح بن فوزان الفوزان، اعتنى بإخراجه: عبد السلام السليمان، ط 1 ،1427هـ/2006م.\nتوضيح الأحكام من بلوغ المرام للحافظ أحمد بن علي بن حجر العسقلاني، شرحه الشيخ عبدالله بن عبد الرحمن البسام، مكتبة الأسدي، مكة، ط الخامسة 1423هـ.\nمنحة العلام في شرح بلوغ المرام، تأليف: عبد الله بن صالح الفوزان، ط 1، 1427هـ، دار ابن الجوزي، الرياض.\nسنن الترمذي لأبي عيسى محمد بن عيسى الترمذي، تحقيق: بشار عواد معروف، دار الغرب الإسلامي – بيروت.\nمسند الإمام أحمد بن حنبل, المؤلف: أبو عبد الله أحمد بن حنبل الشيباني، المحقق: شعيب الأرنؤوط - عادل مرشد، وآخرون, إشراف: د عبد الله بن عبد المحسن التركي, الناشر: مؤسسة الرسالة، الطبعة: الأولى،1421هـ - 2001 م.\nسنن أبي داود, المؤلف: أبو داود سليمان السِّجِسْتاني، المحقق: شعَيب الأرنؤوط - محَمَّد كامِل قره بللي, الناشر: دار الرسالة العالمية, الطبعة: الأولى، 1430 هـ - 2009 م.\nإرواء الغليل في تخريج أحاديث منار السبيل، محمد ناصر الدين الألباني، المكتب الإسلامي – بيروت، الثانية - 1405هـ.\nصحيح أبي داود, المؤلف:  محمد ناصر الدين الألباني، الناشر: مؤسسة غراس للنشر والتوزيع، الكويت, الطبعة: الأولى، 1423 هـ - 2002 م.\nتحفة الأحوذي بشرح جامع الترمذي، محمد عبد الرحمن بن عبد الرحيم المباركفوري، دار الكتب العلمية - بيروت.\nتيسير العلام شرح عمدة الأحكام للبسام، حققه وعلق عليه وخرج أحاديثه وصنع فهارسه: محمد صبحي بن حسن حلاق، ط10، مكتبة الصحابة، الإمارات - مكتبة التابعين، القاهرة، 1426 هـ.",
+          "title": "رأيت بلالا خرج إلى الأبطح فأذن فلما بلغ حي على الصلاة، حي على الفلاح، لوى عنقه يمينا وشمالا، ولم يستدر",
+          "translations": [
+            "ar",
+            "bn",
+            "bs",
+            "en",
+            "es",
+            "fa",
+            "fr",
+            "id",
+            "tr",
+            "ur",
+            "zh",
+            "hi",
+            "tl",
+            "ug",
+            "ha"
+          ],
+          "words_meanings": [
+            {
+              "meaning": " كان ذلك في حجة الوداع، والنبي -صلّى الله عليه وسلّم- نازل في الأبطح بمكة.",
+              "word": "رأيت بلالاً يؤذن"
+            },
+            {
+              "meaning": " أي: أتابع ببصري فمه يميناً وشمالاً؛ لأنه كان يتتبع بفيه الناحيتين.",
+              "word": "ويتبع فاه هاهنا، وهاهنا"
+            },
+            {
+              "meaning": " مثنى إصبع، والمراد هنا: الأَنْمُلَةُ.",
+              "word": "وإصبعاه في أذنيه"
+            },
+            {
+              "meaning": " يقال: دار الشيء يدور دوراً ودوراناً: تحول وعاد على ما كان عليه، فالمراد بها: لم يدر بجملة بدنه، فالاستدارة تختلف عن الالتفات.",
+              "word": "ولم يستدر"
+            },
+            {
+              "meaning": " (ها هنا وههنا) أَيْ يَمِينًا وَشِمَالًا.",
+              "word": "هاهنا وهاهنا"
+            },
+            {
+              "meaning": " أي أظنه.",
+              "word": "أراه"
+            },
+            {
+              "meaning": " جمع أديم أي جلد.",
+              "word": "من أَدَم"
+            },
+            {
+              "meaning": " عصا أقصر من الرمح لها سنان وقيل هي الحربة القصيرة.",
+              "word": "بالعنزة"
+            },
+            {
+              "meaning": " أي غرزها.",
+              "word": "فركزها"
+            },
+            {
+              "meaning": " يعني بطحاء مكة وهو موضع خارج مكة وهو الذي يقال له الأبطح.",
+              "word": "بالبطحاء"
+            },
+            {
+              "meaning": " إزار ورداء.",
+              "word": "حلة حمراء"
+            }
+          ]
+        },
+        "en": {
+          "attribution": "Narrated by At-Termedhy - Narrated by Abu Daoud",
+          "attribution_ar": "رواه أبو داود والترمذي وأحمد",
+          "categories": [
+            "458"
+          ],
+          "explanation": "The Prophet (may Allah's peace and blessings be upon him) was staying at Al-Abtah in Makkah. Bilāl came out with the water remaining from the ablution of the Prophet (may Allah's peace and blessings be upon him) and the people came to seek blessings from it. Then, Bilāl made the Adhān. Abu Juhayfah said: I was looking at Bilāl's mouth as he turned right and left upon saying \"Come to success,\" so that the people would hear it. These two phrases are to urge people to come to prayer. Then, a short stick was stuck in the ground for the Messenger of Allah (may Allah's peace and blessings be upon him) to act as a screen for him during his prayer. He then offered two Rak‘ahs for Zhuhr prayer and continued to offer two Rak‘ahs for all the four unit prayers until he returned to Madīnah. The prayers were shortened in that way because he was traveling.",
+          "explanation_ar": "كان النبي صلى الله عليه وسلم نازلاً في الأبطح في أعلى مكة، فخرج بلال بفضل وَضُوءِ النبي صلى الله عليه وسلم ، وجعَلَ الناس يتبركون به، وَأذَّن بلال.\nقال أبو جحيفة: فجعلت أتتبع فم بلال، وهو يلتفت يميناً وشمالا عند قوله \"حي على الفلاح\"؛ ليسمع الناس، حيث إن الصيغتين حث على المجيء إلى الصلاة.\nثم رُكِزت لرسول الله صلى الله عليه وسلم رمح قصيرة؛ لتكون سترة له في صلاته، فصلى الظهر ركعتين.\nثم لم يزل يصلى الرباعية ركعتين حتى رجع إلى المدينة، لكونه مسافراً.",
+          "grade": "Authentic hadith",
+          "grade_ar": "صحيح دون قوله: (ولم يستدر)",
+          "hadeeth": "Abu Juhayfah (may Allah be pleased with him) reported: I saw Bilāl make the Adhān, turning his mouth from side to side, and both his fingers were in his ears. The Messenger of Allah (may Allah's peace and blessings be upon him) was in a red tent. (I think the narrator said that it was made of leather). Bilāl went in front of him with a stick and planted it in the flat ground. Then the Messenger of Allah (may Allah's peace and blessings be upon him) prayed facing it, while dogs and donkeys passed in front of him, and he was wearing a red garment. It is as though I see the glitter of his shins.\" Another narration reads: \"I saw Bilāl going out to Al-Abtah to make Adhān. When he reached: \"Come to prayer! Come to success!\" he turned his neck right and left and did not turn around.\"",
+          "hadeeth_ar": "عن أبي جحيفة رضي الله عنه قال: رأيت بلالًا يؤذِّن ويدور ويتبع فاه هاهنا، وهاهنا، وإصبعاه في أُذنيه، ورسول الله صلى الله عليه وسلم في قُبَّةٍ له حمراء -أُراه قال: من أَدَمٍ- فخرج بلال بين يديه بِالعَنَزَةِ فركزها بِالبَطْحَاءِ، «فصلى إليها رسول الله صلى الله عليه وسلم، يمر بين يديه الكلب والحمار، وعليه حُلَّةٌ حمراء»، كأني أنظر إلى بَرِيقِ ساقيه. وفي رواية: رأيت بلالًا خرج إلى الأبطح فأذَّن فلما بلغ حي على الصلاة، حي على الفلاح، لوى عنقه يمينا وشمالا، ولم يستدِر.",
+          "hints": [],
+          "hints_ar": [
+            "مشروعية الالتفات في الحيعلتين يميناً وشمالاً.",
+            "ظاهر الحديث أنه يلتفت في كل الجملة (حي على..) لا في بعضها، وأما ما يفعله بعض المؤذنين من أنه يقول: (حيَّ على) ثم يلتفت، فهذا خلاف السنة.",
+            "للالتفات فائدتان: الأولى: أنه أرفع للصوت وأبلغ في الإعلام، لا سيما في الحيعلتين؛ لأنهما خطاب ونداء، وغيرهما من الألفاظ ذِكْرٌ. الثانية: أنه علامة للمؤذن، ليعرف من يراه على بُعْدٍ أو من كان به صمم أنه يؤذن.",
+            "مشروعية وضع الإصبعين في الأذنين لقوله: (وإصبعاه في أذنيه) لأنه أجمع للصوت، ولأنه علامة على المؤذن.",
+            "مشروعية الأذان، وأنه من شعائر الدين الظاهرة.",
+            "استحباب استقبال القبلة في الأذان."
+          ],
+          "id": "10618",
+          "title": "I saw Bilāl going out to Al-Abtah to make Adhān. When he reached: \"Come to prayer! Come to success!\" He turned his neck right and left and did not turn around",
+          "translations": [
+            "ar",
+            "bn",
+            "bs",
+            "en",
+            "es",
+            "fa",
+            "fr",
+            "id",
+            "tr",
+            "ur",
+            "zh",
+            "hi",
+            "tl",
+            "ug",
+            "ha"
+          ],
+          "words_meanings_ar": [
+            {
+              "meaning": " كان ذلك في حجة الوداع، والنبي -صلّى الله عليه وسلّم- نازل في الأبطح بمكة.",
+              "word": "رأيت بلالاً يؤذن"
+            },
+            {
+              "meaning": " أي: أتابع ببصري فمه يميناً وشمالاً؛ لأنه كان يتتبع بفيه الناحيتين.",
+              "word": "ويتبع فاه هاهنا، وهاهنا"
+            },
+            {
+              "meaning": " مثنى إصبع، والمراد هنا: الأَنْمُلَةُ.",
+              "word": "وإصبعاه في أذنيه"
+            },
+            {
+              "meaning": " يقال: دار الشيء يدور دوراً ودوراناً: تحول وعاد على ما كان عليه، فالمراد بها: لم يدر بجملة بدنه، فالاستدارة تختلف عن الالتفات.",
+              "word": "ولم يستدر"
+            },
+            {
+              "meaning": " (ها هنا وههنا) أَيْ يَمِينًا وَشِمَالًا.",
+              "word": "هاهنا وهاهنا"
+            },
+            {
+              "meaning": " أي أظنه.",
+              "word": "أراه"
+            },
+            {
+              "meaning": " جمع أديم أي جلد.",
+              "word": "من أَدَم"
+            },
+            {
+              "meaning": " عصا أقصر من الرمح لها سنان وقيل هي الحربة القصيرة.",
+              "word": "بالعنزة"
+            },
+            {
+              "meaning": " أي غرزها.",
+              "word": "فركزها"
+            },
+            {
+              "meaning": " يعني بطحاء مكة وهو موضع خارج مكة وهو الذي يقال له الأبطح.",
+              "word": "بالبطحاء"
+            },
+            {
+              "meaning": " إزار ورداء.",
+              "word": "حلة حمراء"
+            }
+          ]
+        }
+      },
+      "metadata": {
+        "synthetic": true,
+        "source_derived": true,
+        "scenario": "hadeethenc-10618",
+        "original_provenance": {
+          "hadeeth_id": "10618",
+          "languages": [
+            "ar",
+            "en"
+          ],
+          "provider": "HadeethEnc.com",
+          "source_urls": {
+            "ar": "https://hadeethenc.com/api/v1/hadeeths/multiple/?language=ar&ids=10572,10573,10574,10575,10576,10596,10599,10600,10601,10602,10603,10604,10607,10609,10612,10615,10616,10618,10620,10621",
+            "en": "https://hadeethenc.com/api/v1/hadeeths/multiple/?language=en&ids=10574,10575,10576,10596,10599,10600,10601,10602,10603,10604,10607,10609,10612,10615,10616,10618,10620,10621,10622,10623"
+          },
+          "synthetic": false
+        },
+        "original_record_hash": "2af183fd55654a6869c91cc9ed407b9890a801b39ce6c7b78ab309cca6e72bea",
+        "acquisition": [
+          {
+            "language": "ar",
+            "url": "https://hadeethenc.com/api/v1/hadeeths/multiple/?language=ar&ids=10572,10573,10574,10575,10576,10596,10599,10600,10601,10602,10603,10604,10607,10609,10612,10615,10616,10618,10620,10621",
+            "raw_response_file": "response-0301.json",
+            "body_sha256": "3c558945e5e653de03d466670bba684fd69f8147698bef8ac2f864d8c35b1f4d"
+          },
+          {
+            "language": "en",
+            "url": "https://hadeethenc.com/api/v1/hadeeths/multiple/?language=en&ids=10574,10575,10576,10596,10599,10600,10601,10602,10603,10604,10607,10609,10612,10615,10616,10618,10620,10621,10622,10623",
+            "raw_response_file": "response-0478.json",
+            "body_sha256": "b4d34dde19fc37c1879501107ef9758b35fcc28c0b96b3a2a5f80932a4dde899"
+          }
+        ],
+        "disclosure": "Original record from HadeethEnc · candidate mutation created by Istithbat for demonstration and was not published by HadeethEnc."
+      }
+    }
+  ]
+}

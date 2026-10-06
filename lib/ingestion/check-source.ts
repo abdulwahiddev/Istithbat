@@ -9,6 +9,7 @@ import { downloadSnapshot, uploadImmutable } from '@/lib/server/storage';
 import { classifyObservation } from './classify';
 import { enqueuePipeline } from '@/lib/pipeline/enqueue';
 import { needsIncident } from '@/lib/pipeline/model';
+import { snapshotPrefix } from './snapshot-path';
 
 export type CheckTrigger = 'MANUAL' | 'WEBHOOK';
 export type CheckResult = {
@@ -81,7 +82,7 @@ export async function checkSource(sourceId: string, trigger: CheckTrigger, origi
       const label = incoming.payload.upstreamVersionLabel;
       const revisions = await tx`SELECT COALESCE(MAX(revision_number),0)::int AS max_revision FROM source_versions WHERE source_id=${sourceId} AND upstream_version_label=${label}`;
       const revisionNumber = Number(revisions[0].max_revision) + 1;
-      const prefix = `snapshots/${sourceId}/${label}/r${revisionNumber}`;
+      const prefix = snapshotPrefix(sourceId,label,revisionNumber,Boolean(endpoints[0].is_demo_fixture));
       const rawPath = `${prefix}/raw.json`, canonicalPath = `${prefix}/canonical.json`;
       try {
         await uploadImmutable(rawPath, incoming.rawBytes);

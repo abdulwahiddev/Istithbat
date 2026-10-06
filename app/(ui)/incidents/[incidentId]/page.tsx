@@ -1,3 +1,4 @@
+import { isSourceDerived, SOURCE_DERIVED_SCENARIO } from '@/lib/contracts/sandbox-scenario';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { ContextPacket } from '@/lib/analysis/context';
@@ -55,6 +56,7 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
   const packet = (inc.contextPacket ?? null) as ContextPacket | null;
   const rec = packet?.records?.find((r) => r.canonical_key === f.recordKey) ?? packet?.records?.[0] ?? null;
   const oldC = (rec?.old_content ?? {}) as Record<string, unknown>, newC = (rec?.new_content ?? {}) as Record<string, unknown>;
+  const sourceDerived = isSourceDerived(rec?.new_metadata as Record<string, unknown> | undefined);
   const topKeys = [...new Set([...Object.keys(oldC), ...Object.keys(newC)])];
   const changedTop = new Set(topKeys.filter((k) => !sameJson(oldC[k], newC[k])));
   const roles = source?.fieldRoles ?? {};
@@ -122,7 +124,8 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
           </nav>
           <div className="ph-lead" style={{ gridColumn: '1 / span 8', display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 6 }}>
             <h1 className="ph-title">{h1a}{h1b && <><br />{h1b}</>}</h1>
-            <p className="meta" style={{ margin: 0, fontSize: 15 }}>Record <Mono style={{ color: 'var(--ink)' }}>{f.recordKey}</Mono> · field <Mono style={{ color: 'var(--ink)' }}>{field}</Mono> · upstream <Mono style={{ color: 'var(--ink)' }}>{prev} → {cand}{inc.candidateVersion.revisionNumber > 1 ? ` r${inc.candidateVersion.revisionNumber}` : ''}</Mono>{inc.candidateVersion.upstreamPublishedAt ? `, published ${dayYear(inc.candidateVersion.upstreamPublishedAt)}` : `, observed ${dayYear(inc.candidateVersion.detectedAt)}`}</p>
+            <p className="meta" style={{ margin: 0, fontSize: 15 }}>Record <Mono style={{ color: 'var(--ink)' }}>{f.recordKey}</Mono> · field <Mono style={{ color: 'var(--ink)' }}>{field}</Mono> · {sourceDerived ? 'sandbox' : 'upstream'} <Mono style={{ color: 'var(--ink)' }}>{prev} → {cand}{inc.candidateVersion.revisionNumber > 1 ? ` r${inc.candidateVersion.revisionNumber}` : ''}</Mono>{inc.candidateVersion.upstreamPublishedAt ? `, ${sourceDerived ? 'sandbox published' : 'published'} ${dayYear(inc.candidateVersion.upstreamPublishedAt)}` : `, observed ${dayYear(inc.candidateVersion.detectedAt)}`}</p>
+            {sourceDerived && <p className="meta" style={{ margin: 0, fontSize: 15 }}>{SOURCE_DERIVED_SCENARIO.disclosure} <a href="https://hadeethenc.com/ar/browse/hadith/10618">Original record 10618</a>.</p>}
           </div>
           <dl className="plate in ph-status" style={{ gridColumn: '9 / span 4', margin: '0 -24px', padding: '8px 24px' }}>
             <div className="kv"><dt>Status</dt><dd style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: sem.tone === 'co' ? 'var(--co-ink)' : sem.tone === 'am' ? 'var(--am-ink)' : 'var(--ink-2)', fontWeight: 600 }}><span className="dot" style={{ background: `var(--${sem.tone === 'n4' ? 'ink-4' : sem.tone})` }} />{sem.text}</dd></div>
