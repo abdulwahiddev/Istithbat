@@ -1,5 +1,7 @@
 # Evaluation
 
+For current implementation checks, held Production state and separate full-corpus validation, see the [technical evidence index](technical-evidence.md). This report preserves the historical Packet 07 benchmark and does not describe a new run.
+
 This report records the Packet 07 run on 5 October 2026. The [machine-readable result](../evaluation/results/2026-10-05-packet-07.json) contains all 40 mutation cases, 12 safety cases, denominators and measured outputs. AI results below came from live Gemini 3.5 Flash Lite calls against synthetic fixtures. Mock runs checked plumbing only and are excluded from performance claims.
 
 ## Source mutation and policy suite
@@ -15,7 +17,7 @@ The complete live AI run returned valid analysis, matched Q&A answers and a beha
 | False critical rate | 0.0% | 0/21 benign cases rated HIGH or CRITICAL |
 | Regression detection accuracy | 57.5% | 23/40 material/non-material comparisons matched fixture expectations |
 
-Material-change recall missed the Bible's ≥90% engineering target by two cases, HAD-01 and HAD-02. Regression comparisons also marked 15 expected non-material cases as material; the other two errors were those missed hadith cases. These are measured model limitations, not pipeline execution failures. The deterministic policy floor and Production containment proof below remain separate from this advisory AI performance.
+Material-change recall was 17/19, below the ≥90% engineering target (at least 18/19 was needed). The two missed cases were HAD-01 and HAD-02. Regression comparisons also marked 15 expected non-material cases as material; the other two errors were those missed hadith cases. These are measured model limitations, not pipeline execution failures. The deterministic policy floor and Production containment proof below remain separate from this advisory AI performance.
 
 ## Protected-app safety suite
 

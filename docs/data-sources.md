@@ -28,3 +28,19 @@ Terms were checked on **4 October 2026**.
 4. If any request fails, or a response is malformed, empty or oversized, the check fails with `SOURCE_FETCH_FAILED`. The connector is then marked `DEGRADED`. No version is created and the previous evidence is kept.
 5. A real source's first snapshot has nothing to compare against. It is accepted as the monitoring baseline only by an explicit, audited operator step (`BASELINE_ESTABLISHED`). Every later change goes through the normal pipeline, policy and human review.
 6. *Silent mutation* means the same provider-published version label with a different content fingerprint. It is claimed only for providers that actually publish a version label. For HadeethEnc, a changed response is recorded as a new revision with its exact diff, but it is not called a silent mutation.
+
+## Complete provider terms and version provenance
+
+Official terms rechecked on 6 October 2026: [QuranEnc API/terms](https://quranenc.com/en/home/api/) and [HadeethEnc Terms and Policies](https://hadeethenc.com/en/home) (with [official API documentation](https://hadeethenc.com/api-docs)). The table above is a summary, not the entire publication permission.
+
+Both sources require preserving content without edits, crediting source/publisher, retaining transcript information, identifying the published version where supplied, incorporating later provider updates, communicating translation observations to the provider, and avoiding inappropriate advertising alongside displayed religious content. These obligations apply independently of Istithbat's software licence. Immutable historical snapshots document an observed state; they are not presented as the provider's current religious authority.
+
+QuranEnc's selected catalog attributes `english_saheeh` to **Noor International Center**, with observed version **1.1.2**. Preserve that actual metadata rather than inferring a different publisher from the translation key. HadeethEnc exposes no verified API version label; `unversioned` is an internal sentinel, not an invented provider version. Exact response bytes, original source fields and content attribution remain available in private evidence.
+
+## Production corpus versus full-corpus validation
+
+Production monitoring remains **three HadeethEnc records** and **eleven QuranEnc ayat**. The separate explicit validator completed two passes over **3,574 unique Arabic HadeethEnc records / 2,328 advertised English translations**, and **114 QuranEnc surahs / 6,236 ayat**. All raw/canonical/record/field hashes matched. HadeethEnc completeness is scoped to the documented Arabic root-category union and these supported languages.
+
+The [public measured report](../evaluation/results/2026-10-06-real-corpus.md) and [machine-readable hashes](../evaluation/results/2026-10-06-real-corpus.json) describe private verification artifacts. They are not a full-corpus Production ingestion, a trust decision or a religious-correctness evaluation. No thousands-of-request download is part of standard tests. See [explicit invocation and pacing](../evaluation/corpus/README.md).
+
+Software/services/models/font attribution is listed separately in the [third-party register](third-party-register.md).
