@@ -1,5 +1,7 @@
 # Post-submission polish: before / after report
 
+> **Historical QA record.** The branch/deployment status and earlier “Judge walkthrough” wording below describe the work before its final refinement and merge. The current Production product has an optional, closed-by-default **Guided Tour**, **Preview Access** and the Arabic / RTL interface documented in the [README](../../../README.md). The submitted baseline tag and backup branch remain preserved.
+
 Branch `polish/post-submission`, based on the submitted `main` at `1abc2f8`.
 That baseline is preserved as tag and branch `submitted-baseline-2026-10-06`. Production `dpl_2cUsTfB8P5FP2dmjS2MBBPuiNkzu` still serves it.
 Nothing here is merged or deployed to Production.

@@ -55,15 +55,29 @@ flowchart LR
 | Human and gateway | Sensitive held changes require a human decision. Approval promotes atomically; the gateway otherwise retains the served trusted version. Latest seen, trusted and served are separate states. |
 | Audit | Records ingestion, pipeline attempts, policy, review and release actions; database guards enforce append-only history. |
 
+## Bilingual experience
+
+Switch between English and Arabic with the **EN / ع** control. Arabic mode uses native right-to-left layouts and IBM Plex Sans Arabic for the interface; Amiri distinguishes preserved Arabic source text from UI labels. Hashes, version labels, IDs, policy codes and URLs remain left-to-right. Source and religious Arabic, recorded AI evidence and technical identifiers are displayed as stored, without translating or rewriting the underlying evidence.
+
+![Arabic Incident Review with the Guided Tour closed](docs/qa/post-submission/refined/ar-incident-review-tour-collapsed-1440.jpg)
+
+## Guided Tour and interactive Blast Radius
+
+The optional **Guided Tour** is closed by default. Open it from the product header for seven stops: **Overview → Sandbox → Pipeline → Incident → Blast Radius → Preview Access → Gateway**. The sixth stop is labelled “Reviewer Preview” in the tour. Its compact **Demo Access** section shows only the intentionally public hackathon credentials below. Preview Access can inspect and preview decisions, but cannot sign, approve, promote or record one.
+
+Blast Radius lets judges filter **All / Exposed / Impacted / Stale**, highlight a node and its persisted dependency path, and follow the same trace in a responsive mobile view. Filters change the display, not the underlying impact classification. The verified held incident remains **6 EXPOSED / 1 IMPACTED / 0 STALE**.
+
+![Arabic Blast Radius with the verified dependency graph](docs/qa/post-submission/refined/ar-blast-radius-1280.jpg)
+
 ## Verified Production demo
 
 The current [Production sandbox](https://istithbat.vercel.app/sandbox) uses **real HadeethEnc record 10618** as its source-derived baseline. Its Arabic hadith, English translation, attribution and references remain unchanged. Only Istithbat's controlled candidate changes `ar.grade`:
 
-`صحيح دون قوله: (ولم يستدر)` → `صحيح`
+`صحيح دون قوله: (ولم يستدر)` → `صحيح` — four words removed; field-hash prefixes `449efbaf → d3908502`.
 
 **Original record from HadeethEnc · candidate mutation created for demonstration.** HadeethEnc did **not** publish this candidate. The v13/v14 labels belong to Istithbat's sandbox. The unchanged English `grade_ar` retains the exception, so the field discrepancy remains visible.
 
-The verified Production run detected a `SCHOLAR_JUDGMENT` change, and deterministic **POL-002 quarantined v14**. Its three matched comparisons were **3 MATERIAL / 0 NON-MATERIAL**; Blast Radius found **6 EXPOSED / 1 IMPACTED / 0 STALE**. The impacted asset was the protected Islamic Q&A app. **Latest v14 is quarantined; Trusted and Served remain v13.** Live model verdicts can vary; the policy containment is deterministic. Inspect the [held Incident Review](https://istithbat.vercel.app/incidents/863d5b03-fc98-4d49-a2a6-ae9d6c3cf753), [sandbox](https://istithbat.vercel.app/sandbox), [local validation history](docs/source-derived-demo.md) and [console guide](docs/sandbox-demo.md).
+The verified Production run detected a `SCHOLAR_JUDGMENT` change, and deterministic **POL-002 quarantined v14**. Its three matched comparisons were **3 MATERIAL / 0 NON-MATERIAL**; Blast Radius found **6 EXPOSED / 1 IMPACTED / 0 STALE**. The impacted asset was the protected Islamic Q&A app. **Latest v14 is quarantined; Trusted and Served remain v13; no human decision has been recorded.** Live model verdicts can vary; the policy containment is deterministic. Inspect the [held Incident Review](https://istithbat.vercel.app/incidents/863d5b03-fc98-4d49-a2a6-ae9d6c3cf753), [sandbox](https://istithbat.vercel.app/sandbox), [local validation history](docs/source-derived-demo.md) and [console guide](docs/sandbox-demo.md).
 
 ## Judge access
 
@@ -75,14 +89,21 @@ Open [the sandbox console](https://istithbat.vercel.app/sandbox) and enter the *
 
 This key unlocks only the controlled HadeethEnc 10618 sandbox reset and publish workflow. Reset replaces the current sandbox investigation, so judges should inspect the held incident before using it. The key cannot authorize source checks, arbitrary pipeline actions or human decisions.
 
-### Reviewer Mode preview
+### Preview Access (Reviewer Mode)
 
 Open [the held Incident Review](https://istithbat.vercel.app/incidents/863d5b03-fc98-4d49-a2a6-ae9d6c3cf753) and sign in with:
 
 - **Username:** `IslamicAIChallenge2026`
 - **Password:** `IstithbatReviewer2026!`
 
-This judge session can inspect evidence and preview Approve, Reject, Keep quarantined and Escalate. It cannot sign or record any decision. The real signer credential remains private. **Latest v14 is quarantined; Trusted and Served remain v13.**
+This judge session can inspect evidence and preview Approve, Reject, Keep quarantined and Escalate. It cannot sign, approve, promote or record any decision. The real signer, administrator, webhook, database and AI provider credentials remain private. **Latest v14 is quarantined; Trusted and Served remain v13.**
+
+## Post-submission polish
+
+- Arabic / RTL product interface with an English / Arabic toggle.
+- Optional seven-step Guided Tour and compact Demo Access.
+- Interactive Blast Radius filters, path highlighting and mobile trace.
+- Production-safe UI polish; integrity, policy, trust and demo data remain unchanged.
 
 ## Real sources and measured scope
 
