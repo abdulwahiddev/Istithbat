@@ -405,57 +405,6 @@ details.quiet>.raw{margin-top:12px}
 }
 @media (prefers-reduced-motion: reduce){.scr-blast .node>*,.bt-n{transition:none}}
 
-/* ---- Judge walkthrough: header entry + one docked, dismissible card (no new navigation) ---- */
-.jg-entry{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line-2);background:transparent;font:inherit;font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;transition:color .18s var(--ease),border-color .18s var(--ease)}
-.jg-entry:hover{color:var(--ink);border-color:var(--ink-4)}
-.jg-entry[aria-expanded="true"]{color:var(--ink);border-color:var(--ink-3)}
-.jg{position:fixed;right:20px;bottom:20px;z-index:40;width:min(360px,calc(100vw - 32px));box-sizing:border-box;padding:14px 16px 14px;border-radius:18px;background:var(--float-bg);border:1px solid var(--plate-line);box-shadow:var(--float-shadow);color:var(--ink);font-size:14px;line-height:20px}
-.jg-open{max-height:calc(100dvh - 120px);overflow-y:auto}
-.jg-head{display:flex;align-items:center;gap:10px}
-.jg-kicker{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)}
-.jg-step{font-size:12px;color:var(--ink-4);font-variant-numeric:tabular-nums}
-.jg-tools{margin-inline-start:auto;display:inline-flex;gap:2px}
-.jg-ib{display:grid;place-items:center;width:32px;height:32px;border:0;border-radius:999px;background:transparent;color:var(--ink-3);cursor:pointer}
-.jg-ib:hover{background:var(--hover);color:var(--ink)}
-.jg-dots{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:10px 0 10px}
-.jg-dots span{height:3px;border-radius:2px;background:var(--line-2)}
-.jg-dots .done{background:var(--ink-4)}
-.jg-dots .on{background:var(--tq)}
-.jg-line{margin:0;color:var(--ink-2)}
-.jg-line b{color:var(--ink);font-weight:600}
-.jg-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px}
-.jg-prev{font-size:13px;color:var(--ink-3);text-decoration:none}
-.jg-prev::before{content:"← "}
-.jg-prev:hover{color:var(--ink)}
-.jg-next.jg-again{background:transparent;color:var(--ink-2);border:1px solid var(--line-2)}
-.jg-next{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;border-radius:999px;background:var(--cta-bg);color:var(--cta-ink);font-size:13px;font-weight:600;text-decoration:none}
-.jg-more{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
-.jg-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
-.jg-list a{display:flex;gap:12px;padding:7px 8px;margin:0 -8px;border-radius:10px;color:inherit;text-decoration:none}
-.jg-list a:hover{background:var(--hover)}
-.jg-list a.on{background:var(--hover)}
-.jg-list a>span:last-child{display:flex;flex-direction:column;gap:1px}
-.jg-list b{font-size:13px;font-weight:600}
-.jg-list a>span:last-child>span{font-size:12px;line-height:16px;color:var(--ink-3)}
-.jg-n{flex:none;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1px solid var(--line-2);font-size:11px;font-weight:600;color:var(--ink-3);font-variant-numeric:tabular-nums}
-.jg-list a.on .jg-n{background:var(--tq);border-color:var(--tq);color:var(--on-solid)}
-.jg-notes{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
-.jg-notes>div{display:flex;flex-direction:column;gap:3px}
-.jg-notes dt{font-size:12px;font-weight:600;color:var(--ink-3)}
-.jg-notes dd{margin:0;font-size:13px;line-height:18px;color:var(--ink-2);display:flex;flex-direction:column;gap:3px}
-.jg-notes dd>span{color:var(--ink-3);font-size:12px;line-height:17px}
-.jg-notes code{font-size:12px;color:var(--ink);overflow-wrap:anywhere;user-select:all}
-@media(max-width:720px){
-  .jg-entry span{display:none}
-  .jg-entry{width:40px;padding:0;justify-content:center}
-  .jg{right:12px;left:12px;bottom:12px;width:auto}
-}
-@media print{.jg,.jg-entry{display:none}}
-.jg-state{margin:8px 0 0;font-size:12px;line-height:17px;color:var(--ink-3)}
-.jg-state .mono{color:var(--ink-2)}
-.jg-link{font:inherit;padding:0;border:0;background:none;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
-.jg-notes{margin:0 0 12px;padding:0 0 12px;border-top:0;border-bottom:1px solid var(--line)}
-.jg-notes dd>span.jg-cred{color:var(--ink-3);font-size:12px;display:flex;gap:8px;align-items:baseline}
 
 /* ---- Language switch (EN | ع) ---- */
 .lsw{display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:var(--glass);border:1px solid var(--glass-line);box-shadow:var(--glass-hi),var(--glass-shadow)}
@@ -474,7 +423,6 @@ details.quiet>.raw{margin-top:12px}
    Segoe UI, Noto); Amiri stays reserved for Arabic source text, so source and interface never
    look alike. Letter-spacing and uppercasing are removed: tracking breaks Arabic joining. */
 [dir="rtl"]{line-height:1.6}
-[dir="rtl"] .rail h2,[dir="rtl"] .jg-kicker,[dir="rtl"] .cap,[dir="rtl"] .sbx-kick,[dir="rtl"] h1,[dir="rtl"] h2,[dir="rtl"] h3,[dir="rtl"] .h3{letter-spacing:0;text-transform:none}
 [dir="rtl"] .rail h2{font-size:13px}
 [dir="rtl"] .ar{letter-spacing:0}
 /* physical → mirrored */
@@ -496,23 +444,20 @@ details.quiet>.raw{margin-top:12px}
 [dir="rtl"] .sbx-steps{padding:0 0 0 32px;border-right:0;border-left:1px solid var(--line)}
 [dir="rtl"] .tsw .tsw-ind{left:auto;right:3px}
 [dir="rtl"] .tsw[data-theme="dark"] .tsw-ind{transform:translateX(-38px)}
-[dir="rtl"] .jg-prev::before{content:"→ "}
-[dir="rtl"] .jg{right:auto;left:20px}
 [dir="rtl"] .scr-blast .btrace>li{padding:0 22px 14px 0}
 [dir="rtl"] .scr-blast .btrace>li::before{left:auto;right:6px;border-left:0;border-right:1.5px solid var(--line-2)}
 [dir="rtl"] .scr-blast .btrace>li::after{left:auto;right:2px}
 @media(max-width:900px){[dir="rtl"] .sbx-steps{border-left:0;padding:16px 0 0}}
 @media(max-width:720px){
   [dir="rtl"] .kv>:last-child{margin-left:0;margin-right:auto}
-  [dir="rtl"] .jg{left:12px;right:12px}
 }
 /* Directional glyphs drawn by icons: arrows and chevrons point the reading way */
 [dir="rtl"] .flip-rtl{display:inline-block;transform:scaleX(-1)}
 [dir="rtl"] svg[data-icon="arrow-right"],[dir="rtl"] svg[data-icon="chevron-right"],[dir="rtl"] svg[data-icon="arrow-up-right"]{transform:scaleX(-1)}
 /* Arabic UI face: the platform's own Arabic sans, enlarged to sit with Instrument Sans' x-height.
    Arabic code points only, so Latin, digits and every mono token keep their existing fonts. */
-@font-face{font-family:'Istithbat Arabic UI';src:local('SF Arabic'),local('SFArabic-Regular'),local('Geeza Pro'),local('GeezaPro'),local('Segoe UI'),local('Noto Sans Arabic'),local('Tahoma');size-adjust:118%;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF}
-@font-face{font-family:'Istithbat Arabic UI';font-weight:600 700;src:local('SF Arabic Semibold'),local('SFArabic-Semibold'),local('Geeza Pro Bold'),local('GeezaPro-Bold'),local('Segoe UI Semibold'),local('Noto Sans Arabic SemiBold'),local('Tahoma Bold');size-adjust:118%;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF}
+@font-face{font-family:'Istithbat Arabic UI';src:local('SF Arabic'),local('SFArabic-Regular'),local('Geeza Pro'),local('GeezaPro'),local('Segoe UI'),local('Noto Sans Arabic'),local('Tahoma');size-adjust:110%;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF}
+@font-face{font-family:'Istithbat Arabic UI';font-weight:600 700;src:local('SF Arabic Semibold'),local('SFArabic-Semibold'),local('Geeza Pro Bold'),local('GeezaPro-Bold'),local('Segoe UI Semibold'),local('Noto Sans Arabic SemiBold'),local('Tahoma Bold');size-adjust:110%;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF}
 .s[dir="rtl"]{font-family:'Istithbat Arabic UI',var(--font-instrument),'Instrument Sans',system-ui,sans-serif}
 /* Diagrams read right-to-left in Arabic: positions use inset-inline-*, edge layers mirror */
 [dir="rtl"] .mirror-rtl,[dir="rtl"] .gate-box .lane.flow{transform:scaleX(-1)}
@@ -535,3 +480,80 @@ details.quiet>.raw{margin-top:12px}
 [dir="rtl"] .scr-gateway .lockb{left:auto;right:58%;transform:translate(50%,-50%)}
 [dir="rtl"] .scr-gateway .steps::before{left:auto;right:13.5px}
 [dir="rtl"] .sr-only:not(:focus-visible){right:0;margin:0}
+
+/* ---- Guided tour: optional, compact, opened from the header ---- */
+.tour-entry{position:relative;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line-2);background:transparent;font:inherit;font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;white-space:nowrap;transition:color .18s var(--ease),border-color .18s var(--ease)}
+.tour-entry:hover,.tour-entry[aria-expanded="true"]{color:var(--ink);border-color:var(--ink-4)}
+.tour-new{position:absolute;top:7px;inset-inline-end:7px;width:7px;height:7px;border-radius:50%;background:var(--tq);box-shadow:0 0 0 2px var(--ground)}
+.tour{position:fixed;inset-inline-end:20px;bottom:20px;z-index:40;width:min(312px,calc(100vw - 24px));max-height:calc(100dvh - 140px);overflow-y:auto;box-sizing:border-box;padding:12px 14px 10px;border-radius:16px;background:var(--float-bg);border:1px solid var(--plate-line);box-shadow:var(--float-shadow);color:var(--ink);font-size:13px;line-height:19px;animation:strata-in .22s var(--ease) both}
+.tour-head{display:flex;align-items:center;gap:8px;min-height:24px}
+.tour-kicker{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ink-3)}
+.tour-count{font-size:12px;color:var(--ink-4);font-variant-numeric:tabular-nums}
+.tour-x{margin-inline-start:auto;display:grid;place-items:center;width:28px;height:28px;border:0;border-radius:999px;background:transparent;color:var(--ink-3);cursor:pointer}
+.tour-x:hover{background:var(--hover);color:var(--ink)}
+.tour-bar{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin:8px 0 10px}
+.tour-bar span{height:3px;border-radius:2px;background:var(--line-2)}
+.tour-bar .done{background:var(--ink-4)}
+.tour-bar .on{background:var(--tq)}
+.tour-title{display:block;font-size:15px;line-height:21px;font-weight:600}
+.tour-line{margin:2px 0 0;color:var(--ink-2)}
+.tour-state{margin:6px 0 0;font-size:12px;line-height:17px;color:var(--ink-3)}
+.tour-state .mono{color:var(--ink-2)}
+.tour-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}
+.tour-prev{display:inline-flex;align-items:center;gap:4px;min-height:32px;font-size:12.5px;color:var(--ink-3);text-decoration:none}
+.tour-prev:hover{color:var(--ink)}
+.tour-back{transform:scaleX(-1)}
+[dir="rtl"] svg.tour-back{transform:none}
+.tour-next{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 12px;border-radius:999px;background:var(--cta-bg);color:var(--cta-ink);font-size:12.5px;font-weight:600;text-decoration:none;white-space:nowrap}
+.tour-next.tour-again{background:transparent;color:var(--ink-2);border:1px solid var(--line-2)}
+.tour-more{display:flex;gap:4px;margin:10px -6px 0;padding-top:6px;border-top:1px solid var(--line)}
+.tour-disc{display:inline-flex;align-items:center;gap:5px;min-height:30px;padding:0 6px;border:0;border-radius:8px;background:transparent;font:inherit;font-size:12px;font-weight:500;color:var(--ink-3);cursor:pointer}
+.tour-disc:hover{color:var(--ink);background:var(--hover)}
+.tour-disc[aria-expanded="true"]{color:var(--ink)}
+.tour-chev{transition:transform .18s var(--ease)}
+.tour-disc[aria-expanded="true"] .tour-chev{transform:rotate(90deg)}
+.tour-steps{list-style:none;margin:6px 0 2px;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:2px 8px}
+.tour-steps a{display:flex;align-items:center;gap:8px;padding:5px 6px;margin:0 -6px;border-radius:8px;color:var(--ink-2);text-decoration:none;font-size:12.5px}
+.tour-steps a:hover{background:var(--hover);color:var(--ink)}
+.tour-steps a[aria-current="step"]{color:var(--ink);font-weight:600}
+.tour-n{flex:none;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;border:1px solid var(--line-2);font-size:10.5px;font-weight:600;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.tour-steps a[aria-current="step"] .tour-n{background:var(--tq);border-color:var(--tq);color:var(--on-solid)}
+.tour-access{margin:6px 0 2px;display:flex;flex-direction:column;gap:8px}
+.tour-access dt{font-size:11.5px;font-weight:600;color:var(--ink-3)}
+.tour-access dd{margin:2px 0 0;display:flex;align-items:center;gap:8px}
+.tour-access code{flex:1;min-width:0;font-size:12px;color:var(--ink);overflow-wrap:anywhere;user-select:all}
+.tour-copy{flex:none;display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 8px;border:1px solid var(--line-2);border-radius:999px;background:transparent;font:inherit;font-size:11.5px;color:var(--ink-2);cursor:pointer}
+.tour-copy:hover{color:var(--ink);border-color:var(--ink-4)}
+.tour-note{display:block!important;font-size:11.5px;line-height:16px;color:var(--ink-3)}
+@media(max-width:720px){
+  .tour-entry span{display:none}
+  .tour-entry{width:40px;padding:0;justify-content:center}
+  .tour{inset-inline:12px;bottom:12px;width:auto}
+}
+@media print{.tour,.tour-entry{display:none}}
+@media (prefers-reduced-motion: reduce){.tour{animation:none}}
+
+/* ---- Arabic hierarchy: match the English app's perceived scale, not its pixel sizes ----
+   Arabic glyphs carry more ink at the same size, so display sizes step down and line-heights open up. */
+[dir="rtl"] .ph-title{font-size:38px;line-height:1.32;font-weight:600}
+[dir="rtl"] .sbx-h1{font-size:32px;line-height:1.35}
+[dir="rtl"] .h3{font-size:21px;line-height:1.45}
+[dir="rtl"] .desk h3{font-size:30px!important;line-height:1.4!important}
+[dir="rtl"] .desk h3 .mono{font-size:28px!important}
+[dir="rtl"] section[aria-labelledby="h-dock"] h3{font-size:23px!important;line-height:1.45!important}
+[dir="rtl"] .phd{padding:24px 0 36px}
+[dir="rtl"] .ph-lead{gap:10px!important}
+[dir="rtl"] .ph-lead .meta{line-height:1.75}
+[dir="rtl"] .body{line-height:1.75}
+[dir="rtl"] .scr-gateway .inv .ver{font-size:44px}
+@media(max-width:1100px){[dir="rtl"] .ph-title{font-size:32px}}
+@media(max-width:720px){[dir="rtl"] .ph-title{font-size:28px;line-height:1.35}[dir="rtl"] .sbx-h1{font-size:26px}[dir="rtl"] .desk h3{font-size:24px!important}}
+/* RTL chrome: a little more air between nav items, labels never wrap mid-phrase */
+[dir="rtl"] .seg{gap:4px}
+[dir="rtl"] .seg a{padding:8px 15px;white-space:nowrap}
+[dir="rtl"] .seg a .badge{margin-inline-start:2px}
+/* Chips: the dot side carries the tighter padding, in either direction */
+[dir="rtl"] .chip{padding:3px 9px 3px 11px}
+[dir="rtl"] .chip[style*="1px 9px 1px 7px"]{padding:1px 7px 1px 9px!important}
+[dir="rtl"] .pill[style*="2px 10px"]{padding:2px 10px!important}
+[dir="rtl"] .tour-access code{text-align:right}

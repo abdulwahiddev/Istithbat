@@ -139,7 +139,7 @@ export function DecisionDock(p: DockProps) {
               <textarea id="reason" className="field" rows={4} value={reason} maxLength={2000} disabled={locked || p.resolved || stage === 'sending' || stage === 'done'}
                 onChange={(e) => setReason(e.target.value)} placeholder={t(locked ? 'Available once Reviewer Mode is unlocked' : 'In your words, why this decision')}
                 aria-required={!locked && needsReason} aria-describedby={locked ? 'reason-locked' : undefined} />
-                  {locked && !p.resolved && <span id="reason-locked" style={{ fontSize: 14, lineHeight: '21px', color: 'var(--h-ink-3)' }}>{t(p.reviewer ? 'Judge preview cannot record a reason or sign this decision.' : 'Unlock Reviewer Mode to record a reason and sign this decision.')}</span>}
+                  {locked && !p.resolved && <span id="reason-locked" style={{ fontSize: 14, lineHeight: '21px', color: 'var(--h-ink-3)' }}>{t(p.reviewer ? 'Preview access cannot record a reason or sign this decision.' : 'Unlock Reviewer Mode to record a reason and sign this decision.')}</span>}
             </div>
             {stage === 'choose' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -157,7 +157,7 @@ export function DecisionDock(p: DockProps) {
                 {locked ? (
                   <>
                     <p style={{ margin: 0, fontSize: 16, lineHeight: '24px' }}><b>{pick.ifLabel}</b><span style={{ color: 'var(--h-ink-3)', fontWeight: 400 }}> · {t('preview')}</span><br /><span style={{ color: 'var(--h-ink-2)' }}>{pick.confirmBody}</span></p>
-                    <p style={{ margin: 0, fontSize: 14, lineHeight: '21px', color: 'var(--h-ink-2)' }}>{t('Nothing has been queued or recorded.')} {t(p.reviewer ? 'Judge preview access cannot sign a decision.' : 'Reviewer authentication is required to sign a decision.')}</p>
+                    <p style={{ margin: 0, fontSize: 14, lineHeight: '21px', color: 'var(--h-ink-2)' }}>{t('Nothing has been queued or recorded.')} {t(p.reviewer ? 'Preview access cannot sign a decision.' : 'Reviewer authentication is required to sign a decision.')}</p>
                   </>
                 ) : (
                   <>

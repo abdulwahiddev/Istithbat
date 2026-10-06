@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { BrandLockup } from '@/components/strata/BrandLockup';
 import { Icon } from '@/components/strata/icons';
 import { ThemeSwitch } from '@/components/strata/theme';
-import { JudgeGuideButton } from '@/components/strata/JudgeGuide';
+import { GuidedTourButton } from '@/components/strata/GuidedTour';
 import { LangSwitch, Tx } from '@/components/strata/i18n/client';
 
 /** Demo-control header: official lockup, the environment label, theme, and the way back to the product. */
@@ -15,7 +15,7 @@ export function SandboxBar() {
           <span className="sbx-env"><Icon name="flask-conical" size={14} /><Tx>Demo sandbox</Tx><span className="sbx-env-sub"> · <Tx>Controlled test environment</Tx></span></span>
         </span>
         <span className="sbx-bar-r">
-          <JudgeGuideButton />
+          <GuidedTourButton />
           <LangSwitch />
           <ThemeSwitch />
           <Link prefetch={false} className="btn btn-ghost sbx-btn-s" href="/overview"><Tx>Back to Istithbat</Tx><Icon name="arrow-up-right" size={16} /></Link>

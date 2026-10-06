@@ -3,7 +3,7 @@ import { Amiri, Instrument_Sans, JetBrains_Mono, Newsreader } from 'next/font/go
 import { SandboxBar } from '@/components/sandbox/SandboxBar';
 import { ThemeRoot } from '@/components/strata/theme';
 import { LocaleRoot } from '@/components/strata/i18n/client';
-import { JudgeGuide, JudgeGuideRoot } from '@/components/strata/JudgeGuide';
+import { GuidedTour, GuidedTourRoot } from '@/components/strata/GuidedTour';
 import { guideFrom } from '@/components/strata/guide-data';
 import { chromeData } from '../(ui)/_data/chrome';
 import { readGatewayInventory, readIncidents, readSources } from '../(ui)/_data/read';
@@ -41,12 +41,12 @@ export default async function SandboxLayout({ children }: { children: ReactNode 
   return (
     <LocaleRoot initial={locale}>
     <ThemeRoot initial={theme} className={`${instrument.variable} ${newsreader.variable} ${jetbrains.variable} ${amiri.variable}`}>
-      <JudgeGuideRoot>
+      <GuidedTourRoot>
         <a href="#main" className="sr-only">Skip to content</a>
         <SandboxBar />
         {children}
-        <JudgeGuide data={guide} />
-      </JudgeGuideRoot>
+        <GuidedTour data={guide} />
+      </GuidedTourRoot>
     </ThemeRoot>
     </LocaleRoot>
   );

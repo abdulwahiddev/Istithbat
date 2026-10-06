@@ -45,7 +45,7 @@ export function SourcesScreen({ views, initialId }: { views: SourceView[]; initi
                     {v.stages.map((g, i) => (
                       <span key={i} className="stg" style={css(i < 3 ? `--ln:${g.line};--ls:${g.lineStyle}` : '--ln:transparent;--ls:solid')}>
                         <span className={`sdot${g.dot.startsWith('background') ? ' fill' : ''}`} style={css(g.dot)}><Icon name={STAGE_ICON[i] ?? 'link'} size={13} /></span>
-                        <b className={g.mono ? 'mono' : ''} title={g.hint} aria-label={g.hint ? `${g.main}, ${g.hint}` : undefined}>{g.main}</b>
+                        <b className={g.mono ? 'mono' : ''} title={g.hint} aria-label={g.hint ? `${g.main}, ${g.hint}` : undefined}>{g.mono ? g.main : t(g.main)}</b>
                         <span>{t(g.sub)}</span>
                       </span>
                     ))}

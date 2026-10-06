@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
 import { ThemeSwitch } from './theme';
-import { JudgeGuideButton } from './JudgeGuide';
+import { GuidedTourButton } from './GuidedTour';
 import { LangSwitch, useT } from './i18n/client';
 import { BrandLockup } from './BrandLockup';
 import { Icon } from './icons';
@@ -82,7 +82,7 @@ export function Chrome({ data, actions }: { data: ChromeData; actions: Actions }
             </NavSeg>
           </nav>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <JudgeGuideButton />
+            <GuidedTourButton />
             <LangSwitch />
             <ThemeSwitch />
             <button type="button" className="iconbtn" onClick={() => router.push('/incidents')}

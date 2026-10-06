@@ -6,7 +6,7 @@ import { AutoRefresh } from '@/components/strata/AutoRefresh';
 import { Chrome } from '@/components/strata/Chrome';
 import { ThemeRoot } from '@/components/strata/theme';
 import { LocaleRoot } from '@/components/strata/i18n/client';
-import { JudgeGuide, JudgeGuideRoot } from '@/components/strata/JudgeGuide';
+import { GuidedTour, GuidedTourRoot } from '@/components/strata/GuidedTour';
 import { guideFrom } from '@/components/strata/guide-data';
 import { lockReviewer, unlockReviewer } from './_actions/reviewer';
 import { chromeData } from './_data/chrome';
@@ -65,13 +65,13 @@ export default async function StrataLayout({ children }: { children: ReactNode }
   return (
     <LocaleRoot initial={locale}>
     <ThemeRoot initial={theme} className={`${instrument.variable} ${newsreader.variable} ${jetbrains.variable} ${amiri.variable}`}>
-      <JudgeGuideRoot>
+      <GuidedTourRoot>
         <a href="#main" className="sr-only">Skip to content</a>
         <Chrome data={chrome} actions={{ unlock: unlockReviewer, lock: lockReviewer }} />
         <AutoRefresh active={incidents.ok && incidents.data.some(i => i.pipelineStatus === 'RUNNING')} />
         {children}
-        <JudgeGuide data={guideFrom(chrome)} />
-      </JudgeGuideRoot>
+        <GuidedTour data={guideFrom(chrome)} />
+      </GuidedTourRoot>
     </ThemeRoot>
     </LocaleRoot>
   );

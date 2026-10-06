@@ -88,3 +88,35 @@ Adding graph nodes would change the submitted counts (6 / 1 / 0), so nothing was
 - **Labelling:** every new node would carry `(synthetic demo)` in its name, with `isDemoFixture`-style provenance.
 - **Owner:** Codex. This needs a seed/demo-graph change (`db/` and the demo fixtures), a fresh regression batch only if a second app should ever be IMPACTED, and an update to the deck, video and README counts.
 - **No frontend work needed.** Blast Radius already folds long columns and filters by state, and the mobile trace handles extra apps.
+
+## 5. Final refinement pass
+
+Screenshots are in `refined/`.
+
+| What | File |
+|---|---|
+| Arabic Incidents | `ar-incidents-1440.jpg`, with the English baseline in `en-incidents-production-baseline-1440.jpg` |
+| Arabic Incident Review | `ar-incident-review-tour-collapsed-1440.jpg`, `ar-mobile-incident-review-375.jpg` |
+| Arabic Blast Radius | `ar-blast-radius-1280.jpg` |
+| Arabic Gateway | `ar-gateway-1440.jpg` |
+| Tour, collapsed | `en-tour-collapsed-1440.jpg`, `ar-mobile-overview-tour-collapsed-375.jpg` |
+| Tour, expanded | `en-tour-all-steps-expanded-1440.jpg`, `ar-tour-demo-access-expanded-1440.jpg` |
+
+**Arabic hierarchy**
+- The Arabic UI face's `size-adjust` drops from 118% to 110%.
+- RTL gets its own display scale: page titles 38px / 1.32, section headings 21px / 1.45, the decision question 30px, mobile titles 28px.
+- Body line-height is 1.75, and the page header is a little tighter.
+- Chip padding mirrors in RTL, so the dot side keeps the tighter inset. Nav items get more room and never wrap mid-phrase.
+- At 1280px the header stays on one row with no horizontal overflow at 1440, 1280 or 375px.
+
+**Guided tour**
+- The tour replaces the "Judge walkthrough" label and file; there is no mention of judges anywhere in the UI.
+- It is a 312px card, about 246px tall, showing the step, a 7-segment progress bar, the title, one line, the live state, and Back / Next.
+- "All steps" opens a compact two-column list of titles. "Demo access" folds the credentials away.
+- The default experience is the normal app: the tour opens only from the header *Guided tour* button, which carries a small dot until it has been opened once. Close and reopen are kept.
+
+**Demo access**
+- It shows the sandbox key and the reviewer preview username and password, each with a copy button.
+- Labels: sandbox key = *public hackathon demo access*; reviewer = *preview only, cannot sign, approve or record a decision*. No other credential appears.
+
+**One intentional English copy change.** Three existing Reviewer Mode strings said "Judge preview". They now read "Preview access active / cannot record a reason or sign / cannot sign a decision".
