@@ -27,15 +27,17 @@ from kokoro_onnx import Kokoro
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = json.loads((ROOT / "src/script.json").read_text())
 KDIR = Path(os.environ.get("KOKORO_DIR", ROOT / ".kokoro"))
-VOICE = os.environ.get("KOKORO_VOICE", "af_heart")
+VOICE = os.environ.get("KOKORO_VOICE", "am_michael")
 BASE_SPEED = float(os.environ.get("KOKORO_SPEED", "1.0"))
 LEAD_IN, GAP, TAIL = 0.35, 0.32, 0.25  # seconds
 
 # Pronunciation fixes, applied on the phoneme string (espeak/misaki output -> intended).
 PHONEME_FIXES = {
-    "ˈɪstɪθbˌæt": "ɪstɪθbˈɑːt",      # Istithbat  (is-tith-BAAT)
-    "hˈædiːθ": "hɐdˈiːθ",             # Hadeeth    (ha-DEETH)
-    "hˈædɪθ": "hɐdˈiːθ",              # hadith
+    # استثبات Istithbāt: i-s-t-i-θ-b-aː-t, stress on the long final syllable, real "th" (ث).
+    # Chosen by ASR audition (Whisper-small hears "Istith Bhat"); the default English guess was "Istithbat"/"Istif bot".
+    "ˈɪstɪθbˌæt": "istiθbˈaːt",
+    "hˈædiːθ": "hɐdˈiːθ",             # HadeethEnc → ha-DEETH-enk (حديث), not HAD-eeth
+    "hˈædɪθ": "hɐdˈiːθ",              # hadith → ha-DEETH, not HAD-ith
 }
 
 k = Kokoro(str(KDIR / "kokoro-v1.0.onnx"), str(KDIR / "voices-v1.0.bin"))

@@ -23,9 +23,9 @@ Preview / tweak live: `npm run studio`. Review stills: `node scripts/stills.mjs 
 
 `Publish → Detect → Understand → Test → Trace → Contain → Human decision`
 
-- **Publish** is the only literal screen recording: the real Production `/sandbox` publish action
-  (slot below). It establishes authenticity.
-- Everything after the click is **choreographed in Remotion from verified Production state, rendered
+- **Publish** renders the `/sandbox` operator console from its own markup (see below), including
+  the press of *Publish controlled candidate*.
+- Every stage is **choreographed in Remotion from verified Production state, rendered
   with the product's own code**: `ExactDiff`, `GateInstrument`, `DecisionDock`, the Blast Radius
   layout engine (`components/blast/layout.ts`), the sandbox pipeline markup, `semantics.ts` labels and
   the app's own Strata stylesheets, imported directly from the repo (see `webpack-override.mjs`). The
@@ -61,34 +61,54 @@ No AI label or risk level is shown (AI output varied between runs and is not par
 Production list). The candidate was created by Istithbat for testing and was not published by
 HadeethEnc; the film says so on every product frame.
 
-## The one recording → `public/footage/01-sandbox-baseline-publish/capture.mp4`
+## Publish (0:17–0:30)
 
-Must show: clean baseline (upstream/trusted/served v13, "Ready to run"), the operator clicking
-**Publish controlled candidate**, and the run starting. 1920×1080 (2× DPR ideal), dark theme, steady
-cursor, ~13 s. Until it exists, a dashed placeholder card stands in. After dropping it, set
-`SANDBOX.anchors.publish` in `src/footage.ts` to where the button is (the v14 candidate emerges
-there), and optionally trim with `segments`.
+`src/journey/panels/PublishPanel.tsx` reproduces the `/sandbox` operator console from its own
+markup and copy (`SandboxConsole` + `SandboxBar`). It runs on the video clock instead of fetching
+from the API:
+- the verified baseline: Latest v13 · Trusted v13 · Served v13, *Ready to run*, demo control active,
+  HadeethEnc 10618 disclosure;
+- a pointer, then the button's pressed and busy state (*Publishing…*);
+- then *Processing* and the console's real notice.
+
+v14 comes out of the button and is carried into Detect. No screen recording and no Production call
+are involved.
 
 ## Narration & captions
 
 `src/script.json` is the single source of truth for scene windows, narration and caption phrases.
+`npm run narration` (Kokoro-82M via kokoro-onnx, offline; set `KOKORO_DIR` to the model files from
+https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0) writes
+`public/audio/voiceover.wav` and `src/narration.json`. Captions and on-screen sync follow
+automatically.
 
-```bash
-pip install kokoro-onnx soundfile
-# model files: https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0
-KOKORO_DIR=/path/to/models npm run narration   # → public/audio/voiceover.wav + src/narration.json
-```
+- **Voice:** Kokoro `am_michael`, an adult male with a calm, documentary delivery. It was picked from
+  an audition of ten male voices transcribed by Whisper-small; all ten were 100% intelligible.
+- **Istithbat (استثبات):** spoken from the explicit IPA `istiθbˈaːt`, which follows the Arabic sounds
+  one for one: i‑s‑t‑i‑θ‑b‑aː‑t. That gives a real *th* (ث), a clear *b*, a long final *ā*, and
+  stress on the final long syllable. The same voice says it inside the same sentence, so there is no
+  splice. English TTS on its own said "Istithbat" or "Istif bot".
+- **Arabic words:** hadith and HadeethEnc are spoken ha‑DEETH (`hɐdˈiːθ`). Bilāl and Qur'an are
+  not spoken.
+- All pronunciation overrides are in `scripts/tts.py`.
 
-The included `voiceover.wav` is neutral synthetic narration (Kokoro-82M, voice `af_heart`,
-Apache-2.0), loudness-normalised to about −16 LUFS. Captions are phrase-level and timed from it.
-Pronunciation overrides (Istithbat, Hadeeth, `10618`, `POL-002`) are in `scripts/tts.py`.
+## Audio — `npm run audio`
 
-**Replacing the voice:** drop a new `public/audio/voiceover.wav` (114 s) whose sentences start at the
-times in `src/narration.json`. Or edit `src/script.json` and re-run `npm run narration`; captions
-and on-screen sync follow automatically.
+1. `tsx scripts/export-events.ts` exports the sound cue sheet from `src/audio/events.ts`. Every cue
+   uses the same timing as the visual it belongs to, so each sound lands on its event.
+2. `scripts/music.py` writes the score to `public/audio/music.wav`: D minor, 96 BPM, no drums or
+   trailer hits. The arc:
+   - slight tension in the opening;
+   - momentum through Detect and Test;
+   - a lift through Blast Radius → Contain;
+   - resolved and minimal at Human decision and the close.
+3. `scripts/mix.py` synthesizes the sound-effects stem (`sfx.wav`) and masters
+   `public/audio/mix.wav`, the only audio file the composition plays:
+   - music sits 14 LU under the voice while it speaks, ducked about 5 dB (120 ms attack, 600 ms
+     release), and comes back up in gaps and over the final logo;
+   - sound effects sit about 12 LU under the voice;
+   - the master is −15 LUFS with true peak at or below −1.5 dBTP.
+   - There is deliberately no decision sound, because no human decision was recorded.
 
-## Music
+To use a licensed score instead, replace `public/audio/music.wav` and run `npm run audio`.
 
-`public/audio/music.mp3` is a generated, quiet modal pad (`npm run music`, no drums or risers),
-mixed at ~−24 dB under the voice (`MUSIC_GAIN` in `src/Video.tsx`). Replace it with any licensed
-instrumental of 114 s or longer; no code changes needed.

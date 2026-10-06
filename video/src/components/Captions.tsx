@@ -5,7 +5,7 @@ import { BAND } from './layout';
 
 /**
  * Burned-in phrase-level captions, timed by scripts/tts.py (src/narration.json). They live in the
- * caption band under the footage frame, so they never cover product UI.
+ * caption band under the product viewport, so they never cover product UI.
  */
 export function Captions() {
   const frame = useCurrentFrame();

@@ -12,7 +12,7 @@ export type Stage = { id: StageId; scene: SceneId; x: number; w: number; h: numb
 
 const GAP = 2200;
 export const STAGES: Stage[] = [
-  { id: 'publish', scene: 's03-publish', x: 0 * GAP, w: 1280, h: 720, s: 1.0 },
+  { id: 'publish', scene: 's03-publish', x: 0 * GAP, w: 1280, h: 780, s: 0.95 },
   { id: 'pipeline', scene: 's04-pipeline', x: 1 * GAP, w: 1240, h: 340, s: 1.32 },
   { id: 'detect', scene: 's05-exact-change', x: 2 * GAP, w: 1240, h: 600, s: 1.18 },
   { id: 'test', scene: 's06-regression', x: 3 * GAP, w: 1240, h: 600, s: 1.18 },
@@ -38,9 +38,12 @@ export const RAIL = [
   { key: 'human', label: 'Human decision', layer: 'hum' },
 ] as const;
 
+/** The operator presses "Publish controlled candidate" as the narration says "publish". */
+export const PRESS_AT = cue('s03-publish', 'and publish one known mutation') + 0.25;
+
 /** When each pipeline stage completes in the (time-compressed) Production run, synced to the voice. */
 export const DONE_AT = {
-  publish: cue('s03-publish', 'and publish one known mutation') + 1.2,
+  publish: PRESS_AT + 1.1, // console leaves its busy state; the candidate enters the pipeline
   detect: cue('s04-pipeline', 'analyzes its semantic'),
   understand: cue('s04-pipeline', 'runs matched'),
   test: cue('s04-pipeline', 'traces downstream'),

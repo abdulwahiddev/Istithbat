@@ -10,7 +10,7 @@ import { candidateAt, GATE } from './panels/ContainPanel';
 import { evidenceAt } from './panels/HumanPanel';
 import { markerAt } from './panels/PipelinePanel';
 import { nodeAt, TRACE } from './panels/TracePanel';
-import { SANDBOX } from '../footage';
+import { PUBLISH_BTN } from './panels/PublishPanel';
 import { cue, DONE_AT, RUN_AT, stage, type StageId } from './stages';
 import { useAbs } from './time';
 
@@ -42,7 +42,7 @@ function place(c: Cam, t: number, path: WP[]) {
 
 type Item = { id: string; path: WP[]; show: [number, number][]; anchor: 'center' | 'left'; body: ReactNode };
 
-const pubAnchor = pw('publish', SANDBOX.anchors.publish.x * 1280, SANDBOX.anchors.publish.y * 720);
+const pubAnchor = pw('publish', PUBLISH_BTN.x, PUBLISH_BTN.y);
 const marker = (i: number) => pw('pipeline', markerAt(i).x, markerAt(i).y);
 const latest: Pos = { s: [HUD.latestX, HUD.latestY] };
 const tPol = cue('s08-gateway', 'POL-002 quarantines');
@@ -55,7 +55,7 @@ const ITEMS: Item[] = [
     id: 'v14', anchor: 'center',
     body: <span className="mono" style={{ display: 'inline-block', fontSize: 20, lineHeight: 1, padding: '10px 14px', borderRadius: 12, border: '1.5px solid var(--co)', background: 'var(--plate-a)', color: 'var(--ink)', boxShadow: 'var(--float-shadow)' }}>{RUN.versions.latest}</span>,
     path: [
-      { t: DONE_AT.publish, at: pubAnchor }, { t: scene('s04-pipeline').start - 0.6, at: pubAnchor },
+      { t: DONE_AT.publish, at: pubAnchor }, { t: DONE_AT.publish + 0.9, at: pw('publish', 1010, 560) }, { t: scene('s04-pipeline').start - 0.6, at: pw('publish', 1010, 560) },
       { t: RUN_AT.detect + 0.4, at: marker(0) }, { t: RUN_AT.understand, at: marker(0) }, { t: RUN_AT.understand + 0.7, at: marker(1) },
       { t: RUN_AT.test, at: marker(1) }, { t: RUN_AT.test + 0.7, at: marker(2) }, { t: RUN_AT.trace, at: marker(2) }, { t: RUN_AT.trace + 0.7, at: marker(3) },
       { t: RUN_AT.contain, at: marker(3) }, { t: RUN_AT.contain + 0.7, at: marker(4) }, { t: DONE_AT.contain + 0.2, at: marker(4) },

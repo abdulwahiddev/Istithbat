@@ -9,7 +9,8 @@
     "still": "remotion still src/index.ts IstithbatDemo out/still.png",
     "narration": "python3 scripts/tts.py",
     "music": "python3 scripts/music.py",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "audio": "tsx scripts/export-events.ts && python3 scripts/music.py && python3 scripts/mix.py"
   },
   "dependencies": {
     "@fontsource/amiri": "5.3.0",
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@types/react": "19.2.2",
+    "tsx": "4.21.0",
     "typescript": "5.9.3"
   }
 }

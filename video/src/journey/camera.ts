@@ -1,6 +1,6 @@
 import { keyed } from '../components/anim';
 import { FPS, scene } from '../timing';
-import { cue, stage, type StageId } from './stages';
+import { cue, PRESS_AT, stage, type StageId } from './stages';
 
 export type Cam = { x: number; y: number; s: number; blur: number };
 type Key = { t: number; x: number; y: number; s: number };
@@ -23,8 +23,10 @@ const focus = (id: StageId, t: number, dx: number, dy: number, s: number) => K.p
 
 const B = (id: Parameters<typeof scene>[0]) => scene(id).start;
 
-// Publish (real /sandbox recording)
-hold('publish', B('s03-publish'), B('s04-pipeline') - 0.75, { push: 0.03 });
+// Publish (/sandbox operator console): settle, then lean toward the button as it is pressed
+hold('publish', B('s03-publish'), PRESS_AT - 1.8, { push: 0.01 });
+focus('publish', PRESS_AT + 0.2, -20, 110, 1.08);
+focus('publish', B('s04-pipeline') - 0.75, 0, 110, 1.1);
 travel('publish', 'pipeline', B('s04-pipeline') - 0.75, B('s04-pipeline') + 0.45);
 // Pipeline overview (time-compressed Production run)
 hold('pipeline', B('s04-pipeline') + 0.45, B('s05-exact-change') - 0.75);
