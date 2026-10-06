@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { preload } from 'react-dom';
 import { HeldHero } from '@/components/landing/HeldHero';
+import { LandingSections } from '@/components/landing/Sections';
 import { BrandLockup } from '@/components/strata/BrandLockup';
 import { Icon } from '@/components/strata/icons';
 
 /**
- * Landing · hero only (Direction E · Held). The next landing section attaches at #after-hero.
+ * Landing · the frozen hero (Direction E · Held), then the story below it from #after-hero:
+ * exact change, reach, containment, evidence and the closing call to action.
  * Nav links point only at destinations that exist today. They do not prefetch: prefetching the
  * product routes preloads their stylesheet, which the landing page never applies.
  */
@@ -30,8 +32,8 @@ export default function Landing() {
       </header>
       <main id="main">
         <HeldHero />
-        {/* Continuation point for the next landing section (not built yet). */}
         <div id="after-hero" className="lh-after" />
+        <LandingSections />
       </main>
     </>
   );

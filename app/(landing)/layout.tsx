@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Amiri, Instrument_Sans, JetBrains_Mono } from 'next/font/google';
 import './landing.css';
+import './sections.css';
 
 // Landing type roles match the product: Instrument Sans for UI, JetBrains Mono only for versions,
 // hashes and IDs, Amiri for Arabic source text.
