@@ -4,7 +4,7 @@ import { FOLDED, LANE_MARK, narrate } from '@/components/strata/events';
 import { dayTime, evTime } from '@/components/strata/format';
 import { Band, Chip, Dk, Ev, HandedToYou, HeadRow, HeldBy, Lnk, Mk, Mono, PageHeader, Rail, ReadError, Sep, SummaryDock } from '@/components/strata/primitives';
 import { summarizeIncident } from '../../_data/incident-summary';
-import { readAudit, readGatewayInventory, readGatewayState, readIncidentItem, readSources } from '../../_data/read';
+import { readAudit, readGatewayInventory, readGatewayState, readIncidentItem, readSources, readShell } from '../../_data/read';
 
 export const metadata = { title: 'Trust Gateway · Istithbat' };
 export const dynamic = 'force-dynamic';
@@ -13,6 +13,7 @@ const vr = (v: { label: string; revisionNumber: number } | null | undefined) => 
 
 export default async function GatewayPage({ params }: { params: Promise<{ appId: string }> }) {
   const appId = decodeURIComponent((await params).appId);
+  await readShell(); // queue the chrome's reads first so the skeleton streams immediately
   const inventory = await readGatewayInventory();
   if (!inventory.ok) return <main id="main" className="scr-gateway"><section style={{ padding: '72px 0 120px' }}><div className="wrap"><ReadError {...inventory.error} /></div></section></main>;
   const rows = inventory.data.filter((i) => i.appId === appId && i.binding);

@@ -100,6 +100,13 @@ function readAuditUncached(q: { incidentId?: string; before?: string; limit?: nu
 
 export type BlastRadiusT = z.infer<typeof BlastRadius>;
 /** GET /api/incidents/{id}/blast-radius — the persisted/live traversal, without loading the full aggregate. */
+/**
+ * The reads the layout's chrome needs. Reads are serialized (one pooled connection), so a page that
+ * queues a slow read first would hold the layout, and with it the route skeleton, behind it. Pages
+ * with slow reads await this first; cache() means the layout reuses the same results.
+ */
+export const readShell = cache(() => Promise.all([readIncidents(), readSources(), readGatewayInventory()]));
+
 export const readBlast = cache((incidentId: string): Promise<ReadResult<BlastRadiusT | null>> => {
   if (!isIncidentId(incidentId)) return Promise.resolve({ ok: true, data: null });
   return attempt('blast radius', async () => { const g = await readBlastRadiusLib(incidentId); return g ? BlastRadius.parse(g) : null; });

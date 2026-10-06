@@ -5,7 +5,7 @@ import { GRAPH_LIMITS } from '@/lib/blast-radius/graph';
 import { dayTime, evTime, plural, shortHash, word } from '@/components/strata/format';
 import { Band, Chip, Dk, HandedToYou, HeadRow, Kv, Mk, Mono, PageHeader, Rail, ReadError, Sep, SummaryDock } from '@/components/strata/primitives';
 import { incidentSem } from '@/components/strata/semantics';
-import { readBlast, readGatewayInventory, readIncidentItem, readRegressions, readSourceDetail } from '../../../_data/read';
+import { readBlast, readGatewayInventory, readIncidentItem, readRegressions, readSourceDetail, readShell } from '../../../_data/read';
 import { summarizeIncident } from '../../../_data/incident-summary';
 
 export const metadata = { title: 'Blast Radius · Istithbat' };
@@ -13,6 +13,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function BlastRadiusPage({ params }: { params: Promise<{ incidentId: string }> }) {
   const { incidentId } = await params;
+  await readShell(); // queue the chrome's reads first so the skeleton streams immediately
   // Light path: the list row, the light summary and the Blast Radius read (not the full aggregate).
   const itemR = await readIncidentItem(incidentId);
   if (!itemR.ok) return <main id="main"><section style={{ padding: '72px 0 120px' }}><div className="wrap"><ReadError {...itemR.error} /></div></section></main>;

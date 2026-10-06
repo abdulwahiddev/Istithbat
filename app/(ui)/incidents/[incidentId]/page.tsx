@@ -12,7 +12,7 @@ import { cap, dayTime, dayYear, plural, shortHash } from '@/components/strata/fo
 import { incidentFacts } from '@/components/strata/incident-model';
 import { Band, Chip, HandedToYou, HeadRow, HeldBy, Kv, Lnk, Mk, Mono, Rail, ReadError, SyntheticRow } from '@/components/strata/primitives';
 import { aiSuggestion, analysisText, deltaText, incidentSem, policyFacts, RESULT_TEXT, ROLE_TEXT, twoLines } from '@/components/strata/semantics';
-import { readGatewayInventory, readIncidentDetail, readRegressions, readSourceDetail } from '../../_data/read';
+import { readGatewayInventory, readIncidentDetail, readRegressions, readSourceDetail, readShell } from '../../_data/read';
 import { readReviewer } from '../../_data/session';
 
 export const metadata = { title: 'Incident Review · Istithbat' };
@@ -26,6 +26,7 @@ const MODE: Record<string, string> = { replay: 'Replayed response', mock: 'Mock 
 
 export default async function IncidentReviewPage({ params }: { params: Promise<{ incidentId: string }> }) {
   const { incidentId } = await params;
+  await readShell(); // queue the chrome's reads first so the skeleton streams immediately
   const detail = await readIncidentDetail(incidentId);
   if (!detail.ok) return <main id="main"><section style={{ padding: '72px 0 120px' }}><div className="wrap"><ReadError {...detail.error} /></div></section></main>;
   const inc = detail.data;

@@ -4,7 +4,7 @@ import { canReview } from '@/lib/governance/transitions';
 import { RecordLedger } from '@/components/record/RecordLedger';
 import { isArabic } from '@/components/strata/diff';
 import { Band, Chip, Dk, HandedToYou, HeldBy, Mk, Mono, PageHeader, Rail, ReadError, Sep, SummaryDock } from '@/components/strata/primitives';
-import { readAudit, readGatewayInventory, readIncidentItem, readSourceDetail } from '../../../_data/read';
+import { readAudit, readGatewayInventory, readIncidentItem, readSourceDetail, readShell } from '../../../_data/read';
 import { summarizeIncident } from '../../../_data/incident-summary';
 
 export const metadata = { title: 'Record · Istithbat' };
@@ -12,6 +12,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function RecordPage({ params }: { params: Promise<{ incidentId: string }> }) {
   const { incidentId } = await params;
+  await readShell(); // queue the chrome's reads first so the skeleton streams immediately
   // Light path: the list row, the persisted audit page and the source detail (not the full aggregate).
   const itemR = await readIncidentItem(incidentId);
   if (!itemR.ok) return <main id="main"><section style={{ padding: '72px 0 120px' }}><div className="wrap"><ReadError {...itemR.error} /></div></section></main>;
