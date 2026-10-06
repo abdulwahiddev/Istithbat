@@ -5,6 +5,8 @@ import { Amiri, Instrument_Sans, JetBrains_Mono, Newsreader } from 'next/font/go
 import { AutoRefresh } from '@/components/strata/AutoRefresh';
 import { Chrome } from '@/components/strata/Chrome';
 import { ThemeRoot } from '@/components/strata/theme';
+import { JudgeGuide, JudgeGuideRoot } from '@/components/strata/JudgeGuide';
+import { guideFrom } from '@/components/strata/guide-data';
 import { lockReviewer, unlockReviewer } from './_actions/reviewer';
 import { chromeData } from './_data/chrome';
 import { readGatewayInventory, readIncidents, readSources } from './_data/read';
@@ -57,12 +59,16 @@ export default async function StrataLayout({ children }: { children: ReactNode }
       if (parts[0] === 'gateway' && gateway.ok && !gateway.data.some(item => item.appId === id && item.binding)) notFound();
     }
   }
+  const chrome = chromeData(incidents, sources, gateway, reviewer);
   return (
     <ThemeRoot initial={theme} className={`${instrument.variable} ${newsreader.variable} ${jetbrains.variable} ${amiri.variable}`}>
-      <a href="#main" className="sr-only">Skip to content</a>
-      <Chrome data={chromeData(incidents, sources, gateway, reviewer)} actions={{ unlock: unlockReviewer, lock: lockReviewer }} />
-      <AutoRefresh active={incidents.ok && incidents.data.some(i => i.pipelineStatus === 'RUNNING')} />
-      {children}
+      <JudgeGuideRoot>
+        <a href="#main" className="sr-only">Skip to content</a>
+        <Chrome data={chrome} actions={{ unlock: unlockReviewer, lock: lockReviewer }} />
+        <AutoRefresh active={incidents.ok && incidents.data.some(i => i.pipelineStatus === 'RUNNING')} />
+        {children}
+        <JudgeGuide data={guideFrom(chrome)} />
+      </JudgeGuideRoot>
     </ThemeRoot>
   );
 }

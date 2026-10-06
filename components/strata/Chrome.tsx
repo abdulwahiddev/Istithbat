@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
 import { ThemeSwitch } from './theme';
+import { JudgeGuideButton } from './JudgeGuide';
 import { BrandLockup } from './BrandLockup';
 import { Icon } from './icons';
 import { REVIEWER_UNLOCK_EVENT } from './reviewer-events';
@@ -79,6 +80,7 @@ export function Chrome({ data, actions }: { data: ChromeData; actions: Actions }
             </NavSeg>
           </nav>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <JudgeGuideButton />
             <ThemeSwitch />
             <button type="button" className="iconbtn" onClick={() => router.push('/incidents')}
               aria-label={n ? `Notifications, ${n} ${n === 1 ? 'incident needs' : 'incidents need'} a decision` : 'Notifications, nothing needs a decision'}>

@@ -2,6 +2,10 @@ import type { ReactNode } from 'react';
 import { Amiri, Instrument_Sans, JetBrains_Mono, Newsreader } from 'next/font/google';
 import { SandboxBar } from '@/components/sandbox/SandboxBar';
 import { ThemeRoot } from '@/components/strata/theme';
+import { JudgeGuide, JudgeGuideRoot } from '@/components/strata/JudgeGuide';
+import { guideFrom } from '@/components/strata/guide-data';
+import { chromeData } from '../(ui)/_data/chrome';
+import { readGatewayInventory, readIncidents, readSources } from '../(ui)/_data/read';
 import { readTheme } from '../(ui)/_data/session';
 import '../(ui)/strata/strata-shared.css';
 import '../(ui)/strata/strata-screens.css';
@@ -29,11 +33,17 @@ export const dynamic = 'force-dynamic';
 
 export default async function SandboxLayout({ children }: { children: ReactNode }) {
   const theme = await readTheme();
+  // The same read-only lists the product chrome uses, only to point the walkthrough at the live incident.
+  const [incidents, sources, gateway] = await Promise.all([readIncidents(), readSources(), readGatewayInventory()]);
+  const guide = guideFrom(chromeData(incidents, sources, gateway, null));
   return (
     <ThemeRoot initial={theme} className={`${instrument.variable} ${newsreader.variable} ${jetbrains.variable} ${amiri.variable}`}>
-      <a href="#main" className="sr-only">Skip to content</a>
-      <SandboxBar />
-      {children}
+      <JudgeGuideRoot>
+        <a href="#main" className="sr-only">Skip to content</a>
+        <SandboxBar />
+        {children}
+        <JudgeGuide data={guide} />
+      </JudgeGuideRoot>
     </ThemeRoot>
   );
 }
