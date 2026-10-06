@@ -2,7 +2,7 @@ import { hadeethencConnector } from '@/lib/connectors/hadeethenc';
 import { diffPayloads, type DiffPayload } from '@/lib/diff/engine';
 import { hashJson } from '@/lib/hashing/canonicalize';
 import { evaluatePolicy, type AdvisoryFacts, type PolicyInput } from '@/lib/policy/rules';
-import { layoutGraph } from '@/components/blast/layout';
+import { edgePath, layoutGraph } from '@/components/blast/layout';
 import { diffPieces } from '@/components/strata/ExactDiff';
 import { wordDiff } from '@/components/strata/diff';
 import { ROLE_TEXT, deltaText, policyFacts } from '@/components/strata/semantics';
@@ -71,27 +71,47 @@ const pick = (r: ReturnType<typeof evaluatePolicy>) => ({ code: r.policyCode, ac
 
 export type Derived = ReturnType<typeof deriveScenario>;
 
+/** Design width of the graph in px; the rendered graph scales uniformly from it. */
+export const GRAPH_W = 1200;
+
 /**
  * The scenario's dependency graph in the product's BlastRadius shape, placed by the product's own
- * layout. Impact follows the product rule: IMPACTED only for a protected app with a material
- * matched regression; other dependants are EXPOSED (a dependency fact, not a behaviour claim).
+ * layout (components/blast/layout) and routed with its own edge geometry (edgePath). Impact
+ * follows the product rule: IMPACTED only for a protected app with a material matched regression.
+ * While the regression is not a recorded, validated run, such an app is PENDING: exposed, with its
+ * impact awaiting validation. It is never drawn as impacted on provisional values.
  */
 function radius(s: Scenario) {
+  const verified = s.status === 'validated' && s.regression.answers === 'recorded';
   const pathTo = (id: string): string[] => (id === 'source' ? ['source'] : id === 'record' ? ['source', 'record'] : [...pathTo(s.assets.find((a) => a.id === id)!.from), id]);
-  const impacted = (a: Scenario['assets'][number]) => !!a.protected && s.regression.material > 0;
+  const candidate = (a: Scenario['assets'][number]) => !!a.protected && s.regression.material > 0;
+  const impact = (a: Scenario['assets'][number]) => (candidate(a) ? (verified ? 'IMPACTED' : 'PENDING') : 'EXPOSED');
   const nodes = [
     { id: 'source', name: s.source.name, assetType: 'SOURCE', impact: 'HEALTHY', dependencyPaths: [], derivationMode: null, derivedFromVersionId: null, servedVersionId: null, regressionEvidence: [], regressionRunIds: [], currentlyServesCandidate: false },
     { id: 'record', name: `${s.source.recordId}`, assetType: 'RECORD', impact: 'HEALTHY', dependencyPaths: [], derivationMode: null, derivedFromVersionId: null, servedVersionId: null, regressionEvidence: [], regressionRunIds: [], currentlyServesCandidate: false },
     ...s.assets.map((a) => ({
-      id: a.id, name: a.name, assetType: a.type, impact: impacted(a) ? 'IMPACTED' : 'EXPOSED', dependencyPaths: [pathTo(a.id)],
+      id: a.id, name: a.name, assetType: a.type, impact: impact(a) === 'IMPACTED' ? 'IMPACTED' : 'EXPOSED', dependencyPaths: [pathTo(a.id)],
       derivationMode: a.mode, derivedFromVersionId: 'trusted', servedVersionId: a.protected ? 'trusted' : null,
       regressionEvidence: [], regressionRunIds: [], currentlyServesCandidate: false,
     })),
   ] as unknown as BlastRadius['nodes'];
   const edges = [{ id: 'e-record', from: 'source', to: 'record', type: 'CONTAINS' }, ...s.assets.map((a) => ({ id: `e-${a.id}`, from: a.from, to: a.id, type: 'DEPENDS_ON' }))] as BlastRadius['edges'];
-  const lay = layoutGraph({ nodes, edges }, { xs: [1.5, 15, 29, 43, 57, 71, 86], centre: 140, gap: 150, height: 272, minGap: 90 });
+  const H = 272;
+  const lay = layoutGraph({ nodes, edges }, { xs: [1, 14, 27, 40, 53, 66, 80], centre: 142, gap: 150, height: H, minGap: 90 });
+  const px = (x: number) => (x / 100) * GRAPH_W;
+  const state = (id: string, type: string) => type === 'SOURCE' ? 'neutral' : type === 'RECORD' ? 'changed' : impact(s.assets.find((a) => a.id === id)!).toLowerCase() as 'exposed' | 'pending' | 'impacted';
+  const graph = {
+    w: GRAPH_W, h: lay.height,
+    headings: lay.headings.map((h) => ({ depth: h.depth, x: h.x, label: h.label })),
+    nodes: lay.nodes.map((n) => ({ id: n.id, name: n.name, type: n.assetType, depth: n.depth, x: n.x, y: n.y, app: n.app, protectedApp: n.protectedApp, mode: n.derivationMode, state: state(n.id, n.assetType) })),
+    edges: lay.edges.map((e) => {
+      const from = lay.nodes.find((n) => n.id === e.from)!, to = lay.nodes.find((n) => n.id === e.to)!;
+      return { id: e.id, from: e.from, to: e.to, kind: e.kind, fromDepth: from.depth, path: edgePath({ x: px(e.a.x), y: e.a.y }, { x: px(e.b.x), y: e.b.y }), toState: state(to.id, to.assetType) };
+    }),
+  };
   const down = s.assets.length;
-  const imp = s.assets.filter(impacted).length;
+  const imp = s.assets.filter((a) => impact(a) === 'IMPACTED').length;
+  const pending = s.assets.filter((a) => impact(a) === 'PENDING').length;
   const stale = 0; // stale applies only to frozen copies after a promotion; nothing is promoted
-  return { lay, down, imp, exp: down - imp - stale, stale, materialized: s.assets.filter((a) => a.mode === 'MATERIALIZED').map((a) => a.name) };
+  return { graph, verified, down, imp, pending, exp: down - imp - pending - stale, stale, pendingNames: s.assets.filter((a) => impact(a) === 'PENDING').map((a) => a.name) };
 }

@@ -26,10 +26,19 @@ describe('landing scenario', () => {
     for (const c of d.policy.counterfactuals) expect(c).toMatchObject({ code: 'POL-002', action: 'QUARANTINE' });
   });
 
-  it('marks only a protected app with a material regression as impacted', () => {
+  it('never shows impact on provisional regression values', () => {
     expect(d.radius.down).toBe(SCENARIO.assets.length);
-    expect(d.radius.imp).toBe(SCENARIO.assets.filter((a) => a.protected).length);
-    const none: Scenario = { ...SCENARIO, regression: { ...SCENARIO.regression, material: 0 } };
+    const draft: Scenario = { ...SCENARIO, status: 'draft' };
+    expect(deriveScenario(draft).radius.imp).toBe(0);
+    expect(deriveScenario(draft).radius.pending).toBe(SCENARIO.assets.filter((a) => a.protected).length);
+    expect(deriveScenario(draft).radius.graph.nodes.some((n) => n.state === 'impacted')).toBe(false);
+  });
+
+  it('marks only a protected app with a recorded, validated material regression as impacted', () => {
+    const real: Scenario = { ...SCENARIO, status: 'validated', regression: { ...SCENARIO.regression, answers: 'recorded' } };
+    expect(deriveScenario(real).radius.imp).toBe(SCENARIO.assets.filter((a) => a.protected).length);
+    expect(deriveScenario(real).radius.pending).toBe(0);
+    const none: Scenario = { ...real, regression: { ...real.regression, material: 0 } };
     expect(deriveScenario(none).radius.imp).toBe(0);
   });
 
