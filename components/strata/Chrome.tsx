@@ -201,15 +201,15 @@ function Reviewer({ reviewer, available, actions }: { reviewer: ChromeData['revi
           {reviewer ? (
             <>
               <p>Signed in as <b style={{ color: 'var(--ink)' }}>{reviewer.name}</b>. Decisions are recorded under this name.</p>
-              <button type="button" className="ubtn" onClick={async () => { await actions.lock(); setOpen(false); router.refresh(); }}>Lock reviewer mode</button>
+              <button type="button" className="ubtn" onClick={async () => { await actions.lock(); setOpen(false); router.refresh(); }}>Sign out of Reviewer Mode</button>
             </>
           ) : !available ? (
             <p>Reviewer sign-in is not configured on this deployment, so no decision can be signed here. Read-only views stay public.</p>
           ) : (
             <form action={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <p>Only reviewers can sign decisions. Read-only views stay public.</p>
-              <label>Name to sign with<input name="name" autoComplete="name" required maxLength={60} /></label>
-              <label>Review credential<input name="secret" type="password" autoComplete="current-password" required /></label>
+              <label>Username<input name="username" autoComplete="username" required maxLength={120} /></label>
+              <label>Password<input name="password" type="password" autoComplete="current-password" required /></label>
               {state.error && <p className="err" role="alert">{state.error}</p>}
               <button type="submit" className="ubtn" disabled={pending}>{pending ? 'Checking…' : 'Unlock reviewer mode'}</button>
             </form>
