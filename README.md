@@ -59,7 +59,7 @@ flowchart LR
 
 Switch between English and Arabic with the **EN / ع** control. Arabic mode uses native right-to-left layouts and IBM Plex Sans Arabic for the interface; Amiri distinguishes preserved Arabic source text from UI labels. Hashes, version labels, IDs, policy codes and URLs remain left-to-right. Source and religious Arabic, recorded AI evidence and technical identifiers are displayed as stored, without translating or rewriting the underlying evidence.
 
-![Arabic Incident Review with the Guided Tour closed](docs/qa/post-submission/refined/ar-incident-review-tour-collapsed-1440.jpg)
+![Arabic Overview in RTL: Latest v14 held, Trusted v13, Served v13, Guided Tour closed](docs/readme/ar-overview.jpg)
 
 ## Guided Tour and interactive Blast Radius
 
@@ -67,7 +67,7 @@ The optional **Guided Tour** is closed by default. Open it from the product head
 
 Blast Radius lets judges filter **All / Exposed / Impacted / Stale**, highlight a node and its persisted dependency path, and follow the same trace in a responsive mobile view. Filters change the display, not the underlying impact classification. The verified held incident remains **6 EXPOSED / 1 IMPACTED / 0 STALE**.
 
-![Arabic Blast Radius with the verified dependency graph](docs/qa/post-submission/refined/ar-blast-radius-1280.jpg)
+![English Blast Radius for the held HadeethEnc 10618 incident: 6 exposed, 1 impacted (Islamic Q&A), 0 stale](docs/readme/en-blast-radius.jpg)
 
 ## Verified Production demo
 
