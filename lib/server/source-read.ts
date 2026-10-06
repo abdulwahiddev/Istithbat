@@ -4,6 +4,10 @@ import { SourceDetail, SourceSummary, type SourceSummary as SourceSummaryType } 
 import { getConnectorDefinition } from '@/lib/connectors/registry';
 
 export async function listSources(): Promise<SourceSummaryType[]> {
+  return loadSourceSummaries(null);
+}
+
+async function loadSourceSummaries(sourceId: string | null): Promise<SourceSummaryType[]> {
   const rows = await getSql()`SELECT s.*,
     COALESCE(seen_binding.upstream_version_label,seen_fallback.upstream_version_label) AS latest_seen_label,
     COALESCE(seen_binding.revision_number,seen_fallback.revision_number) AS latest_seen_revision,
@@ -15,7 +19,7 @@ export async function listSources(): Promise<SourceSummaryType[]> {
     LEFT JOIN LATERAL (SELECT v.upstream_version_label,v.revision_number,v.record_count FROM source_versions v WHERE v.source_id=s.id ORDER BY v.detected_at DESC,v.id DESC LIMIT 1) seen_fallback ON true
     LEFT JOIN LATERAL (SELECT v.upstream_version_label,v.revision_number FROM source_versions v WHERE v.source_id=s.id AND v.status='TRUSTED' LIMIT 1) trusted ON true
     LEFT JOIN LATERAL (SELECT v.upstream_version_label,v.revision_number FROM gateway_bindings g JOIN source_versions v ON v.id=g.served_version_id WHERE g.source_id=s.id ORDER BY g.updated_at DESC LIMIT 1) served ON true
-    ORDER BY s.id`;
+    WHERE (${sourceId}::text IS NULL OR s.id=${sourceId}) ORDER BY s.id`;
   return rows.map(row => SourceSummary.parse({
     id:row.id,name:row.name,provider:row.provider,sourceType:row.source_type,connectorHealth:row.connector_health,
     isDemoFixture:row.is_demo_fixture,contentLevel:row.content_level,latestSeenLabel:row.latest_seen_label,
@@ -28,34 +32,44 @@ export async function listSources(): Promise<SourceSummaryType[]> {
 }
 
 export async function getSourceDetail(sourceId: string) {
-  const source = (await listSources()).find(item => item.id === sourceId);
+  const source = (await loadSourceSummaries(sourceId))[0];
   if (!source) return null;
   const sql = getSql();
-  const [sourceRows,versions,changes,checks,policyRows,incidentRows] = await Promise.all([
-    sql`SELECT field_roles_json FROM sources WHERE id=${sourceId}`,
-    sql`SELECT * FROM source_versions WHERE source_id=${sourceId} ORDER BY detected_at ASC,id ASC`,
-    sql`SELECT c.* FROM changes c JOIN source_versions v ON v.id=c.to_version_id WHERE v.source_id=${sourceId} ORDER BY v.detected_at ASC,c.field_path ASC NULLS FIRST,c.id ASC`,
-    sql`SELECT * FROM source_checks WHERE source_id=${sourceId} ORDER BY checked_at DESC,id DESC LIMIT 25`,
-    sql`SELECT e.source_version_id,e.policy_code,e.action,e.deterministic_facts_json,e.evaluated_at FROM policy_evaluations e
-      JOIN source_versions v ON v.id=e.source_version_id WHERE v.source_id=${sourceId} AND e.is_effective=true`,
-    sql`SELECT i.candidate_version_id,i.status,r.status AS pipeline_status FROM incidents i
-      LEFT JOIN pipeline_runs r ON r.source_version_id=i.candidate_version_id WHERE i.source_id=${sourceId}`,
-  ]);
+  const [bundle] = await sql`SELECT s.field_roles_json,
+    (SELECT COALESCE(jsonb_agg(to_jsonb(v) ORDER BY v.detected_at,v.id),'[]'::jsonb)
+      FROM source_versions v WHERE v.source_id=s.id) AS versions,
+    (SELECT COALESCE(jsonb_agg(to_jsonb(c) ORDER BY v.detected_at,c.field_path NULLS FIRST,c.id),'[]'::jsonb)
+      FROM changes c JOIN source_versions v ON v.id=c.to_version_id WHERE v.source_id=s.id) AS changes,
+    (SELECT COALESCE(jsonb_agg(to_jsonb(c) ORDER BY c.checked_at DESC,c.id DESC),'[]'::jsonb)
+      FROM (SELECT * FROM source_checks WHERE source_id=s.id ORDER BY checked_at DESC,id DESC LIMIT 25) c) AS checks,
+    (SELECT COALESCE(jsonb_agg(to_jsonb(e)),'[]'::jsonb)
+      FROM policy_evaluations e JOIN source_versions v ON v.id=e.source_version_id
+      WHERE v.source_id=s.id AND e.is_effective=true) AS policies,
+    (SELECT COALESCE(jsonb_agg(jsonb_build_object('candidate_version_id',i.candidate_version_id,
+      'status',i.status,'pipeline_status',r.status)),'[]'::jsonb)
+      FROM incidents i LEFT JOIN pipeline_runs r ON r.source_version_id=i.candidate_version_id
+      WHERE i.source_id=s.id) AS incidents
+    FROM sources s WHERE s.id=${sourceId}`;
+  const versions = bundle.versions as Array<Record<string,any>>;
+  const changes = bundle.changes as Array<Record<string,any>>;
+  const checks = bundle.checks as Array<Record<string,any>>;
+  const policyRows = bundle.policies as Array<Record<string,any>>;
+  const incidentRows = bundle.incidents as Array<Record<string,any>>;
   const policyByVersion=new Map(policyRows.map(row=>[row.source_version_id as string,row]));
   const incidentByVersion=new Map(incidentRows.map(row=>[row.candidate_version_id as string,row]));
   return SourceDetail.parse({
-    source,fieldRoles:sourceRows[0].field_roles_json,
+    source,fieldRoles:bundle.field_roles_json,
     versions:versions.map(row => ({
       id:row.id,previousVersionId:row.previous_version_id,upstreamLabel:row.upstream_version_label,
-      revisionNumber:row.revision_number,upstreamPublishedAt:row.upstream_published_at?.toISOString()??null,
+      revisionNumber:row.revision_number,upstreamPublishedAt:row.upstream_published_at ? new Date(row.upstream_published_at).toISOString() : null,
       status:row.status,rawSha256:row.raw_sha256,canonicalSha256:row.canonical_sha256,
       silentMutation:row.silent_mutation,changeClass:row.change_class,
       rawSnapshotPath:row.raw_snapshot_path,canonicalSnapshotPath:row.canonical_snapshot_path,
-      recordCount:row.record_count,detectedAt:row.detected_at.toISOString(),
+      recordCount:row.record_count,detectedAt:new Date(row.detected_at).toISOString(),
       heldForReview:row.status==='ANALYZING' && incidentByVersion.get(row.id)?.status==='NEEDS_REVIEW'
         && incidentByVersion.get(row.id)?.pipeline_status==='COMPLETE' && policyByVersion.get(row.id)?.action==='REVIEW',
       autoPromotion:policyByVersion.get(row.id)?.policy_code==='POL-005' && policyByVersion.get(row.id)?.action==='ALLOW'
-        ? {policyCode:'POL-005',equivalence:policyByVersion.get(row.id)?.deterministic_facts_json?.equivalenceReason ?? 'metadata only',promotedAt:policyByVersion.get(row.id)!.evaluated_at.toISOString()} : null,
+        ? {policyCode:'POL-005',equivalence:policyByVersion.get(row.id)?.deterministic_facts_json?.equivalenceReason ?? 'metadata only',promotedAt:new Date(policyByVersion.get(row.id)!.evaluated_at).toISOString()} : null,
     })),
     changes:changes.map(row => ({
       id:row.id,canonicalKey:row.canonical_key,changeType:row.change_type,fieldPath:row.field_path,
@@ -65,6 +79,6 @@ export async function getSourceDetail(sourceId: string) {
       rolesPresent:row.diff_json?.rolesPresent??[],
     })),
     checks:checks.map(row => ({id:row.id,triggerType:row.trigger_type,status:row.status,errorCode:row.error_code,
-      rawSha256:row.raw_sha256,sourceVersionId:row.source_version_id,checkedAt:row.checked_at.toISOString()})),
+      rawSha256:row.raw_sha256,sourceVersionId:row.source_version_id,checkedAt:new Date(row.checked_at).toISOString()})),
   });
 }

@@ -1,0 +1,230 @@
+{
+  "format": "istithbat.real-corpus-benchmark/1",
+  "date": "2026-10-06",
+  "mode": "READ_ONLY_PRIVATE_ARTIFACT",
+  "productionImported": false,
+  "productionImportRecommendedBeforeSubmission": false,
+  "productionUnchanged": {
+    "hadeethBaselineRecords": 3,
+    "quranBaselineRecords": 11,
+    "sandboxLatestSeen": "v14-r1 QUARANTINED",
+    "sandboxTrustedAndServed": "v13-r1",
+    "heldIncidentReviews": 0
+  },
+  "requests": 1261,
+  "quotaResponses": 0,
+  "recoveredTransientFailures": 1,
+  "retryCause": "Historical run counted the retry but did not capture whether it was a network timeout, HTTP 408 or HTTP 5xx.",
+  "privateArtifactBytes": 410000646,
+  "verification": {
+    "testsPassed": 164,
+    "optionalDatabaseTestsSkipped": 7,
+    "typecheck": "PASS",
+    "productionBuild": "PASS",
+    "migrationHashes": "4/4 MATCH (read-only)",
+    "secretPathScan": "PASS"
+  },
+  "providers": [
+    {
+      "source": "quranenc",
+      "first": {
+        "source": "quranenc",
+        "complete": true,
+        "imported": false,
+        "trust": "UNASSESSED",
+        "records": 6236,
+        "upstreamVersion": "1.1.2",
+        "attribution": {
+          "synthetic": false,
+          "provider": "QuranEnc.com",
+          "connector": "quranenc/1",
+          "api": "https://quranenc.com/api/v1",
+          "translation": {
+            "key": "english_saheeh",
+            "language_iso_code": "en",
+            "version": "1.1.2",
+            "last_update": 1750772247,
+            "title": "English Translation - Noor International Center",
+            "description": "Issued by Noor International Center.",
+            "direction": "ltr"
+          },
+          "terms": "No modification, addition or deletion of the content; clearly refer to the publisher and the source (QuranEnc.com)."
+        },
+        "fetchSeconds": 121.60448129200002,
+        "hashMs": 115.65449999998964,
+        "rawSha256": "40881bdcb8111dd1a31a5dedd68fb799b79cc515c3ce590e9c39f77597314928",
+        "canonicalSha256": "a719a0c185d89d174db5df098678b094f10902abe0f805b140dccfd4ab07a57e",
+        "rawBundleBytes": 7272893,
+        "canonicalBytes": 4659154,
+        "hashArtifactBytes": 3646786,
+        "requests": 116,
+        "retries": 0,
+        "quotaResponses": 0,
+        "bytes": 5436397
+      },
+      "second": {
+        "source": "quranenc",
+        "complete": true,
+        "imported": false,
+        "trust": "UNASSESSED",
+        "records": 6236,
+        "upstreamVersion": "1.1.2",
+        "attribution": {
+          "synthetic": false,
+          "provider": "QuranEnc.com",
+          "connector": "quranenc/1",
+          "api": "https://quranenc.com/api/v1",
+          "translation": {
+            "key": "english_saheeh",
+            "language_iso_code": "en",
+            "version": "1.1.2",
+            "last_update": 1750772247,
+            "title": "English Translation - Noor International Center",
+            "description": "Issued by Noor International Center.",
+            "direction": "ltr"
+          },
+          "terms": "No modification, addition or deletion of the content; clearly refer to the publisher and the source (QuranEnc.com)."
+        },
+        "fetchSeconds": 116.842184958,
+        "hashMs": 120.48129200001131,
+        "rawSha256": "40881bdcb8111dd1a31a5dedd68fb799b79cc515c3ce590e9c39f77597314928",
+        "canonicalSha256": "a719a0c185d89d174db5df098678b094f10902abe0f805b140dccfd4ab07a57e",
+        "rawBundleBytes": 7272893,
+        "canonicalBytes": 4659154,
+        "hashArtifactBytes": 3646786,
+        "requests": 116,
+        "retries": 0,
+        "quotaResponses": 0,
+        "bytes": 5436397
+      },
+      "repeat": {
+        "recordCountEqual": true,
+        "rawEqual": true,
+        "canonicalEqual": true,
+        "recordAndFieldHashesEqual": true,
+        "hashArtifactSha256": "e25a1a02c0b611cc57e60d8b30eef1714c429e5ff509b379d04791be0e533854",
+        "addedRecords": 0,
+        "removedRecords": 0,
+        "changedRecords": 0
+      },
+      "scope": {
+        "surahs": 114,
+        "ayat": 6236,
+        "translation": "english_saheeh",
+        "publisher": "Noor International Center"
+      },
+      "offlineVerification": [
+        {
+          "verified": true,
+          "records": 6236,
+          "normalizeAndHashMs": 118.72541600000001,
+          "noChangeDiffMs": 15.988333000000011
+        },
+        {
+          "verified": true,
+          "records": 6236,
+          "normalizeAndHashMs": 114.564792,
+          "noChangeDiffMs": 16.72316699999999
+        }
+      ],
+      "storage": {
+        "contentJsonUtf8Bytes": 2891213,
+        "metadataJsonUtf8Bytes": 1139914,
+        "fieldHashesJsonUtf8Bytes": 2874796
+      }
+    },
+    {
+      "source": "hadeethenc",
+      "first": {
+        "source": "hadeethenc",
+        "complete": true,
+        "imported": false,
+        "trust": "UNASSESSED",
+        "records": 3574,
+        "upstreamVersion": "unversioned",
+        "attribution": {
+          "synthetic": false,
+          "provider": "HadeethEnc.com",
+          "api": "https://hadeethenc.com/api/v1",
+          "connector": "hadeethenc-corpus/1",
+          "scope": "Union of official Arabic root-category catalogs; Arabic plus available English translations",
+          "terms": "No modification, addition or deletion; clearly credit HadeethEnc.com and publisher. Private evidence only."
+        },
+        "fetchSeconds": 518.691045458,
+        "hashMs": 587.4566669999622,
+        "rawSha256": "af6b16a46bcc18e136f96ea99f822035199ec5d877ad0ba4f4c5bbdcdd94f32a",
+        "canonicalSha256": "5d8bd5d021fcc0dc113762d56f98ffd5788eac908df00ce59349b26882c8d48d",
+        "rawBundleBytes": 84902325,
+        "canonicalBytes": 28400448,
+        "hashArtifactBytes": 7111080,
+        "requests": 514,
+        "retries": 0,
+        "quotaResponses": 0,
+        "bytes": 63566796
+      },
+      "second": {
+        "source": "hadeethenc",
+        "complete": true,
+        "imported": false,
+        "trust": "UNASSESSED",
+        "records": 3574,
+        "upstreamVersion": "unversioned",
+        "attribution": {
+          "synthetic": false,
+          "provider": "HadeethEnc.com",
+          "api": "https://hadeethenc.com/api/v1",
+          "connector": "hadeethenc-corpus/1",
+          "scope": "Union of official Arabic root-category catalogs; Arabic plus available English translations",
+          "terms": "No modification, addition or deletion; clearly credit HadeethEnc.com and publisher. Private evidence only."
+        },
+        "fetchSeconds": 526.733269459,
+        "hashMs": 558.2202920001,
+        "rawSha256": "af6b16a46bcc18e136f96ea99f822035199ec5d877ad0ba4f4c5bbdcdd94f32a",
+        "canonicalSha256": "5d8bd5d021fcc0dc113762d56f98ffd5788eac908df00ce59349b26882c8d48d",
+        "rawBundleBytes": 84902325,
+        "canonicalBytes": 28400448,
+        "hashArtifactBytes": 7111080,
+        "requests": 515,
+        "retries": 1,
+        "quotaResponses": 0,
+        "bytes": 63566796
+      },
+      "repeat": {
+        "recordCountEqual": true,
+        "rawEqual": true,
+        "canonicalEqual": true,
+        "recordAndFieldHashesEqual": true,
+        "hashArtifactSha256": "63bea08e4ee90879ffb7173d071740cd3eb6ac60c528ba868454d401f6266ad4",
+        "addedRecords": 0,
+        "removedRecords": 0,
+        "changedRecords": 0
+      },
+      "scope": {
+        "rootCategories": 7,
+        "categoryMemberships": 4273,
+        "uniqueArabicHadiths": 3574,
+        "englishTranslations": 2328
+      },
+      "offlineVerification": [
+        {
+          "verified": true,
+          "records": 3574,
+          "normalizeAndHashMs": 594.890083,
+          "noChangeDiffMs": 71.12595800000008
+        },
+        {
+          "verified": true,
+          "records": 3574,
+          "normalizeAndHashMs": 578.7215,
+          "noChangeDiffMs": 77.88733300000001
+        }
+      ],
+      "storage": {
+        "contentJsonUtf8Bytes": 26636482,
+        "metadataJsonUtf8Bytes": 1448604,
+        "fieldHashesJsonUtf8Bytes": 6715927
+      }
+    }
+  ],
+  "repositoryBaseCommit": "888562637c94b35e999d744edaee0fe21a2dd7f8"
+}
