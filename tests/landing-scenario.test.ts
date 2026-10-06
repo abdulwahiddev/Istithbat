@@ -38,7 +38,7 @@ describe('landing scenario', () => {
   });
 
   it('marks only a protected app with a recorded, validated material regression as impacted', () => {
-    const real: Scenario = { ...SCENARIO, status: 'validated', regression: { ...SCENARIO.regression, answers: 'recorded' } };
+    const real: Scenario = { ...SCENARIO, status: 'validated', regression: { ...SCENARIO.regression, answers: 'recorded', matched: 3, material: 2 } };
     expect(deriveScenario(real).radius.imp).toBe(SCENARIO.assets.filter((a) => a.protected).length);
     expect(deriveScenario(real).radius.pending).toBe(0);
     const none: Scenario = { ...real, regression: { ...real.regression, material: 0 } };

@@ -167,27 +167,48 @@ function ReachSection({ d }: { d: Derived }) {
         </div>
 
         <div className="qa" data-seq>
-          <div className="qa-q fx-fade" data-t={0}>
-            <span className="cap">{d.radius.verified ? `Pinned question · 1 of ${s.regression.matched}` : 'Pinned question'}</span>
-            <p>{s.regression.question}</p>
-            {s.regression.answers === 'illustrative' && <Draft d={d} what="Illustrative answers · under validation" />}
-          </div>
-          <div className="qa-ans">
-            <div className="qa-col fx-fade" data-t={300}>
-              <span className="qa-h"><i className="tq" /><Mono>{s.original.version}</Mono>Trusted knowledge</span>
-              <p className="qa-a"><Words segs={w.old} mark="removed" /></p>
+          {d.radius.verified ? <>
+            <div className="qa-q fx-fade" data-t={0}>
+              <span className="cap">Pinned question · 1 of {s.regression.matched}</span>
+              <p>{s.regression.question}</p>
             </div>
-            <div className="qa-col fx-fade" data-t={650}>
-              <span className="qa-h"><i className="co" /><Mono>{s.mutation.version}</Mono>Candidate knowledge</span>
-              <p className="qa-a"><Words segs={w.new} mark="added" /></p>
+            <div className="qa-ans">
+              <div className="qa-col fx-fade" data-t={300}>
+                <span className="qa-h"><i className="tq" /><Mono>{s.original.version}</Mono>Trusted knowledge</span>
+                <p className="qa-a"><Words segs={w.old} mark="removed" /></p>
+              </div>
+              <div className="qa-col fx-fade" data-t={650}>
+                <span className="qa-h"><i className="co" /><Mono>{s.mutation.version}</Mono>Candidate knowledge</span>
+                <p className="qa-a"><Words segs={w.new} mark="added" /></p>
+              </div>
             </div>
-          </div>
-          <div className="verdict fx-fade" data-t={1700}>
-            <span className="v-h"><Mark layer="ai" size={14} />Verdict · advisory <Draft d={d} /></span>
-            <span className="v-r"><i className="co" />Material change<span className="v-d">{d.delta}</span></span>
-            <p>{s.regression.why}</p>
-            <small>Advisory. Not a ruling.</small>
-          </div>
+            <div className="verdict fx-fade" data-t={1700}>
+              <span className="v-h"><Mark layer="ai" size={14} />Verdict · advisory</span>
+              <span className="v-r"><i className="co" />Material change<span className="v-d">{d.delta}</span></span>
+              <p>{s.regression.why}</p>
+              <small>Advisory. Not a ruling.</small>
+            </div>
+          </> : <>
+            {/* no recorded, validated run yet: say what is compared, never a hypothetical answer or verdict */}
+            <div className="qa-q fx-fade" data-t={0}>
+              <span className="cap">Matched behavioral regression</span>
+              <p>Same model · Same settings · Only knowledge changed</p>
+            </div>
+            <div className="qa-ans">
+              <div className="qa-col fx-fade" data-t={300}>
+                <span className="qa-h"><i className="tq" /><Mono>{s.original.version}</Mono>Trusted knowledge</span>
+                <p className="qa-a pend">Baseline answer</p>
+              </div>
+              <div className="qa-col fx-fade" data-t={650}>
+                <span className="qa-h"><i className="co" /><Mono>{s.mutation.version}</Mono>Candidate knowledge</span>
+                <p className="qa-a pend">Candidate answer</p>
+              </div>
+            </div>
+            <div className="verdict pend fx-fade" data-t={1000}>
+              <span className="v-h"><Mark layer="ai" size={14} />Result</span>
+              <span className="v-r"><i className="am" />Result pending validation <Draft d={d} /></span>
+            </div>
+          </>}
         </div>
 
         <figure className="rad" data-seq aria-labelledby="rad-cap">

@@ -69,13 +69,15 @@ export const SCENARIO: Scenario = {
   app: { id: 'islamic-qa-demo', name: 'Islamic Q&A' },
   regression: {
     answers: 'illustrative',
-    question: 'What specifically does the source’s grading field describe as sahih?',
-    oldAnswer: 'The grading field rates the hadith sahih, except for the words «ولم يستدر».',
-    newAnswer: 'The grading field rates the hadith sahih, without exception.',
-    matched: 3,
-    material: 2,
-    delta: ['SCOPE_BROADENING', 'CONDITION_OMITTED'],
-    why: 'The trusted grading excludes one phrase. With the candidate, the same model extends sahih to the whole narration.',
+    // Filled from the recorded matched run once 10618 is validated (then set answers: 'recorded').
+    // Until then the landing shows the comparison setup and "Result pending validation" only.
+    question: '',
+    oldAnswer: '',
+    newAnswer: '',
+    matched: 0, // from the recorded run
+    material: 0, // from the recorded run
+    delta: [],
+    why: '',
   },
   advisory: { label: 'Evidence-scope drift', recommendedAction: 'QUARANTINE', risk: 'HIGH' },
   assets: [

@@ -84,8 +84,9 @@ export const GRAPH_W = 1200;
 function radius(s: Scenario) {
   const verified = s.status === 'validated' && s.regression.answers === 'recorded';
   const pathTo = (id: string): string[] => (id === 'source' ? ['source'] : id === 'record' ? ['source', 'record'] : [...pathTo(s.assets.find((a) => a.id === id)!.from), id]);
-  const candidate = (a: Scenario['assets'][number]) => !!a.protected && s.regression.material > 0;
-  const impact = (a: Scenario['assets'][number]) => (candidate(a) ? (verified ? 'IMPACTED' : 'PENDING') : 'EXPOSED');
+  // a protected app awaits impact validation until a recorded, validated run exists; then it is
+  // IMPACTED only if that run found a material change, otherwise it stays EXPOSED
+  const impact = (a: Scenario['assets'][number]) => (!a.protected ? 'EXPOSED' : !verified ? 'PENDING' : s.regression.material > 0 ? 'IMPACTED' : 'EXPOSED');
   const nodes = [
     { id: 'source', name: s.source.name, assetType: 'SOURCE', impact: 'HEALTHY', dependencyPaths: [], derivationMode: null, derivedFromVersionId: null, servedVersionId: null, regressionEvidence: [], regressionRunIds: [], currentlyServesCandidate: false },
     { id: 'record', name: `${s.source.recordId}`, assetType: 'RECORD', impact: 'HEALTHY', dependencyPaths: [], derivationMode: null, derivedFromVersionId: null, servedVersionId: null, regressionEvidence: [], regressionRunIds: [], currentlyServesCandidate: false },
