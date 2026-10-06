@@ -17,3 +17,18 @@ export function guideFrom(c: { incidents: { id: string; candidateLabel: string; 
     gatewayHref: c.gatewayHref,
   };
 }
+
+/**
+ * Which stop the user is on, from the real location. Any incident's review, decision and Blast
+ * Radius routes count, not only the canonical one; pages outside the seven stops return -1.
+ */
+export function currentIndex(path: string, hash: string): number {
+  const p = path.replace(/\/+$/, '') || '/';
+  if (p === '/sandbox' || p.startsWith('/sandbox/')) return 1;
+  if (p === '/overview') return hash === '#flow' ? 2 : 0;
+  if (/^\/incidents\/[^/]+\/blast-radius$/.test(p)) return 4;
+  if (/^\/incidents\/[^/]+$/.test(p)) return hash === '#decision' ? 5 : 3;
+  if (p === '/gateway' || p.startsWith('/gateway/')) return 6;
+  return -1;
+}
+

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
-import { Amiri, Instrument_Sans, JetBrains_Mono, Newsreader } from 'next/font/google';
+import { Amiri, IBM_Plex_Sans_Arabic, Instrument_Sans, JetBrains_Mono, Newsreader } from 'next/font/google';
 import { AutoRefresh } from '@/components/strata/AutoRefresh';
 import { Chrome } from '@/components/strata/Chrome';
 import { ThemeRoot } from '@/components/strata/theme';
@@ -22,6 +22,9 @@ const instrument = Instrument_Sans({ subsets: ['latin'], weight: ['400', '500', 
 const newsreader = Newsreader({ subsets: ['latin'], style: ['italic'], axes: ['opsz'], variable: '--font-newsreader', display: 'swap' });
 const jetbrains = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-jetbrains', display: 'swap' });
 const amiri = Amiri({ subsets: ['arabic', 'latin'], weight: ['400', '700'], variable: '--font-amiri', display: 'swap' });
+// Arabic interface face (labels, nav, headings). Arabic subset only and no metric fallback, so Latin
+// text keeps Instrument Sans and Amiri stays reserved for Arabic source text.
+const plexArabic = IBM_Plex_Sans_Arabic({ subsets: ['arabic'], weight: ['400', '500', '600', '700'], variable: '--font-plex-arabic', display: 'swap', adjustFontFallback: false, fallback: [], preload: false });
 
 export const metadata = {
   title: 'Istithbat | استثبات',
@@ -64,7 +67,7 @@ export default async function StrataLayout({ children }: { children: ReactNode }
   const chrome = chromeData(incidents, sources, gateway, reviewer);
   return (
     <LocaleRoot initial={locale}>
-    <ThemeRoot initial={theme} className={`${instrument.variable} ${newsreader.variable} ${jetbrains.variable} ${amiri.variable}`}>
+    <ThemeRoot initial={theme} className={`${instrument.variable} ${newsreader.variable} ${jetbrains.variable} ${amiri.variable} ${plexArabic.variable}`}>
       <GuidedTourRoot>
         <a href="#main" className="sr-only">Skip to content</a>
         <Chrome data={chrome} actions={{ unlock: unlockReviewer, lock: lockReviewer }} />

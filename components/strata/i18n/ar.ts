@@ -1100,5 +1100,9 @@ export const AR: Record<string, string> = {
   'Publishes v-labels': 'ينشر وسومًا v',
   'No version label': 'بلا وسم إصدار',
   'Publishes version': 'ينشر الإصدار',
+  // ── Tour resume ──
+  'This page is outside the tour': 'هذه الصفحة خارج الجولة',
+  'Continue where you left off: {title}.': 'تابع من حيث توقفت: {title}.',
+  'Resume: {title}': 'تابع: {title}',
   // @@APPEND
 };

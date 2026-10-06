@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { Icon } from './icons';
-import type { GuideData } from './guide-data';
+import { currentIndex, type GuideData } from './guide-data';
 import { useT } from './i18n/client';
 import type { T } from './i18n/core';
 
@@ -37,26 +37,49 @@ export function GuidedTourRoot({ children }: { children: ReactNode }) {
 }
 
 type Step = { key: string; title: string; line: string; href: string };
+/** The held canonical demo incident: the tour's fallback when the incident list cannot be read. */
+const CANONICAL_INCIDENT = '863d5b03-fc98-4d49-a2a6-ae9d6c3cf753';
+const LAST = 'istithbat.tour.step';
 function steps(d: GuideData, t: T): Step[] {
-  const inc = d.incidentId ? `/incidents/${d.incidentId}` : '/incidents';
+  const inc = `/incidents/${d.incidentId ?? CANONICAL_INCIDENT}`;
   return [
     { key: 'overview', title: t('Overview'), line: t('What is trusted, what is held, and what needs a decision.'), href: '/overview' },
     { key: 'sandbox', title: t('Sandbox'), line: t('Trigger the controlled HadeethEnc 10618 change and watch it arrive.'), href: '/sandbox' },
     { key: 'pipeline', title: t('Pipeline'), line: t('Fingerprint, exact diff, AI advisory, regression and policy, in order.'), href: '/overview#flow' },
     { key: 'incident', title: t('Incident'), line: t('The exact change from the source, kept apart from the AI reading.'), href: inc },
-    { key: 'blast', title: t('Blast Radius'), line: t('What depends on the record, and which app is proven impacted.'), href: d.incidentId ? `${inc}/blast-radius` : '/incidents' },
-    { key: 'reviewer', title: t('Reviewer Preview'), line: t('Preview each decision with the preview login. Nothing is recorded.'), href: d.incidentId ? `${inc}#decision` : '/incidents' },
+    { key: 'blast', title: t('Blast Radius'), line: t('What depends on the record, and which app is proven impacted.'), href: `${inc}/blast-radius` },
+    { key: 'reviewer', title: t('Reviewer Preview'), line: t('Preview each decision with the preview login. Nothing is recorded.'), href: `${inc}#decision` },
     { key: 'gateway', title: t('Gateway'), line: t('What the protected app is served right now, and why.'), href: d.gatewayHref },
   ];
 }
 
-function currentIndex(path: string, hash: string): number {
-  if (path.startsWith('/sandbox')) return 1;
-  if (path.startsWith('/overview')) return hash === '#flow' ? 2 : 0;
-  if (/^\/incidents\/[^/]+\/blast-radius/.test(path)) return 4;
-  if (/^\/incidents\/[^/]+$/.test(path)) return hash === '#decision' ? 5 : 3;
-  if (path.startsWith('/gateway')) return 6;
-  return -1;
+/** The fragment as the browser sees it. Next.js soft navigation uses pushState, which fires no
+ *  hashchange, so the tour re-reads it on every route change, history step and short interval. */
+function useHash(path: string) {
+  const [hash, setHash] = useState('');
+  useEffect(() => {
+    const read = () => setHash((h) => (h === window.location.hash ? h : window.location.hash));
+    read();
+    window.addEventListener('hashchange', read);
+    window.addEventListener('popstate', read);
+    const id = window.setInterval(read, 300);
+    return () => { window.removeEventListener('hashchange', read); window.removeEventListener('popstate', read); window.clearInterval(id); };
+  }, [path]);
+  return hash;
+}
+
+/** After a soft navigation to /page#id, scroll once the streamed section exists. */
+function scrollToHashWhenReady(href: string) {
+  const i = href.indexOf('#');
+  if (i < 0) return;
+  const id = href.slice(i + 1);
+  const started = Date.now();
+  const tick = () => {
+    const el = document.getElementById(id);
+    if (el) { el.scrollIntoView({ block: 'start' }); return; }
+    if (Date.now() - started < 8000) window.setTimeout(tick, 150);
+  };
+  window.setTimeout(tick, 60);
 }
 
 /** Header entry point. A small dot marks it until the tour has been opened once. */
@@ -91,14 +114,15 @@ export function GuidedTour({ data }: { data: GuideData }) {
   const { open, setOpen } = useContext(Ctx);
   const path = usePathname() ?? '/';
   const t = useT();
-  const [hash, setHash] = useState('');
+  const hash = useHash(path);
   const [panel, setPanel] = useState<'none' | 'steps' | 'access'>('none');
+  const [last, setLast] = useState(-1);
+  const at = currentIndex(path, hash);
+  // Remember the last stop, so an off-tour page (Sources, Record) offers to resume instead of restarting.
   useEffect(() => {
-    const read = () => setHash(window.location.hash);
-    read();
-    window.addEventListener('hashchange', read);
-    return () => window.removeEventListener('hashchange', read);
-  }, [path]);
+    if (at >= 0) { setLast(at); try { window.sessionStorage.setItem(LAST, String(at)); } catch { /* storage blocked */ } return; }
+    try { const raw = window.sessionStorage.getItem(LAST); const v = raw === null ? -1 : Number(raw); if (Number.isInteger(v) && v >= 0 && v < 7) setLast(v); } catch { /* storage blocked */ }
+  }, [at]);
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
@@ -107,11 +131,11 @@ export function GuidedTour({ data }: { data: GuideData }) {
   }, [open, setOpen]);
   if (!open) return null;
   const list = steps(data, t);
-  const at = currentIndex(path, hash);
   const here = at >= 0 ? list[at] : null;
-  const next = here ? list[at + 1] ?? null : list[0];
+  const resume = !here && last >= 0 ? list[last] : null;
+  const next = here ? list[at + 1] ?? null : resume ?? list[0];
   const prev = at > 0 ? list[at - 1] : null;
-  const go = (s: Step) => { if (s.href.includes('#')) setHash(s.href.slice(s.href.indexOf('#'))); };
+  const go = (s: Step) => scrollToHashWhenReady(s.href);
   const toggle = (p: 'steps' | 'access') => setPanel((cur) => (cur === p ? 'none' : p));
 
   return (
@@ -122,15 +146,17 @@ export function GuidedTour({ data }: { data: GuideData }) {
         <button type="button" className="tour-x" onClick={() => setOpen(false)} aria-label={t('Close the guided tour')}><Icon name="x" size={15} /></button>
       </div>
       <div className="tour-bar" aria-hidden="true">{list.map((s, i) => <span key={s.key} className={i === at ? 'on' : i < at ? 'done' : ''} />)}</div>
-      <b className="tour-title">{here ? here.title : t('Seven short stops')}</b>
-      <p className="tour-line">{here ? here.line : t('From the source change to the decision and what production serves.')}</p>
-      <p className="tour-state">{data.candidate
-        ? <><bdi className="mono">{data.candidate}</bdi> {t('quarantined')} · {t('Trusted')} <bdi className="mono">{data.trusted ?? '—'}</bdi> · {t('Served')} <bdi className="mono">{data.served ?? '—'}</bdi></>
-        : <>{t('Nothing is held')} · {t('Served')} <bdi className="mono">{data.served ?? '—'}</bdi></>}</p>
+      <b className="tour-title">{here ? here.title : resume ? t('This page is outside the tour') : t('Seven short stops')}</b>
+      <p className="tour-line">{here ? here.line : resume ? t('Continue where you left off: {title}.', { title: resume.title }) : t('From the source change to the decision and what production serves.')}</p>
+      <p className="tour-state">{data.candidate && data.trusted && data.served
+        ? <><bdi className="mono">{data.candidate}</bdi> {t('quarantined')} · {t('Trusted')} <bdi className="mono">{data.trusted}</bdi> · {t('Served')} <bdi className="mono">{data.served}</bdi></>
+        : !data.candidate && data.served
+          ? <>{t('Nothing is held')} · {t('Served')} <bdi className="mono">{data.served}</bdi></>
+          : t('Demo state unavailable')}</p>
       <div className="tour-nav">
         {prev ? <Link href={prev.href} onClick={() => go(prev)} className="tour-prev"><Icon name="arrow-right" size={14} className="tour-back" />{t('Back')}</Link> : <span />}
         {next
-          ? <Link href={next.href} onClick={() => go(next)} className="tour-next">{here ? t('Next: {title}', { title: next.title }) : t('Start the tour')}<Icon name="arrow-right" size={14} /></Link>
+          ? <Link href={next.href} onClick={() => go(next)} className="tour-next">{here ? t('Next: {title}', { title: next.title }) : resume ? t('Resume: {title}', { title: next.title }) : t('Start the tour')}<Icon name="arrow-right" size={14} /></Link>
           : <Link href={list[0].href} className="tour-next tour-again" onClick={() => setPanel('none')}>{t('Back to the start')}</Link>}
       </div>
       <div className="tour-more">

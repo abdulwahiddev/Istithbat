@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Amiri, Instrument_Sans, JetBrains_Mono, Newsreader } from 'next/font/google';
+import { Amiri, IBM_Plex_Sans_Arabic, Instrument_Sans, JetBrains_Mono, Newsreader } from 'next/font/google';
 import { SandboxBar } from '@/components/sandbox/SandboxBar';
 import { ThemeRoot } from '@/components/strata/theme';
 import { LocaleRoot } from '@/components/strata/i18n/client';
@@ -18,6 +18,9 @@ const instrument = Instrument_Sans({ subsets: ['latin'], weight: ['400', '500', 
 const newsreader = Newsreader({ subsets: ['latin'], style: ['italic'], axes: ['opsz'], variable: '--font-newsreader', display: 'swap' });
 const jetbrains = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-jetbrains', display: 'swap' });
 const amiri = Amiri({ subsets: ['arabic', 'latin'], weight: ['400', '700'], variable: '--font-amiri', display: 'swap' });
+// Arabic interface face (labels, nav, headings). Arabic subset only and no metric fallback, so Latin
+// text keeps Instrument Sans and Amiri stays reserved for Arabic source text.
+const plexArabic = IBM_Plex_Sans_Arabic({ subsets: ['arabic'], weight: ['400', '500', '600', '700'], variable: '--font-plex-arabic', display: 'swap', adjustFontFallback: false, fallback: [], preload: false });
 
 export const metadata = {
   title: 'Demo sandbox · Istithbat',
@@ -40,7 +43,7 @@ export default async function SandboxLayout({ children }: { children: ReactNode 
   const guide = guideFrom(chromeData(incidents, sources, gateway, null));
   return (
     <LocaleRoot initial={locale}>
-    <ThemeRoot initial={theme} className={`${instrument.variable} ${newsreader.variable} ${jetbrains.variable} ${amiri.variable}`}>
+    <ThemeRoot initial={theme} className={`${instrument.variable} ${newsreader.variable} ${jetbrains.variable} ${amiri.variable} ${plexArabic.variable}`}>
       <GuidedTourRoot>
         <a href="#main" className="sr-only">Skip to content</a>
         <SandboxBar />
