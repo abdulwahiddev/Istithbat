@@ -91,3 +91,12 @@ export type GatewayState=z.infer<typeof GatewayState>;
 export type GatewayInventory=z.infer<typeof GatewayInventory>;
 export type AuditEvent=z.infer<typeof AuditEvent>;
 export type AuditPage=z.infer<typeof AuditPage>;
+
+// Upstream simulator read model: actual published fixture and separately persisted governance state.
+export const SandboxVersion=z.object({id:z.string(),label:z.string(),revision:z.number().int(),status:VersionStatus});
+export const SandboxConsoleState=z.object({sourceId:z.string(),fixture:z.enum(['had-4821.v13.json','had-4821.v14.json','had-4821.v14-r2.json']),
+  payload:z.object({upstreamVersionLabel:z.string(),upstreamPublishedAt:z.string(),metadata:z.record(z.string(),z.unknown()),records:z.array(NormalizedRecord)}),
+  publishedAt:z.string(),health:z.string(),latestSeen:SandboxVersion.nullable(),trusted:SandboxVersion.nullable(),
+  served:z.array(z.object({appId:z.string(),gatewayStatus:z.string(),version:SandboxVersion.nullable()})),pipeline:PipelineRunState.nullable(),
+  lastCheck:z.object({status:z.string(),errorCode:z.string().nullable(),checkedAt:z.string()}).nullable()});
+export type SandboxConsoleState=z.infer<typeof SandboxConsoleState>;

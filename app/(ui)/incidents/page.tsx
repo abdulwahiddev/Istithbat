@@ -1,4 +1,3 @@
-import { AutoRefresh } from '@/components/strata/AutoRefresh';
 import { IncidentList } from '@/components/strata/IncidentList';
 import type { IncidentSummary } from '@/components/strata/incident-model';
 import { Band, Chip, Dk, HeadRow, PageHeader, Rail, ReadError, Sep } from '@/components/strata/primitives';
@@ -27,7 +26,6 @@ export default async function IncidentsPage() {
   const rows = items.map((i) => incidentRow(i, summaries.get(i.id) ?? null, nameOf.get(i.sourceId) ?? i.sourceId));
   return (
     <main id="main" className="scr-overview">
-      <AutoRefresh active={open.some((i) => i.pipelineStatus === 'RUNNING')} />
       <PageHeader
         crumbs={<><span>Incidents</span><Sep /><span>{items.length} recorded</span></>}
         title={open.length ? <>{open.length} open {open.length === 1 ? 'incident' : 'incidents'}.<br />{deciding ? `${deciding} ${deciding === 1 ? 'needs' : 'need'} a decision.` : 'Still investigating.'}</> : <>No open incidents.<br />Nothing is held.</>}

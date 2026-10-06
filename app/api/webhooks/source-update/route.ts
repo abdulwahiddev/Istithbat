@@ -2,12 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyWebhook } from '@/lib/server/webhook-signature';
 import { SANDBOX_ID } from '@/lib/connectors/sandbox';
 import { checkSource } from '@/lib/ingestion/check-source';
-import { after } from 'next/server';
-import { advancePipeline } from '@/lib/pipeline/runner';
+import { schedulePipeline } from '@/lib/pipeline/continue';
 
 export const runtime = 'nodejs';
 // Ingestion and the post-response pipeline share this function's lifetime.
-export const maxDuration = 60;
+export const maxDuration = 180;
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -20,7 +19,7 @@ export async function POST(request: NextRequest) {
   }
   try {
     const result = await checkSource(SANDBOX_ID, 'WEBHOOK', request.url);
-    if (result.runId) after(() => advancePipeline(result.runId!));
+    if (result.runId) schedulePipeline(result.runId, request.url);
     return NextResponse.json(result, {status:result.status === 'NEW_VERSION' ? 202 : 200});
   } catch (error) {
     const code = error instanceof Error ? error.message : 'DIFF_FAILED';

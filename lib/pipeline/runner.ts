@@ -28,7 +28,7 @@ function errorCode(error:unknown, step:StepName):string {
 export async function advancePipeline(runId:string, budgetMs=20_000, expectedStep?:StepName):Promise<AdvanceResult|null> {
   const sql=getSql();
   const owner=randomUUID();
-  const claimed=await sql`UPDATE pipeline_runs SET status='RUNNING',lease_owner=${owner},lease_until=now()+interval '90 seconds',updated_at=now()
+  const claimed=await sql`UPDATE pipeline_runs SET status='RUNNING',lease_owner=${owner},lease_until=now()+interval '180 seconds',updated_at=now()
     WHERE id=${runId} AND (status='RUNNING' OR (status='COMPLETE' AND EXISTS
       (SELECT 1 FROM pipeline_steps WHERE run_id=${runId} AND step='BLAST_RADIUS' AND status='PENDING')))
       AND (lease_until IS NULL OR lease_until<now()) RETURNING id`;
