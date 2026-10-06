@@ -1,6 +1,12 @@
 <p align="center">
-  <img src="public/brand/istithbat-symbol-on-light.png" alt="" width="49" height="54" />
-  <img src="public/brand/istithbat-wordmark-on-light.png" alt="استثبات | Istithbat" width="123" height="54" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="public/brand/istithbat-symbol-on-dark.png" />
+    <img src="public/brand/istithbat-symbol-on-light.png" alt="" width="49" height="54" />
+  </picture>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="public/brand/istithbat-wordmark-on-dark.png" />
+    <img src="public/brand/istithbat-wordmark-on-light.png" alt="استثبات | Istithbat" width="123" height="54" />
+  </picture>
 </p>
 
 <h1 align="center">Know when trusted knowledge changes.</h1>
