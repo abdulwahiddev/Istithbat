@@ -1,0 +1,27 @@
+{
+  "upstreamVersionLabel": "synthetic-extended-1",
+  "metadata": {
+    "synthetic": true,
+    "purpose": "Integrity test only. Not religious evidence or a real source record."
+  },
+  "records": [
+    {
+      "canonical_key": "SYNTHETIC-EXTENDED-001",
+      "content": {
+        "arabic_text": "نَصٌّ تَجْرِيبِيٌّ لِاخْتِبَارِ النِّظَامِ، وَلَيْسَ نَصًّا دِينِيًّا.",
+        "translation": "Synthetic system test text; this is not religious evidence.",
+        "judgment": "حكم اختباري مصطنع: الحالة ألف.\nهذا وصف لفحص البرمجيات فقط، ولا يمثل حكم عالم أو فتوى.\nالأدلة هنا رموز تجريبية لا تنسب إلى كتاب أو راو أو مصدر حقيقي.\nالأدلة هنا رموز تجريبية لا تنسب إلى كتاب أو راو أو مصدر حقيقي.\nالأدلة هنا رموز تجريبية لا تنسب إلى كتاب أو راو أو مصدر حقيقي.\nالأدلة هنا رموز تجريبية لا تنسب إلى كتاب أو راو أو مصدر حقيقي.\nالأدلة هنا رموز تجريبية لا تنسب إلى كتاب أو راو أو مصدر حقيقي.\nالأدلة هنا رموز تجريبية لا تنسب إلى كتاب أو راو أو مصدر حقيقي.\nالأدلة هنا رموز تجريبية لا تنسب إلى كتاب أو راو أو مصدر حقيقي.\nالأدلة هنا رموز تجريبية لا تنسب إلى كتاب أو راو أو مصدر حقيقي.\nالأدلة هنا رموز تجريبية لا تنسب إلى كتاب أو راو أو مصدر حقيقي.\nالأدلة هنا رموز تجريبية لا تنسب إلى كتاب أو راو أو مصدر حقيقي.\nالأدلة هنا رموز تجريبية لا تنسب إلى كتاب أو راو أو مصدر حقيقي.\nالأدلة هنا رموز تجريبية لا تنسب إلى كتاب أو راو أو مصدر حقيقي.\n",
+        "scholar": "شخصية اختبار مصطنعة باء",
+        "reference": {
+          "book": "دفتر اختبار مصطنع آخر",
+          "volume": "ب",
+          "page": "٢"
+        },
+        "description": "Synthetic fixture\nLong multiline value\nMeasurement line for software only.\nMeasurement line for software only.\nMeasurement line for software only.\nMeasurement line for software only.\nMeasurement line for software only.\nMeasurement line for software only.\nMeasurement line for software only.\nMeasurement line for software only.\nMeasurement line for software only.\nMeasurement line for software only.\nMeasurement line for software only.\nMeasurement line for software only.\nMeasurement line for software only.\nMeasurement line for software only.\nMeasurement line for software only.\nMeasurement line for software only.\nMeasurement line for software only.\nMeasurement line for software only.\nMeasurement line for software only.\nMeasurement line for software only.\n"
+      },
+      "metadata": {
+        "synthetic": true
+      }
+    }
+  ]
+}

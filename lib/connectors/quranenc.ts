@@ -40,7 +40,10 @@ const ayah = z
   .passthrough();
 const suraResponse = z.object({ result: z.array(ayah).min(1) });
 
-export const quranencConnector: HttpConnector = {
+export function createQuranencConnector(surahs: readonly string[] = QURANENC_SURAHS): HttpConnector {
+  const scope = [...surahs];
+  if (!scope.length || new Set(scope).size !== scope.length || scope.some(s => !/^[1-9]\d*$/.test(s) || Number(s) > 114)) throw new SourceFetchError('invalid QuranEnc surah scope');
+  return {
   definition: {
     sourceId: QURANENC_ID,
     contentLevel: 'A',
@@ -67,7 +70,7 @@ export const quranencConnector: HttpConnector = {
       'Source: QuranEnc.com, translation "english_saheeh" (Noor International Center). Re-published without modification, addition or deletion, with clear reference to the publisher and source, per the QuranEnc terms. Read-only; never mutated by Istithbat. Snapshots are kept in private storage.',
   },
   requestUrls() {
-    return [translationsListUrl(), ...QURANENC_SURAHS.map(suraUrl)];
+    return [translationsListUrl(), ...scope.map(suraUrl)];
   },
   normalize(responses) {
     const list = z.object({ translations: z.array(translationEntry) }).safeParse(bodyJson(responses, translationsListUrl()));
@@ -76,7 +79,7 @@ export const quranencConnector: HttpConnector = {
     if (!entry) throw new SourceFetchError(`translation ${QURANENC_TRANSLATION_KEY} is not listed by QuranEnc`);
     if (entry.language_iso_code !== QURANENC_LANGUAGE) throw new SourceFetchError('translation language mismatch');
 
-    const records = QURANENC_SURAHS.flatMap((sura) => {
+    const records = scope.flatMap((sura) => {
       const parsed = suraResponse.safeParse(bodyJson(responses, suraUrl(sura)));
       if (!parsed.success) throw new SourceFetchError(`malformed QuranEnc response for surah ${sura}`);
       return parsed.data.result.map((a) => {
@@ -122,4 +125,6 @@ export const quranencConnector: HttpConnector = {
     };
     return payload;
   },
-};
+  };
+}
+export const quranencConnector = createQuranencConnector();
