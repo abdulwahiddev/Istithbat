@@ -41,7 +41,7 @@ export function connectorFacts(source: SourceSummary): ConnectorFacts {
       strategy: 'Provider publishes a label', revisionRule: 'r1 per label; r2+ for same-label changes', silent, trigger: 'webhook',
       endpointLines: ['trigger    WEBHOOK (signed) → server fetch', `source     ${source.provider}`],
       termsLabel: 'Synthetic content notice',
-      terms: 'CONTROLLED SYNTHETIC SOURCE — not real hadith data. No real narration, no real scholar, no real provider, no real reference. Used only for the evidence-scope drift demo.',
+      terms: 'Istithbat-controlled test source. Fully synthetic fixtures or explicitly attributed source-derived records; candidate mutations are created by Istithbat and are not real-provider publications.',
     };
   }
   const urls = http?.requestUrls() ?? [];

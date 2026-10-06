@@ -1,0 +1,32 @@
+{
+  "original_metadata": {
+    "hadeeth_id": "10618",
+    "languages": [
+      "ar",
+      "en"
+    ],
+    "provider": "HadeethEnc.com",
+    "source_urls": {
+      "ar": "https://hadeethenc.com/api/v1/hadeeths/multiple/?language=ar&ids=10572,10573,10574,10575,10576,10596,10599,10600,10601,10602,10603,10604,10607,10609,10612,10615,10616,10618,10620,10621",
+      "en": "https://hadeethenc.com/api/v1/hadeeths/multiple/?language=en&ids=10574,10575,10576,10596,10599,10600,10601,10602,10603,10604,10607,10609,10612,10615,10616,10618,10620,10621,10622,10623"
+    },
+    "synthetic": false
+  },
+  "canonical_record_hash": "2af183fd55654a6869c91cc9ed407b9890a801b39ce6c7b78ab309cca6e72bea",
+  "raw_acquisition": [
+    {
+      "language": "ar",
+      "url": "https://hadeethenc.com/api/v1/hadeeths/multiple/?language=ar&ids=10572,10573,10574,10575,10576,10596,10599,10600,10601,10602,10603,10604,10607,10609,10612,10615,10616,10618,10620,10621",
+      "raw_response_file": "response-0301.json",
+      "body_sha256": "3c558945e5e653de03d466670bba684fd69f8147698bef8ac2f864d8c35b1f4d"
+    },
+    {
+      "language": "en",
+      "url": "https://hadeethenc.com/api/v1/hadeeths/multiple/?language=en&ids=10574,10575,10576,10596,10599,10600,10601,10602,10603,10604,10607,10609,10612,10615,10616,10618,10620,10621,10622,10623",
+      "raw_response_file": "response-0478.json",
+      "body_sha256": "b4d34dde19fc37c1879501107ef9758b35fcc28c0b96b3a2a5f80932a4dde899"
+    }
+  ],
+  "observed_date": "2026-10-06",
+  "provider_version": null
+}

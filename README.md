@@ -42,11 +42,15 @@ flowchart LR
 
 ## The demo
 
-The sandbox is fictional, including its Arabic test sentence, evaluator and reference. It is not real hadith data and is not attributed to the Prophet ﷺ or a real provider.
+The canonical replacement scenario uses **HadeethEnc record 10618**, copied from verified corpus evidence. Its Arabic hadith, English translation, attribution and references remain unchanged. Only the controlled candidate's `ar.grade` changes:
 
-The controlled scenario starts with trusted/served **v13**, then publishes the existing **v14** fixture: the synthetic `judgment` changes from `إسناده صحيح` to `صحيح`. One publish sends a signed webhook; Istithbat fetches the upstream source, snapshots/hashes/diffs it, runs analysis/regression/Blast Radius/policy, and holds the candidate under POL-002. The protected app keeps serving v13 until an authorized human approves a release.
+`صحيح دون قوله: (ولم يستدر)` → `صحيح`
 
-The current held demo can be inspected without changing it. Demo Control and Reviewer sessions are separate. Credentials are supplied privately by the project owner, never in this repository. **Reset clears the sandbox investigation; do not reset or publish on shared Production without the owner's authorization.** See [console operation and recovery](docs/sandbox-demo.md).
+**Real source record · controlled test mutation.** Original record from HadeethEnc; candidate mutation created by Istithbat for demonstration and **not published by HadeethEnc**. Internal v13/v14 labels are sandbox test versions. The retained English `grade_ar` still contains the exception; the inconsistency is deliberately surfaced, not silently rewritten.
+
+An isolated end-to-end rehearsal with actual PostgreSQL and live Gemini completed: POL-002 quarantined the candidate, trusted v13 remained served, and three matched comparisons returned two material changes and one non-material change. **AI caveats remain:** a generated answer confused grading fields, and comparator annotations overstated citation/attribution changes. See [the full evidence and limitations](docs/source-derived-demo.md). This scenario has not been deployed or activated in Production. The existing wholly synthetic HAD-4821 held incident remains the fallback until an owner-authorized reset. The console reflects whichever scenario is actually active. Reset now explicitly activates the original record 10618 baseline; publishing its controlled v14 then runs the real pipeline and deterministic POL-002. The gateway retains the trusted baseline while the candidate is held.
+
+Demo Control and Reviewer sessions are separate. Credentials are supplied privately, never in this repository. Do not reset or publish on shared Production without owner authorization. See [scenario evidence and limitations](docs/source-derived-demo.md) and [console operation](docs/sandbox-demo.md).
 
 ## Real sources and measured scope
 
@@ -54,7 +58,7 @@ The current held demo can be inspected without changing it. Demo Control and Rev
 | --- | --- | --- |
 | [HadeethEnc](https://hadeethenc.com/) | 3 Arabic hadith entries with their English responses | 3,574 unique Arabic records and 2,328 available English translations; complete documented Arabic root-category union for these languages |
 | [QuranEnc](https://quranenc.com/) | 11 ayat, surahs 1 and 112, selected `english_saheeh` translation; publisher metadata identifies Noor International Center | 114 surahs / 6,236 ayat of that translation |
-| Synthetic sandbox | One controlled record per version | Separate independently authored synthetic test cases; no real-source text is mutated |
+| Controlled sandbox | One record per test version; existing synthetic fallback retained until authorized activation | Source-derived 10618 scenario plus separate synthetic evaluation cases; real provider endpoints remain untouched |
 
 Both real APIs are read-only. Raw, canonical, record and field hashes were identical across two independent full-corpus passes. **These are private validation artifacts, not a full-corpus Production import or trust approval.** See the [measured report](evaluation/results/2026-10-06-real-corpus.md), [reproducible command](evaluation/corpus/README.md) and [provider terms/attribution](docs/data-sources.md).
 
@@ -107,7 +111,7 @@ pnpm start
 # Offline synthetic evaluation; no remote source requests:
 pnpm eval --suite mutations --ai mock
 # Optional read-only remote corpus validation, outside normal unit tests:
-pnpm corpus:validate --source all --out private-data/corpus-runs/my-run
+pnpm corpus:validate --source all --out "$CORPUS_OUTPUT_DIR"
 ```
 
 Standard tests do not fetch full remote corpora. Optional database integration tests are skipped unless explicitly enabled against a test database. Live evaluations consume provider quota and do not run as part of ordinary unit tests.

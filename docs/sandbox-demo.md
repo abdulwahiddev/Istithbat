@@ -1,6 +1,6 @@
 # Controlled upstream demo console
 
-Open `/sandbox`. This separate source simulator publishes the existing, clearly labelled synthetic HAD-4821 fixtures. It does not edit real religious content.
+Open `/sandbox`. This separate source simulator reflects its persisted active fixture. Existing HAD-4821 fixtures remain the fallback; the source-derived record 10618 scenario becomes active only after an explicit controlled reset. Original hadith text and official provider endpoints are never edited. See [scenario evidence](source-derived-demo.md).
 
 ## Controls
 
@@ -8,7 +8,7 @@ Sign in with the existing `DEMO_CONTROL_SECRET` using the control credential fie
 
 Reset requires explicit confirmation. The existing reset transaction restores upstream/trusted/served v13 and clears sandbox candidate versions, incidents, reviews and pipeline state; the append-only audit history is retained. Do not reset while a pipeline is active. Reset is intentionally destructive to the sandbox investigation, so obtain the demo owner's authorization before a Production rehearsal.
 
-Publish v14 invokes the existing publish API, sends its signed source-update webhook, fetches the current upstream payload, stores immutable snapshot evidence, computes the exact diff and enqueues the existing pipeline. No browser step-advancement requests are used. The canonical fixture judgment changes from `إسناده صحيح` to `صحيح`.
+Publish v14 invokes the existing publish API, sends its signed source-update webhook, fetches the current upstream payload, stores immutable snapshot evidence, computes the exact diff and enqueues the existing pipeline. No browser step-advancement requests are used. In the source-derived canonical scenario, only `ar.grade` changes from `صحيح دون قوله: (ولم يستدر)` to `صحيح`. The legacy synthetic fixture separately changes `judgment` from `إسناده صحيح` to `صحيح`.
 
 ## Persisted progress and protection
 
@@ -28,4 +28,12 @@ Pipeline routes allow 180 seconds so one existing 90-second provider timeout plu
 
 ## Verification boundary
 
-Tests use unchanged synthetic fixtures, mocked database transactions and real route handlers for authorization, reset/publish/webhook wiring, continuation, duplicate handling and persisted read contracts. Browser interaction QA intercepts all writes in an isolated fixture environment. Live Production verification is read-only against the existing held incident. A real reset → publish → quarantine rehearsal requires the owner's separate authorization and is not implied by deploying this console.
+Tests use unchanged synthetic fixtures, mocked database transactions and real route handlers for authorization, reset/publish/webhook wiring, continuation, duplicate handling and persisted read contracts. Earlier browser interaction QA intercepted writes. The 10618 validation additionally exercised actual reset, signed publication, live AI, persisted PostgreSQL evidence, authenticated KEEP_QUARANTINED review and gateway containment in an isolated local production build; snapshot I/O used a local Storage-compatible harness. See [measured results and limitations](source-derived-demo.md). Production verification remains read-only; its destructive reset requires separate authorization.
+
+## Source-derived scenario activation (owner authorization required)
+
+Deploying the implementation does not switch `sandbox_state`, seed a baseline or change the held incident. After explicit owner authorization, the authenticated console reset requests `scenario: hadeethenc-10618`; the confirmation identifies that it clears the current investigation. The reset creates/reuses a new immutable v13 revision, preserves the original v13 historical evidence, atomically updates sandbox source roles/pinned question/dependency record identities/gateway binding, and retains append-only audit history. No human approval is manufactured: this is an explicit controlled demo baseline establishment. Repeated ordinary resets retain the active scenario.
+
+The canonical replacement uses `SANDBOX-HENC-10618` in the sandbox namespace, upstream record ID 10618. v13/v14 are **Istithbat sandbox versions**, not HadeethEnc releases. Publishing a fixture from an inactive scenario is rejected. Both raw/canonical source snapshots stay private. New fixtures live in `demo/source-derived/`; frozen synthetic fixtures and official Packet 07 evidence remain unchanged.
+
+The console displays the real Arabic text, both original/candidate grades and the disclosure. Full unchanged English/provenance/reference fields are available under the full record. Candidate English grading duplicates are intentionally not synchronized. No new styling or reviewer authentication was introduced.
