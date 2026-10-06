@@ -18,7 +18,8 @@
     "@remotion/cli": "4.0.533",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "remotion": "4.0.533"
+    "remotion": "4.0.533",
+    "zod": "4.3.6"
   },
   "devDependencies": {
     "@types/react": "19.2.2",

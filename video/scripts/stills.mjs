@@ -3,11 +3,12 @@ import { bundle } from '@remotion/bundler';
 import { renderStill, selectComposition } from '@remotion/renderer';
 import { existsSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
+import { webpackOverride } from '../webpack-override.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const secs = process.argv.slice(2).map(Number);
 const browserExecutable = ['/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_shell'].find(existsSync) ?? null;
-const serveUrl = await bundle({ entryPoint: path.join(root, 'src/index.ts'), publicDir: path.join(root, 'public') });
+const serveUrl = await bundle({ entryPoint: path.join(root, 'src/index.ts'), publicDir: path.join(root, 'public'), webpackOverride });
 const composition = await selectComposition({ serveUrl, id: 'IstithbatDemo', browserExecutable });
 mkdirSync(path.join(root, 'out/stills'), { recursive: true });
 for (const s of secs) {

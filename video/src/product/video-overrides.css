@@ -1,0 +1,6 @@
+/* Video host only. Font variables the Next.js app gets from next/font, mapped to the same families
+   (vendored via @fontsource). Product rules are untouched. */
+.vid{--font-instrument:'Instrument Sans';--font-jetbrains:'JetBrains Mono';--font-amiri:'Amiri';--font-newsreader:'Instrument Sans';
+  min-height:0;background:transparent}
+/* = the product's prefers-reduced-motion rule (strata-shared.css): settled states, no CSS clocks */
+.vid *,.vid *::before,.vid *::after{animation:none !important;transition:none !important}
