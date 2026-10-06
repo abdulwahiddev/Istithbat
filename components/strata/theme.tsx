@@ -1,5 +1,7 @@
 'use client';
 import { Icon } from './icons';
+import { useLocale } from './i18n/client';
+import { dirOf } from './i18n/core';
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
 
 /**
@@ -17,6 +19,7 @@ export const useTheme = () => useContext(Ctx);
 
 export function ThemeRoot({ initial, className, children }: { initial: Theme; className: string; children: ReactNode }) {
   const [theme, set] = useState<Theme>(initial);
+  const { locale } = useLocale();
   const setTheme = useCallback((t: Theme) => {
     set(t);
     try { document.cookie = `${THEME_COOKIE}=${t}; path=/; max-age=31536000; samesite=lax`; } catch { /* cookies blocked: in-memory only */ }
@@ -24,20 +27,21 @@ export function ThemeRoot({ initial, className, children }: { initial: Theme; cl
   }, []);
   return (
     <Ctx.Provider value={{ theme, setTheme }}>
-      <div className={`s${theme === 'dark' ? ' dark' : ''} ${className}`}>{children}</div>
+      <div className={`s${theme === 'dark' ? ' dark' : ''} ${className}`} lang={locale} dir={dirOf(locale)}>{children}</div>
     </Ctx.Provider>
   );
 }
 
 export function ThemeSwitch() {
   const { theme, setTheme } = useTheme();
+  const { t } = useLocale();
   return (
-    <div className="tsw" role="group" aria-label="Theme" data-theme={theme}>
+    <div className="tsw" role="group" aria-label={t('Theme')} data-theme={theme}>
       <span className="tsw-ind" aria-hidden="true" />
-      <button type="button" aria-pressed={theme === 'light'} aria-label="Light theme" title="Light" onClick={() => setTheme('light')}>
+      <button type="button" aria-pressed={theme === 'light'} aria-label={t('Light theme')} title={t('Light')} onClick={() => setTheme('light')}>
         <Icon name="sun" size={18} />
       </button>
-      <button type="button" aria-pressed={theme === 'dark'} aria-label="Dark theme" title="Dark" onClick={() => setTheme('dark')}>
+      <button type="button" aria-pressed={theme === 'dark'} aria-label={t('Dark theme')} title={t('Dark')} onClick={() => setTheme('dark')}>
         <Icon name="moon" size={17} />
       </button>
     </div>

@@ -58,7 +58,7 @@ export type IconName = keyof typeof NODES;
 export function Icon({ name, size = 16, stroke = 1.75, style, className, label }: { name: IconName; size?: number; stroke?: number; style?: CSSProperties; className?: string; label?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round"
-      className={className ? `ic ${className}` : "ic"} style={style} aria-hidden={label ? undefined : true} role={label ? "img" : undefined} aria-label={label}>
+      data-icon={name} className={className ? `ic ${className}` : "ic"} style={style} aria-hidden={label ? undefined : true} role={label ? "img" : undefined} aria-label={label}>
       {NODES[name].map(([tag, attrs], i) => { const T = tag as "path"; return <T key={i} {...(attrs as Record<string, string>)} />; })}
     </svg>
   );

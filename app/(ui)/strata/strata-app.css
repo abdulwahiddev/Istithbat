@@ -456,3 +456,81 @@ details.quiet>.raw{margin-top:12px}
 .jg-link{font:inherit;padding:0;border:0;background:none;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .jg-notes{margin:0 0 12px;padding:0 0 12px;border-top:0;border-bottom:1px solid var(--line)}
 .jg-notes dd>span.jg-cred{color:var(--ink-3);font-size:12px;display:flex;gap:8px;align-items:baseline}
+
+/* ---- Language switch (EN | ع) ---- */
+.lsw{display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:var(--glass);border:1px solid var(--glass-line);box-shadow:var(--glass-hi),var(--glass-shadow)}
+.lsw button{min-width:34px;height:34px;padding:0 8px;border:0;border-radius:999px;background:transparent;font:inherit;font-size:13px;font-weight:600;color:var(--ink-3);cursor:pointer}
+.lsw button[lang="ar"]{font-size:16px;line-height:1}
+.lsw button[aria-pressed="true"]{background:var(--glass-sel);box-shadow:var(--glass-sel-shadow);color:var(--ink)}
+.lsw button:hover{color:var(--ink)}
+.lsw[aria-busy="true"]{opacity:.7}
+
+/* ---- Technical tokens stay LTR in every language: hashes, versions, IDs, codes, URLs ---- */
+.mono,code,kbd,samp{unicode-bidi:isolate}
+[dir="rtl"] .mono,[dir="rtl"] code{direction:ltr}
+
+/* ---- Arabic / RTL presentation ----
+   Arabic UI labels use the system Arabic face via the existing system-ui fallback (SF Arabic,
+   Segoe UI, Noto); Amiri stays reserved for Arabic source text, so source and interface never
+   look alike. Letter-spacing and uppercasing are removed: tracking breaks Arabic joining. */
+[dir="rtl"]{line-height:1.6}
+[dir="rtl"] .rail h2,[dir="rtl"] .jg-kicker,[dir="rtl"] .cap,[dir="rtl"] .sbx-kick,[dir="rtl"] h1,[dir="rtl"] h2,[dir="rtl"] h3,[dir="rtl"] .h3{letter-spacing:0;text-transform:none}
+[dir="rtl"] .rail h2{font-size:13px}
+[dir="rtl"] .ar{letter-spacing:0}
+/* physical → mirrored */
+[dir="rtl"] .kv>:last-child{text-align:left}
+[dir="rtl"] .prov>.mk:first-child{margin-right:0;margin-left:12px}
+[dir="rtl"] .plate.l{margin-left:0;padding-left:0;margin-right:-24px;padding-right:24px}
+[dir="rtl"] .plate.r{margin-right:0;padding-right:0;margin-left:-24px;padding-left:24px}
+[dir="rtl"] .kbd{margin-left:0;margin-right:auto}
+[dir="rtl"] .qtab,[dir="rtl"] .scr-sources .srcl,[dir="rtl"] .scr-record .rrow,[dir="rtl"] .glane,[dir="rtl"] .scr-blast .node{text-align:right}
+[dir="rtl"] .scr-blast .tb th,[dir="rtl"] .scr-gateway .tb th{text-align:right;padding:16px 0 12px 16px}
+[dir="rtl"] details>summary::before{transform:rotate(135deg)}
+[dir="rtl"] .strip>div+div{padding-left:0;border-left:0;padding-right:20px;border-right:1px solid var(--line)}
+[dir="rtl"] .handoff-drop{margin-right:0;margin-left:56px}
+[dir="rtl"] .cmdk{padding-left:0;padding-right:14px}
+[dir="rtl"] .rail p::before{margin-right:0;margin-left:10px}
+[dir="rtl"] .glh span:nth-child(4){padding-left:0;padding-right:20px}
+[dir="rtl"] .ilbar .mseg .n,[dir="rtl"] .ilg .n{margin-left:0;margin-right:4px}
+[dir="rtl"] .sbx-flowline i{margin-right:0;margin-left:10px}
+[dir="rtl"] .sbx-steps{padding:0 0 0 32px;border-right:0;border-left:1px solid var(--line)}
+[dir="rtl"] .tsw .tsw-ind{left:auto;right:3px}
+[dir="rtl"] .tsw[data-theme="dark"] .tsw-ind{transform:translateX(-38px)}
+[dir="rtl"] .jg-prev::before{content:"→ "}
+[dir="rtl"] .jg{right:auto;left:20px}
+[dir="rtl"] .scr-blast .btrace>li{padding:0 22px 14px 0}
+[dir="rtl"] .scr-blast .btrace>li::before{left:auto;right:6px;border-left:0;border-right:1.5px solid var(--line-2)}
+[dir="rtl"] .scr-blast .btrace>li::after{left:auto;right:2px}
+@media(max-width:900px){[dir="rtl"] .sbx-steps{border-left:0;padding:16px 0 0}}
+@media(max-width:720px){
+  [dir="rtl"] .kv>:last-child{margin-left:0;margin-right:auto}
+  [dir="rtl"] .jg{left:12px;right:12px}
+}
+/* Directional glyphs drawn by icons: arrows and chevrons point the reading way */
+[dir="rtl"] .flip-rtl{display:inline-block;transform:scaleX(-1)}
+[dir="rtl"] svg[data-icon="arrow-right"],[dir="rtl"] svg[data-icon="chevron-right"],[dir="rtl"] svg[data-icon="arrow-up-right"]{transform:scaleX(-1)}
+/* Arabic UI face: the platform's own Arabic sans, enlarged to sit with Instrument Sans' x-height.
+   Arabic code points only, so Latin, digits and every mono token keep their existing fonts. */
+@font-face{font-family:'Istithbat Arabic UI';src:local('SF Arabic'),local('SFArabic-Regular'),local('Geeza Pro'),local('GeezaPro'),local('Segoe UI'),local('Noto Sans Arabic'),local('Tahoma');size-adjust:118%;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF}
+@font-face{font-family:'Istithbat Arabic UI';font-weight:600 700;src:local('SF Arabic Semibold'),local('SFArabic-Semibold'),local('Geeza Pro Bold'),local('GeezaPro-Bold'),local('Segoe UI Semibold'),local('Noto Sans Arabic SemiBold'),local('Tahoma Bold');size-adjust:118%;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF}
+.s[dir="rtl"]{font-family:'Istithbat Arabic UI',var(--font-instrument),'Instrument Sans',system-ui,sans-serif}
+/* Diagrams read right-to-left in Arabic: positions use inset-inline-*, edge layers mirror */
+[dir="rtl"] .mirror-rtl,[dir="rtl"] .gate-box .lane.flow{transform:scaleX(-1)}
+[dir="rtl"] .ctr-rtl{transform:translate(50%,-50%)!important}
+[dir="rtl"] .stn{transform:translate(7px,-7px)}
+[dir="rtl"] .colh{transform:translateX(7px)}
+[dir="rtl"] .scr-blast .graph .colh{transform:none}
+[dir="rtl"] .scr-blast .node:not(.card){transform:translateX(14px)}
+[dir="rtl"] .scr-blast .graph .node:not(.card){animation-name:node-in-rtl}
+[dir="rtl"] .scr-blast .node.card{padding:10px 10px 10px 14px}
+[dir="rtl"] .scr-blast .flow,[dir="rtl"] .scr-blast .graph .edges{transform:scaleX(-1)}
+@keyframes node-in-rtl{from{opacity:0;transform:translate(14px,4px) scale(.96)}to{opacity:1}}
+/* Recorded English (AI readings, regression answers, questions) keeps its own start edge inside RTL */
+[dir="rtl"] :is(p,blockquote,span,b,div)[dir="ltr"],[dir="rtl"] :is(p,blockquote,span,b)[dir="auto"]{text-align:start}
+[dir="rtl"] .qtab span[dir="auto"]{display:block}
+[dir="rtl"] .lane.flow{transform:scaleX(-1)}
+[dir="rtl"] .zl-c{transform:translateX(50%)!important}
+[dir="rtl"] .scr-gateway .zone{left:auto;right:72%}
+[dir="rtl"] .scr-gateway .gatebar{left:auto;right:58%;margin-left:0;margin-right:-6px}
+[dir="rtl"] .scr-gateway .lockb{left:auto;right:58%;transform:translate(50%,-50%)}
+[dir="rtl"] .scr-gateway .steps::before{left:auto;right:13.5px}

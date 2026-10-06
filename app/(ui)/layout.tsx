@@ -5,12 +5,13 @@ import { Amiri, Instrument_Sans, JetBrains_Mono, Newsreader } from 'next/font/go
 import { AutoRefresh } from '@/components/strata/AutoRefresh';
 import { Chrome } from '@/components/strata/Chrome';
 import { ThemeRoot } from '@/components/strata/theme';
+import { LocaleRoot } from '@/components/strata/i18n/client';
 import { JudgeGuide, JudgeGuideRoot } from '@/components/strata/JudgeGuide';
 import { guideFrom } from '@/components/strata/guide-data';
 import { lockReviewer, unlockReviewer } from './_actions/reviewer';
 import { chromeData } from './_data/chrome';
 import { readGatewayInventory, readIncidents, readSources } from './_data/read';
-import { readReviewer, readTheme } from './_data/session';
+import { readLocale, readReviewer, readTheme } from './_data/session';
 import './strata/strata-shared.css';
 import './strata/strata-screens.css';
 import './strata/strata-app.css';
@@ -43,6 +44,7 @@ export const dynamic = 'force-dynamic';
 export default async function StrataLayout({ children }: { children: ReactNode }) {
   const route = (await headers()).get('x-istithbat-route');
   const theme = await readTheme();
+  const locale = await readLocale();
   const reviewer = await readReviewer();
   const incidents = await readIncidents();
   const sources = await readSources();
@@ -61,6 +63,7 @@ export default async function StrataLayout({ children }: { children: ReactNode }
   }
   const chrome = chromeData(incidents, sources, gateway, reviewer);
   return (
+    <LocaleRoot initial={locale}>
     <ThemeRoot initial={theme} className={`${instrument.variable} ${newsreader.variable} ${jetbrains.variable} ${amiri.variable}`}>
       <JudgeGuideRoot>
         <a href="#main" className="sr-only">Skip to content</a>
@@ -70,5 +73,6 @@ export default async function StrataLayout({ children }: { children: ReactNode }
         <JudgeGuide data={guideFrom(chrome)} />
       </JudgeGuideRoot>
     </ThemeRoot>
+    </LocaleRoot>
   );
 }

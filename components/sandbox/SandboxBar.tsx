@@ -3,6 +3,7 @@ import { BrandLockup } from '@/components/strata/BrandLockup';
 import { Icon } from '@/components/strata/icons';
 import { ThemeSwitch } from '@/components/strata/theme';
 import { JudgeGuideButton } from '@/components/strata/JudgeGuide';
+import { LangSwitch } from '@/components/strata/i18n/client';
 
 /** Demo-control header: official lockup, the environment label, theme, and the way back to the product. */
 export function SandboxBar() {
@@ -15,6 +16,7 @@ export function SandboxBar() {
         </span>
         <span className="sbx-bar-r">
           <JudgeGuideButton />
+          <LangSwitch />
           <ThemeSwitch />
           <Link prefetch={false} className="btn btn-ghost sbx-btn-s" href="/overview">Back to Istithbat<Icon name="arrow-up-right" size={16} /></Link>
         </span>

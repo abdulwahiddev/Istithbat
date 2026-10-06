@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { isArabic, valueText } from './diff';
+import { Tx } from './i18n/client';
 
 /**
  * Exact change renderer. Generic over the stored values: any field role, Arabic or Latin, short or
@@ -99,7 +100,7 @@ export function ExactDiff({ oldValue, newValue, oldLabel, newLabel, oldChip, new
         {[[oldLabel, oldChip, oldValue], [newLabel, newChip, newValue]].map(([l, c, v], i) => (
           <div key={i} className={i ? 'c6-10' : 'c1-5'} style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
             {head(l as string, c as ReactNode)}
-            <pre className="raw" style={{ margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{v == null ? '(absent)' : JSON.stringify(v, null, 2)}</pre>
+            <pre className="raw" dir="ltr" style={{ margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{v == null ? '(absent)' : JSON.stringify(v, null, 2)}</pre>
           </div>
         ))}
       </div>
@@ -110,7 +111,7 @@ export function ExactDiff({ oldValue, newValue, oldLabel, newLabel, oldChip, new
       <div className="sub" style={{ alignItems: 'center', padding: '28px 0', ...(border ? { borderTop: '1px solid var(--line)' } : {}) }}>
         <div className="c1-2" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}><span className="mono" style={{ fontSize: 16 }}>{label}</span><span style={{ alignSelf: 'flex-start' }}>{chip}</span></div>
         <p {...textProps} className={`c3-10 dx-line${ar ? ' ar' : ''}`} style={{ margin: 0, fontSize: size, lineHeight: ar ? 1.5 : 1.25, textAlign: ar ? 'right' : 'left', paddingInlineStart: ar ? 48 : 0, overflowWrap: 'anywhere' }}>
-          {value == null ? <span style={{ color: 'var(--ink-3)', fontSize: 16 }}>{side === 'old' ? 'Not present' : 'Removed'}</span>
+          {value == null ? <span style={{ color: 'var(--ink-3)', fontSize: 16 }}><Tx>{side === 'old' ? 'Not present' : 'Removed'}</Tx></span>
             : d ? <Text pieces={side === 'old' ? d.old : d.ops} side={side} expressive /> : value}
         </p>
       </div>
@@ -121,7 +122,7 @@ export function ExactDiff({ oldValue, newValue, oldLabel, newLabel, oldChip, new
       <div className={cls} style={{ display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0, padding: '24px 0' }}>
         {head(label, chip)}
         <p {...textProps} className={`dx-line${ar ? ' ar' : ''}`} style={{ margin: 0, fontSize: ar ? 24 : 17, lineHeight: ar ? 1.9 : 1.6, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', color: 'var(--ink)' }}>
-          {value == null ? <span style={{ color: 'var(--ink-3)' }}>{side === 'old' ? 'Not present' : 'Removed'}</span> : d ? <Text pieces={side === 'old' ? d.old : d.neu} side={side} expressive={false} /> : value}
+          {value == null ? <span style={{ color: 'var(--ink-3)' }}><Tx>{side === 'old' ? 'Not present' : 'Removed'}</Tx></span> : d ? <Text pieces={side === 'old' ? d.old : d.neu} side={side} expressive={false} /> : value}
         </p>
       </div>
     );
@@ -129,7 +130,7 @@ export function ExactDiff({ oldValue, newValue, oldLabel, newLabel, oldChip, new
       <div className="sub" style={{ columnGap: 32 }}>
         {col(oldLabel, oldChip, 'old', o, 'c1-5')}
         <div className="c6-10" style={{ position: 'relative' }}>
-          <span aria-hidden="true" style={{ position: 'absolute', left: -16, top: 24, bottom: 24, width: 1, background: 'var(--line)' }} />
+          <span aria-hidden="true" style={{ position: 'absolute', insetInlineStart: -16, top: 24, bottom: 24, width: 1, background: 'var(--line)' }} />
           {col(newLabel, newChip, 'new', n, '')}
         </div>
       </div>
@@ -138,7 +139,7 @@ export function ExactDiff({ oldValue, newValue, oldLabel, newLabel, oldChip, new
   return (
     <div className="dx" data-layout={layout}>
       {body}
-      {notes.length > 0 && <p className="meta" style={{ margin: 0, padding: '0 0 16px' }}>{notes.join(' ')}</p>}
+      {notes.length > 0 && <p className="meta" style={{ margin: 0, padding: '0 0 16px' }}>{notes.map((x, i) => <span key={i}>{i > 0 && ' '}<Tx>{x}</Tx></span>)}</p>}
     </div>
   );
 }

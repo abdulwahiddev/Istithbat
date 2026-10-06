@@ -1,4 +1,4 @@
-import { readReviewer } from '../../../_data/session';
+import { getT, readReviewer } from '../../../_data/session';
 import { notFound } from 'next/navigation';
 import { BlastInstrument } from '@/components/blast/BlastInstrument';
 import { GRAPH_LIMITS } from '@/lib/blast-radius/graph';
@@ -13,6 +13,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function BlastRadiusPage({ params }: { params: Promise<{ incidentId: string }> }) {
   const reviewer = await readReviewer();
+  const t = await getT();
   const { incidentId } = await params;
   await readShell(); // queue the chrome's reads first so the skeleton streams immediately
   // Light path: the list row, the light summary and the Blast Radius read (not the full aggregate).
@@ -41,21 +42,21 @@ export default async function BlastRadiusPage({ params }: { params: Promise<{ in
   return (
     <main id="main" className="scr-blast">
       <PageHeader
-        crumbs={<><span>Blast Radius</span><Sep /><Mono>{sum.recordKey}</Mono></>}
+        crumbs={<><span>{t('Blast Radius')}</span><Sep /><Mono>{sum.recordKey}</Mono></>}
         synthetic={source?.source.isDemoFixture}
-        title={br ? (() => { const k = new Set(br.changes.map((c) => c.canonicalKey)).size; const of = k > 1 ? `of ${k} changed records` : 'of this change'; return down.length ? <>{plural(down.length, 'asset')} {down.length === 1 ? 'is' : 'are'} downstream<br />{of}.</> : <>No asset is downstream<br />{of}.</>; })() : <>The radius has<br />not been traced yet.</>}
-        lede={br ? <>{impacted.length ? `${word(impacted.length)} protected ${impacted.length === 1 ? 'app is' : 'apps are'} proven to answer differently.` : 'No protected app is proven to answer differently.'} {br.candidateServed ? <>The candidate <Mono>{cand}</Mono> is being served.</> : <>None of them is being served <Mono>{cand}</Mono>.</>}</> : 'The BLAST_RADIUS step has not completed for this incident.'}
+        title={br ? (() => { const k = new Set(br.changes.map((c) => c.canonicalKey)).size; const of = k > 1 ? t('of {k} changed records', { k }) : t('of this change'); return down.length ? <>{t(down.length === 1 ? '1 asset is downstream' : '{n} assets are downstream', { n: down.length })}<br />{of}.</> : <>{t('No asset is downstream')}<br />{of}.</>; })() : <>{t('The radius has')}<br />{t('not been traced yet.')}</>}
+        lede={br ? <>{impacted.length ? t(impacted.length === 1 ? 'One protected app is proven to answer differently.' : '{n} protected apps are proven to answer differently.', { n: word(impacted.length), d: impacted.length }) : t('No protected app is proven to answer differently.')} {br.candidateServed ? <>{t('The candidate')} <Mono>{cand}</Mono> {t('is being served.')}</> : <>{t('None of them is being served')} <Mono>{cand}</Mono>.</>}</> : t('The BLAST_RADIUS step has not completed for this incident.')}
         status={<>
-          <Dk k="Incident"><Chip tone={sem.tone}>{sem.text}</Chip></Dk>
-          <Dk k="Candidate served">{br ? (br.candidateServed ? 'Yes' : 'No') : '—'}</Dk>
-          <Dk k="Traversal">{br ? <Mono>{br.traversalStatus}</Mono> : 'Pending'}</Dk>
+          <Dk k={t('Incident')}><Chip tone={sem.tone}>{t(sem.text)}</Chip></Dk>
+          <Dk k={t('Candidate served')}>{br ? t(br.candidateServed ? 'Yes' : 'No') : '—'}</Dk>
+          <Dk k={t('Traversal')}>{br ? <Mono>{br.traversalStatus}</Mono> : t('Pending')}</Dk>
         </>}
       />
 
-      {!blast.ok ? <Band id="radius" labelledBy="h-radius" first><Rail layer="det" id="h-radius" title="Exposure">Every asset downstream of the changed record.</Rail><div className="main"><ReadError {...blast.error} /></div></Band> : !br ? (
+      {!blast.ok ? <Band id="radius" labelledBy="h-radius" first><Rail layer="det" id="h-radius" title="Exposure">{t('Every asset downstream of the changed record.')}</Rail><div className="main"><ReadError {...blast.error} /></div></Band> : !br ? (
         <Band id="radius" labelledBy="h-radius" first>
-          <Rail layer="det" id="h-radius" title="Exposure">Every asset downstream of the changed record.</Rail>
-          <div className="main"><HeadRow title="Dependency graph" /><div className="plate"><b>Not traced yet.</b><p className="body">{inc.pipelineStatus === 'RUNNING' ? 'The pipeline is still running; the radius appears when its step completes.' : 'No traversal is recorded for this incident.'}</p></div></div>
+          <Rail layer="det" id="h-radius" title="Exposure">{t('Every asset downstream of the changed record.')}</Rail>
+          <div className="main"><HeadRow title={t('Dependency graph')} /><div className="plate"><b>{t('Not traced yet.')}</b><p className="body">{t(inc.pipelineStatus === 'RUNNING' ? 'The pipeline is still running; the radius appears when its step completes.' : 'No traversal is recorded for this incident.')}</p></div></div>
         </Band>
       ) : (
         <BlastInstrument br={br} labels={{
@@ -67,29 +68,29 @@ export default async function BlastRadiusPage({ params }: { params: Promise<{ in
 
       {br && (
         <Band id="traversal" labelledBy="h-trav">
-          <Rail layer="det" id="h-trav" title="Reproducibility">Deterministic; re-running gives the same hash.</Rail>
+          <Rail layer="det" id="h-trav" title="Reproducibility">{t('Deterministic; re-running gives the same hash.')}</Rail>
           <div className="main">
-            <h3 className="h3">Traversal</h3>
+            <h3 className="h3">{t('Traversal')}</h3>
             <div className="plate tight">
               <div className="sub">
                 <div className="c1-5">
-                  <Kv k="Traversal hash"><Mono>{shortHash(br.traversalHash)}</Mono></Kv>
-                  <Kv k="Status"><Mono>{br.traversalStatus}</Mono></Kv>
-                  <Kv k="Computed">{dayTime(br.execution?.completedAt ?? br.history.at(-1)?.computedAt ?? null)}</Kv>
+                  <Kv k={t('Traversal hash')}><Mono>{shortHash(br.traversalHash)}</Mono></Kv>
+                  <Kv k={t('Status')}><Mono>{br.traversalStatus}</Mono></Kv>
+                  <Kv k={t('Computed')}><span dir="ltr">{dayTime(br.execution?.completedAt ?? br.history.at(-1)?.computedAt ?? null)}</span></Kv>
                 </div>
                 <div className="c6-10">
-                  <Kv k="Graph">{br.nodes.length} nodes · {br.edges.length} edges</Kv>
-                  <Kv k="Changed keys"><Mono>{[...new Set(br.changes.map((c) => `${c.canonicalKey}${c.fieldPath ? ` · ${c.fieldPath}` : ''}`))].join(', ') || recordName}</Mono></Kv>
-                  <Kv k="Limits">{GRAPH_LIMITS.nodes} nodes · {GRAPH_LIMITS.edges} edges</Kv>
+                  <Kv k={t('Graph')}>{t('{n} nodes · {e} edges', { n: br.nodes.length, e: br.edges.length })}</Kv>
+                  <Kv k={t('Changed keys')}><Mono>{[...new Set(br.changes.map((c) => `${c.canonicalKey}${c.fieldPath ? ` · ${c.fieldPath}` : ''}`))].join(', ') || recordName}</Mono></Kv>
+                  <Kv k={t('Limits')}>{t('{n} nodes · {e} edges', { n: GRAPH_LIMITS.nodes, e: GRAPH_LIMITS.edges })}</Kv>
                 </div>
               </div>
             </div>
             <div className="plate tight">
               {br.history.map((h) => (
-                <div key={`${h.phase}-${h.traversalHash}`} className="ev"><Mk layer="det" /><span className="tm mono">{evTime(h.computedAt)}</span><span className="w"><b>{h.phase === 'PIPELINE' ? 'Pipeline traversal' : 'Post-promotion recompute'}</b><span>{h.counts.impacted} impacted · {h.counts.exposed} exposed · {h.counts.stale} stale</span></span><span className="who-l mono">{h.phase}</span></div>
+                <div key={`${h.phase}-${h.traversalHash}`} className="ev"><Mk layer="det" /><span className="tm mono">{evTime(h.computedAt)}</span><span className="w"><b>{t(h.phase === 'PIPELINE' ? 'Pipeline traversal' : 'Post-promotion recompute')}</b><span>{t('{i} impacted · {e} exposed · {s} stale', { i: h.counts.impacted, e: h.counts.exposed, s: h.counts.stale })}</span></span><span className="who-l mono">{h.phase}</span></div>
               ))}
               {!br.history.some((h) => h.phase === 'POST_PROMOTION') && (
-                <div className="ev"><Mk layer="hum" style={{ background: 'var(--ink-4)' }} /><span className="tm mono">after approval</span><span className="w"><b>Post-promotion recompute</b><span>Runs after the gate opens. A failure is audited and never rolls the promotion back.</span></span><span className="who-l mono">POST_PROMOTION</span></div>
+                <div className="ev"><Mk layer="hum" style={{ background: 'var(--ink-4)' }} /><span className="tm mono">{t('after approval')}</span><span className="w"><b>{t('Post-promotion recompute')}</b><span>{t('Runs after the gate opens. A failure is audited and never rolls the promotion back.')}</span></span><span className="who-l mono">POST_PROMOTION</span></div>
               )}
             </div>
           </div>
@@ -98,20 +99,20 @@ export default async function BlastRadiusPage({ params }: { params: Promise<{ in
 
       {held ? (
         <SummaryDock
-          railText="The radius informs the decision. It never makes it."
-          left={impacted.length ? <Chip tone="co">Impact proven on {impacted.map((n) => n.name).join(' and ')}</Chip> : <Chip tone="am">Exposure only, no proven impact</Chip>}
+          railText={t('The radius informs the decision. It never makes it.')}
+          left={impacted.length ? <Chip tone="co">{t('Impact proven on {names}', { names: impacted.map((n) => n.name).join(t(' and ')) })}</Chip> : <Chip tone="am">{t('Exposure only, no proven impact')}</Chip>}
           right={<ReviewerStatus active={!!reviewer} />}
-          question={impacted.length ? <>{impacted.map((n) => n.name).join(' and ')} {impacted.length === 1 ? 'answers' : 'answer'} differently with <span className="mono" style={{ fontSize: 25 }}>{cand}</span>. Should it be promoted?</> : <>Should <span className="mono" style={{ fontSize: 25 }}>{cand}</span> be promoted?</>}
-          body={`Approving switches the protected app${frozen ? ` and makes ${word(frozen).toLowerCase()} frozen ${frozen === 1 ? 'copy' : 'copies'} stale` : ''}.`}
-          href={`/incidents/${inc.id}#decision`} cta="Review the evidence and decide"
-          helper={sum.policyAction === 'QUARANTINE' ? 'Policy requires a human for this change' : 'Held until a person decides'}
+          question={impacted.length ? <>{impacted.map((n) => n.name).join(t(' and '))} {t(impacted.length === 1 ? 'answers differently with' : 'answer differently with')} <span className="mono" style={{ fontSize: 25 }}>{cand}</span>. {t('Should it be promoted?')}</> : <>{t('Should')} <span className="mono" style={{ fontSize: 25 }}>{cand}</span> {t('be promoted?')}</>}
+          body={frozen ? t(frozen === 1 ? 'Approving switches the protected app and makes one frozen copy stale.' : 'Approving switches the protected app and makes {n} frozen copies stale.', { n: word(frozen).toLowerCase(), d: frozen }) : t('Approving switches the protected app.')}
+          href={`/incidents/${inc.id}#decision`} cta={t('Review the evidence and decide')}
+          helper={t(sum.policyAction === 'QUARANTINE' ? 'Policy requires a human for this change' : 'Held until a person decides')}
         />
       ) : (
         <SummaryDock
-          railText="The radius informs the decision. This one is already decided."
-          left={<Chip tone="n4">Resolved</Chip>} right={<HandedToYou>Signed</HandedToYou>}
-          question="This incident has been decided." body="The record shows who signed, and what the gateway serves now."
-          href={`/incidents/${inc.id}/record`} cta="Open the record" helper="Entries already recorded cannot be edited"
+          railText={t('The radius informs the decision. This one is already decided.')}
+          left={<Chip tone="n4">{t('Resolved')}</Chip>} right={<HandedToYou>{t('Signed')}</HandedToYou>}
+          question={t('This incident has been decided.')} body={t('The record shows who signed, and what the gateway serves now.')}
+          href={`/incidents/${inc.id}/record`} cta={t('Open the record')} helper={t('Entries already recorded cannot be edited')}
         />
       )}
     </main>

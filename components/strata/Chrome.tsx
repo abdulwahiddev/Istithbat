@@ -4,6 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
 import { ThemeSwitch } from './theme';
 import { JudgeGuideButton } from './JudgeGuide';
+import { LangSwitch, useT } from './i18n/client';
 import { BrandLockup } from './BrandLockup';
 import { Icon } from './icons';
 import { REVIEWER_UNLOCK_EVENT } from './reviewer-events';
@@ -52,38 +53,40 @@ export function Chrome({ data, actions }: { data: ChromeData; actions: Actions }
   const scope = data.incidents.find((i) => i.id === pathId) ?? data.incidents[0] ?? null;
   const active = activeKey(path);
   const n = data.decisionCount;
+  const t = useT();
 
   const links: Record<NavKey, { href: string; label: string }> = {
-    overview: { href: '/overview', label: 'Overview' },
-    incidents: { href: '/incidents', label: 'Incidents' },
-    blast: { href: scope ? `/incidents/${scope.id}/blast-radius` : '/incidents', label: 'Blast Radius' },
-    gateway: { href: data.gatewayHref, label: 'Gateway' },
-    sources: { href: '/sources', label: 'Sources' },
-    record: { href: scope ? `/incidents/${scope.id}/record` : '/incidents', label: 'Record' },
+    overview: { href: '/overview', label: t('Overview') },
+    incidents: { href: '/incidents', label: t('Incidents') },
+    blast: { href: scope ? `/incidents/${scope.id}/blast-radius` : '/incidents', label: t('Blast Radius') },
+    gateway: { href: data.gatewayHref, label: t('Gateway') },
+    sources: { href: '/sources', label: t('Sources') },
+    record: { href: scope ? `/incidents/${scope.id}/record` : '/incidents', label: t('Record') },
   };
 
   return (
     <div className="chrome">
       <header style={{ borderBottom: '1px solid var(--line)' }}>
         <div className="wrap" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px 24px', paddingTop: 14, paddingBottom: 14 }}>
-          <Link href="/overview" aria-label="Istithbat — overview" className="brand">
+          <Link href="/overview" aria-label={t('Istithbat — overview')} className="brand">
             <BrandLockup />
           </Link>
-          <nav aria-label="Primary">
+          <nav aria-label={t('Primary')}>
             <NavSeg active={active}>
               {NAV.map((k) => (
                 <Link key={k} href={links[k].href} data-nav={k} aria-current={active === k ? 'page' : undefined}>
                   {links[k].label}
-                  {k === 'incidents' && n > 0 && <span className="badge" aria-label={`${n} open`}>{n}</span>}
+                  {k === 'incidents' && n > 0 && <span className="badge" aria-label={t('{n} open', { n })}>{n}</span>}
                 </Link>
               ))}
             </NavSeg>
           </nav>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <JudgeGuideButton />
+            <LangSwitch />
             <ThemeSwitch />
             <button type="button" className="iconbtn" onClick={() => router.push('/incidents')}
-              aria-label={n ? `Notifications, ${n} ${n === 1 ? 'incident needs' : 'incidents need'} a decision` : 'Notifications, nothing needs a decision'}>
+              aria-label={n ? (n === 1 ? t('Notifications, 1 incident needs a decision') : t('Notifications, {n} incidents need a decision', { n })) : t('Notifications, nothing needs a decision')}>
               <Icon name="bell" size={18} />
               {n > 0 && <span className="bd" />}
             </button>
@@ -126,6 +129,7 @@ function NavSeg({ active, children }: { active: NavKey | null; children: React.R
 
 /** latest seen ≠ trusted = served, for the active incident; the served state only when nothing is held. */
 function StateBar({ incident, served }: { incident: ChromeIncident | null; served: ChromeData['served'] }) {
+  const t = useT();
   return (
     <div className="casebar" style={{ position: 'relative', background: 'var(--bar-bg)', borderBottom: '1px solid var(--line)' }}>
       <div className="wrap" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px 28px', paddingTop: 10, paddingBottom: 10, fontSize: 14, minHeight: 37, boxSizing: 'content-box' }}>
@@ -134,15 +138,15 @@ function StateBar({ incident, served }: { incident: ChromeIncident | null; serve
             <span className="mono" style={{ color: 'var(--ink)' }}>{incident.recordKey}</span>
             <span style={{ width: 1, height: 16, background: 'var(--line-2)' }} aria-hidden="true" />
             <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ color: 'var(--ink-3)' }}>Latest seen</span><span className="mono" style={{ color: 'var(--co-ink)' }}>{incident.candidateLabel}</span>
-              <span style={{ color: incident.status === 'QUARANTINED' || incident.needsDecision ? 'var(--co-ink)' : 'var(--am-ink)' }}>{incident.status === 'QUARANTINED' || incident.needsDecision ? 'held' : 'investigating'}</span>
+              <span style={{ color: 'var(--ink-3)' }}>{t('Latest seen')}</span><span className="mono" style={{ color: 'var(--co-ink)' }}>{incident.candidateLabel}</span>
+              <span style={{ color: incident.status === 'QUARANTINED' || incident.needsDecision ? 'var(--co-ink)' : 'var(--am-ink)' }}>{incident.status === 'QUARANTINED' || incident.needsDecision ? t('held') : t('investigating')}</span>
             </span>
             <span style={{ color: 'var(--ink-4)' }} aria-hidden="true">≠</span>
-            <span className="sr-only">is not</span>
+            <span className="sr-only">{t('is not')}</span>
             <Served trusted={incident.trustedLabel} served={incident.servedLabel} />
             {incident.needsDecision && (
-              <Link className="cta" href={`/incidents/${incident.id}#decision`} style={{ marginLeft: 'auto' }}>
-                <Icon name="user-check" size={16} />Decision needed
+              <Link className="cta" href={`/incidents/${incident.id}#decision`} style={{ marginInlineStart: 'auto' }}>
+                <Icon name="user-check" size={16} />{t('Decision needed')}
               </Link>
             )}
           </>
@@ -151,21 +155,22 @@ function StateBar({ incident, served }: { incident: ChromeIncident | null; serve
             <span style={{ color: 'var(--ink)' }}>{served.appName}</span>
             <span style={{ width: 1, height: 16, background: 'var(--line-2)' }} aria-hidden="true" />
             <Served trusted={served.trustedLabel} served={served.servedLabel} />
-            <span style={{ marginLeft: 'auto', color: 'var(--ink-3)' }}>Nothing is held</span>
+            <span style={{ marginInlineStart: 'auto', color: 'var(--ink-3)' }}>{t('Nothing is held')}</span>
           </>
-        ) : <span style={{ color: 'var(--ink-3)' }}>No protected-app binding</span>}
+        ) : <span style={{ color: 'var(--ink-3)' }}>{t('No protected-app binding')}</span>}
       </div>
     </div>
   );
 }
 
 function Served({ trusted, served }: { trusted: string | null; served: string | null }) {
+  const t = useT();
   return (
     <>
-      <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ color: 'var(--ink-3)' }}>Trusted</span><span className="mono">{trusted ?? '—'}</span></span>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ color: 'var(--ink-3)' }}>{t('Trusted')}</span><span className="mono">{trusted ?? '—'}</span></span>
       <span style={{ color: 'var(--ink-4)' }} aria-hidden="true">{trusted && trusted === served ? '=' : '≠'}</span>
-      <span className="sr-only">{trusted && trusted === served ? 'equals' : 'is not'}</span>
-      <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ color: 'var(--ink-3)' }}>Served</span><span className="mono">{served ?? '—'}</span>{served && <span className="mk mk-det" style={{ width: 6, height: 6 }} aria-hidden="true" />}</span>
+      <span className="sr-only">{trusted && trusted === served ? t('equals') : t('is not')}</span>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ color: 'var(--ink-3)' }}>{t('Served')}</span><span className="mono">{served ?? '—'}</span>{served && <span className="mk mk-det" style={{ width: 6, height: 6 }} aria-hidden="true" />}</span>
     </>
   );
 }
@@ -174,6 +179,7 @@ const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2)
 
 /** Reviewer pill. Signed in: name from the review session. Otherwise it opens the D-11 unlock. */
 function Reviewer({ reviewer, available, actions }: { reviewer: ChromeData['reviewer']; available: boolean; actions: Actions }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<UnlockState>({ ok: false });
   const [pending, setPending] = useState(false);
@@ -183,7 +189,7 @@ function Reviewer({ reviewer, available, actions }: { reviewer: ChromeData['revi
     e.preventDefault();
     setPending(true);
     try { setState(await actions.unlock({ ok: false }, new FormData(e.currentTarget))); }
-    catch { setState({ ok: false, error: 'The sign-in request did not reach the server.' }); }
+    catch { setState({ ok: false, error: t('The sign-in request did not reach the server.') }); }
     finally { setPending(false); }
   };
   const box = useRef<HTMLDivElement>(null);
@@ -204,32 +210,32 @@ function Reviewer({ reviewer, available, actions }: { reviewer: ChromeData['revi
     document.addEventListener('keydown', onKey); document.addEventListener('mousedown', onDown);
     return () => { document.removeEventListener('keydown', onKey); document.removeEventListener('mousedown', onDown); };
   }, [open]);
-  const label = reviewer ? `${reviewer.name}, ${reviewer.canSign ? 'reviewer mode' : 'review preview mode'}` : available ? 'Reviewer mode is locked' : 'Reviewer mode is unavailable on this deployment';
+  const label = reviewer ? `${reviewer.name}, ${reviewer.canSign ? t('reviewer mode') : t('review preview mode')}` : available ? t('Reviewer mode is locked') : t('Reviewer mode is unavailable on this deployment');
   return (
     <div className="whobox" ref={box}>
-      <button type="button" className="who" aria-label={label} title={reviewer ? 'Reviewer mode' : 'Unlock reviewer mode'} aria-expanded={open} aria-haspopup="dialog"
+      <button type="button" className="who" aria-label={label} title={reviewer ? t('Reviewer mode') : t('Unlock reviewer mode')} aria-expanded={open} aria-haspopup="dialog"
         onClick={() => setOpen((o) => !o)} style={{ font: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
         <span className={`avatar${reviewer ? '' : ' locked'}`} style={{ boxShadow: 'none' }}>
           {reviewer ? initials(reviewer.name) : <Icon name="lock" size={16} />}
         </span>
-        <span className="who-name">{reviewer ? reviewer.name : 'Reviewer mode'}</span>
+        <span className="who-name">{reviewer ? reviewer.name : t('Reviewer mode')}</span>
       </button>
       {open && (
-        <div className="unlock" role="dialog" aria-label={reviewer ? 'Reviewer mode' : 'Unlock reviewer mode'}>
+        <div className="unlock" role="dialog" aria-label={reviewer ? t('Reviewer mode') : t('Unlock reviewer mode')}>
           {reviewer ? (
             <>
-              <p>Signed in as <b style={{ color: 'var(--ink)' }}>{reviewer.name}</b>. {reviewer.canSign ? 'Decisions are recorded under this name.' : 'Preview only. No decision can be signed or recorded with this access.'}</p>
-              <button type="button" className="ubtn" onClick={async () => { await actions.lock(); setOpen(false); window.location.reload(); }}>Sign out of Reviewer Mode</button>
+              <p>{t('Signed in as')} <b style={{ color: 'var(--ink)' }}>{reviewer.name}</b>. {reviewer.canSign ? t('Decisions are recorded under this name.') : t('Preview only. No decision can be signed or recorded with this access.')}</p>
+              <button type="button" className="ubtn" onClick={async () => { await actions.lock(); setOpen(false); window.location.reload(); }}>{t('Sign out of Reviewer Mode')}</button>
             </>
           ) : !available ? (
-            <p>Reviewer sign-in is not configured on this deployment, so no decision can be signed here. Read-only views stay public.</p>
+            <p>{t('Reviewer sign-in is not configured on this deployment, so no decision can be signed here. Read-only views stay public.')}</p>
           ) : (
             <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <p>Only reviewers can sign decisions. Read-only views stay public.</p>
-              <label>Username<input name="username" autoComplete="username" required maxLength={120} /></label>
-              <label>Password<input name="password" type="password" autoComplete="current-password" required /></label>
-              {state.error && <p className="err" role="alert">{state.error}</p>}
-              <button type="submit" className="ubtn" disabled={pending}>{pending ? 'Checking…' : 'Unlock reviewer mode'}</button>
+              <p>{t('Only reviewers can sign decisions. Read-only views stay public.')}</p>
+              <label>{t('Username')}<input name="username" autoComplete="username" required maxLength={120} /></label>
+              <label>{t('Password')}<input name="password" type="password" autoComplete="current-password" required /></label>
+              {state.error && <p className="err" role="alert">{t(state.error)}</p>}
+              <button type="submit" className="ubtn" disabled={pending}>{pending ? t('Checking…') : t('Unlock reviewer mode')}</button>
             </form>
           )}
         </div>

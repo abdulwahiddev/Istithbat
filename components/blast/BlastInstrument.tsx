@@ -6,6 +6,7 @@ import { FlowLayer, type FlowEdge } from './FlowLayer';
 import { plural } from '@/components/strata/format';
 import { EntityIcon, STATE_COLOR, StateMark, type StateKey } from '@/components/strata/entity';
 import { Icon } from '@/components/strata/icons';
+import { useT } from '@/components/strata/i18n/client';
 
 type Impact = BlastRadius['nodes'][number]['impact'];
 export type BlastLabels = {
@@ -30,6 +31,7 @@ const MAX_PER_COLUMN = 6;
  * STALE) — a preview only.
  */
 export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: BlastLabels }) {
+  const t = useT();
   const [view, setView] = useState<'now' | 'after'>('now');
   const after = view === 'after';
   const [expanded, setExpanded] = useState<ReadonlySet<number>>(() => new Set());
@@ -138,53 +140,53 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
     <>
     <section id="radius" className="band" aria-labelledby="h-radius" style={{ paddingTop: 0 }}>
       <div className="wrap g">
-        <div className="rail"><span className="mk mk-det" /><h2 id="h-radius">Exposure</h2><p>Every asset downstream of the changed record.</p></div>
+        <div className="rail"><span className="mk mk-det" /><h2 id="h-radius">{t('Exposure')}</h2><p>{t('Every asset downstream of the changed record.')}</p></div>
         <div className="main">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
-        <h3 className="h3">{after ? 'Dependency graph · after approval' : 'Dependency graph'}</h3>
+        <h3 className="h3">{t(after ? 'Dependency graph · after approval' : 'Dependency graph')}</h3>
         {L.incidentHeld && (
-          <div className="mseg" role="group" aria-label="Radius view" style={{ marginTop: -7 }}>
-            <button type="button" aria-pressed={!after} onClick={() => setView('now')}>Now</button>
-            <button type="button" aria-pressed={after} onClick={() => setView('after')}>If approved</button>
+          <div className="mseg" role="group" aria-label={t('Radius view')} style={{ marginTop: -7 }}>
+            <button type="button" aria-pressed={!after} onClick={() => setView('now')}>{t('Now')}</button>
+            <button type="button" aria-pressed={after} onClick={() => setView('after')}>{t('If approved')}</button>
           </div>
         )}
       </div>
       <div className="plate" style={{ paddingTop: 28, paddingBottom: 0 }}>
         <div className="sub" style={{ alignItems: 'center', rowGap: 16, paddingBottom: 24, borderBottom: '1px solid var(--line)' }}>
           <div className="c1-6" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div className="radius" role="img" aria-label={`Blast radius: ${imp} impacted, ${exp} exposed, ${stl} stale`} style={{ gridTemplateColumns: `repeat(${Math.max(1, down.length)},minmax(0,1fr))` }}>
+            <div className="radius" role="img" aria-label={t('Blast radius: {i} impacted, {e} exposed, {s} stale', { i: imp, e: exp, s: stl })} style={{ gridTemplateColumns: `repeat(${Math.max(1, down.length)},minmax(0,1fr))` }}>
               {tally.map((s, i) => <span key={i} style={s.stale ? { background: 'transparent', boxShadow: 'inset 0 0 0 2px var(--am)' } : { background: s.c }} />)}
             </div>
-            <span className="cap">Blast radius · {down.length} downstream {down.length === 1 ? 'asset' : 'assets'}</span>
+            <span className="cap">{t('Blast radius')} · {t(down.length === 1 ? '1 downstream asset' : `${down.length} downstream assets`)}</span>
           </div>
           <div className="c7-10" style={{ display: 'flex', justifyContent: 'flex-end', gap: 32 }}>
-            <span className="cnt"><b style={{ color: 'var(--co-ink)' }}>{imp}</b><span className="cap">Impacted</span></span>
-            <span className="cnt"><b style={{ color: 'var(--am-ink)' }}>{exp}</b><span className="cap">Exposed</span></span>
-            <span className="cnt"><b style={{ color: stl ? 'var(--am-ink)' : 'var(--ink-3)' }}>{stl}</b><span className="cap">Stale</span></span>
+            <span className="cnt"><b style={{ color: 'var(--co-ink)' }}>{imp}</b><span className="cap">{t('Impacted')}</span></span>
+            <span className="cnt"><b style={{ color: 'var(--am-ink)' }}>{exp}</b><span className="cap">{t('Exposed')}</span></span>
+            <span className="cnt"><b style={{ color: stl ? 'var(--am-ink)' : 'var(--ink-3)' }}>{stl}</b><span className="cap">{t('Stale')}</span></span>
           </div>
         </div>
         <div className="bfil">
-          <div className="mseg" role="group" aria-label="Show assets">
+          <div className="mseg" role="group" aria-label={t('Show assets')}>
             {FILTERS.map(([k, label]) => {
               const n = k === 'all' ? down.length : k === 'impacted' ? imp : k === 'stale' ? stl : exp;
-              return <button key={k} type="button" aria-pressed={filter === k} onClick={() => setFilter(k)}>{label}<span className="bfil-n">{n}</span></button>;
+              return <button key={k} type="button" aria-pressed={filter === k} onClick={() => setFilter(k)}>{t(label)}<span className="bfil-n">{n}</span></button>;
             })}
           </div>
-          <ul className="blgd" aria-label="Legend">
-            <li><span className="lg-n lg-chg" aria-hidden="true" />Changed record</li>
-            <li><span className="lg-n lg-imp" aria-hidden="true" />Impacted</li>
-            <li><span className="lg-n lg-exp" aria-hidden="true" />Exposed</li>
-            <li><span className="lg-n lg-stl" aria-hidden="true" />Stale</li>
-            <li><span className="lg-e" aria-hidden="true" />Selected path</li>
+          <ul className="blgd" aria-label={t('Legend')}>
+            <li><span className="lg-n lg-chg" aria-hidden="true" />{t('Changed record')}</li>
+            <li><span className="lg-n lg-imp" aria-hidden="true" />{t('Impacted')}</li>
+            <li><span className="lg-n lg-exp" aria-hidden="true" />{t('Exposed')}</li>
+            <li><span className="lg-n lg-stl" aria-hidden="true" />{t('Stale')}</li>
+            <li><span className="lg-e" aria-hidden="true" />{t('Selected path')}</li>
           </ul>
         </div>
         {filter !== 'all' && (filter === 'impacted' ? imp : filter === 'stale' ? stl : exp) === 0 && (
-          <p className="body bfil-empty" role="status">{filter === 'stale' ? (after ? 'No asset would go stale: none keeps a materialized copy of the trusted version.' : 'No asset is stale. Stale applies only to frozen copies, and only after a promotion.') : `No asset is ${filter} in this view.`}</p>
+          <p className="body bfil-empty" role="status">{t(filter === 'stale' ? (after ? 'No asset would go stale: none keeps a materialized copy of the trusted version.' : 'No asset is stale. Stale applies only to frozen copies, and only after a promotion.') : `No asset is ${filter} in this view.`)}</p>
         )}
-        <ol className="btrace" aria-label="Dependency trace">
+        <ol className="btrace" aria-label={t('Dependency trace')}>
           {full.headings.map((h) => (
             <li key={h.depth}>
-              <span className="cap">{h.label}</span>
+              <span className="cap">{t(h.label)}</span>
               <ul>
                 {full.nodes.filter((n) => n.depth === h.depth).sort((a, b) => a.y - b.y).map((n) => {
                   const st = stateOf(n), on = n.id === sel?.id;
@@ -192,7 +194,7 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
                     <li key={n.id}>
                       <button type="button" className={`bt-n st-${st.k}${on ? ' on' : ''}${lit.nodesOn.has(n.id) ? ' lit' : ''}${passes(n) ? '' : ' dim'}`} aria-pressed={on} onClick={() => setSelId(n.id)}>
                         <span className="nd"><EntityIcon type={n.assetType} size={14} /></span>
-                        <span className="nl"><b className={n.assetType === 'RECORD' ? 'mono' : ''} dir="auto">{n.assetType === 'SOURCE' ? short(n).split(' — ')[0] : n.name}</b><span>{n.assetType === 'RECORD' ? `${L.changedField ?? 'Record'} changed` : `${typeLabel(n.assetType)} · ${st.s}${n.app ? ` · ${readsOf(n)}` : ''}`}</span></span>
+                        <span className="nl"><b className={n.assetType === 'RECORD' ? 'mono' : ''} dir="auto">{n.assetType === 'SOURCE' ? short(n).split(' — ')[0] : n.name}</b><span>{n.assetType === 'RECORD' ? <><bdi>{L.changedField ?? t('Record')}</bdi> {t('changed')}</> : `${t(typeLabel(n.assetType))} · ${t(st.s)}${n.app ? ` · ${t(readsOf(n))}` : ''}`}</span></span>
                       </button>
                     </li>
                   );
@@ -202,10 +204,10 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
           ))}
         </ol>
         <div className="bgraph-scroll" style={{ overflowX: 'auto', margin: '0 -8px', padding: '0 8px' }}>
-          <div ref={host} className={`graph${after ? ' after' : ''}`} style={{ height: lay.height }} role="group" aria-label="Dependency graph. Select an asset to inspect it.">
+          <div ref={host} className={`graph${after ? ' after' : ''}`} style={{ height: lay.height }} role="group" aria-label={t('Dependency graph. Select an asset to inspect it.')}>
             {lay.headings.map((h) => {
               const foldable = full.headings.find((x) => x.depth === h.depth) && full.nodes.filter((n) => n.depth === h.depth).length > MAX_PER_COLUMN;
-              return <span key={h.depth} className="colh" style={{ left: `${h.x}%` }}>{h.label}{foldable && expanded.has(h.depth) && <button type="button" className="colx" onClick={() => toggleColumn(h.depth)}>Show fewer</button>}</span>;
+              return <span key={h.depth} className="colh" style={{ insetInlineStart: `${h.x}%` }}>{t(h.label)}{foldable && expanded.has(h.depth) && <button type="button" className="colx" onClick={() => toggleColumn(h.depth)}>{t('Show fewer')}</button>}</span>;
             })}
             {W ? (
               <svg className="edges" viewBox={`0 0 ${W} ${lay.height}`} aria-hidden="true">
@@ -222,25 +224,25 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
                 const card = n.app || n.summary.types.includes('APPLICATION');
                 const what = n.summary.types.length === 1 ? typeLabel(n.summary.types[0]).toLowerCase() + (n.summary.ids.length === 1 ? '' : 's') : 'assets';
                 return (
-                  <button key={n.id} type="button" data-node={n.id} className={`node sum${card ? ' card' : ''}${filter !== 'all' ? ' dim' : ''}`} style={{ ...(card ? { left: `${n.x}%`, right: 0, top: n.y - 28 } : { left: `${n.x}%`, top: n.y - 14 }), ['--d' as string]: n.depth }}
-                    aria-expanded={false} onClick={() => toggleColumn(n.depth)} aria-label={`${n.summary.ids.length} more ${what}: ${memberCounts(n)}. Show all.`}>
+                  <button key={n.id} type="button" data-node={n.id} className={`node sum${card ? ' card' : ''}${filter !== 'all' ? ' dim' : ''}`} style={{ ...(card ? { insetInlineStart: `${n.x}%`, insetInlineEnd: 0, top: n.y - 28 } : { insetInlineStart: `${n.x}%`, top: n.y - 14 }), ['--d' as string]: n.depth }}
+                    aria-expanded={false} onClick={() => toggleColumn(n.depth)} aria-label={`${t('{n} more', { n: n.summary.ids.length })} ${t(what)}: ${memberCounts(n)}. ${t('Show all.')}`}>
                     <span className="ping" aria-hidden="true" />
                     <span className="nd nd-sum">+{n.summary.ids.length}</span>
-                    <span className="nl"><b>{n.summary.ids.length} more {what}</b><span>{memberCounts(n)}</span></span>
-                    {card && <Icon name="chevron-right" size={16} style={{ marginLeft: 'auto', color: 'var(--ink-3)' }} />}
+                    <span className="nl"><b>{t('{n} more', { n: n.summary.ids.length })} {t(what)}</b><span>{memberCounts(n)}</span></span>
+                    {card && <Icon name="chevron-right" size={16} style={{ marginInlineStart: 'auto', color: 'var(--ink-3)' }} />}
                   </button>
                 );
               }
               const st = stateOf(n), on = n.id === sel?.id, card = n.app;
               const cls = `node${card ? ' card' : ''} st-${st.k}${on ? ' on' : ''}${lit.nodesOn.has(n.id) ? ' lit' : ''}${passes(n) ? '' : ' dim'}${after && impactOf(n) !== n.impact ? ' changed' : ''}`;
-              const pos: React.CSSProperties = { ...(card ? { left: `${n.x}%`, right: 0, top: n.y - 28 } : { left: `${n.x}%`, top: n.y - 14 }), ['--d' as string]: n.depth };
+              const pos: React.CSSProperties = { ...(card ? { insetInlineStart: `${n.x}%`, insetInlineEnd: 0, top: n.y - 28 } : { insetInlineStart: `${n.x}%`, top: n.y - 14 }), ['--d' as string]: n.depth };
               const name = n.assetType === 'SOURCE' ? short(n).split(' — ')[0] : n.name;
               return (
-                <button key={n.id} type="button" data-node={n.id} className={cls} style={pos} aria-pressed={on} onClick={() => setSelId(n.id)} onPointerEnter={() => setHoverId(n.id)} onPointerLeave={() => setHoverId(null)} onFocus={() => setHoverId(n.id)} onBlur={() => setHoverId(null)} aria-label={`${typeLabel(n.assetType)} ${short(n)}, ${st.s}`}>
+                <button key={n.id} type="button" data-node={n.id} className={cls} style={pos} aria-pressed={on} onClick={() => setSelId(n.id)} onPointerEnter={() => setHoverId(n.id)} onPointerLeave={() => setHoverId(null)} onFocus={() => setHoverId(n.id)} onBlur={() => setHoverId(null)} aria-label={`${t(typeLabel(n.assetType))} ${short(n)}, ${t(st.s)}`}>
                   <span className="ping" aria-hidden="true" />
                   <span className="nd"><EntityIcon type={n.assetType} size={card ? 16 : 15} /></span>
                   <span className="nl"><b className={n.assetType === 'RECORD' ? 'mono' : ''} dir="auto" title={name}>{name}</b>
-                    <span>{card ? `${st.s} · ${readsOf(n)}` : n.assetType === 'RECORD' ? `${L.changedField ?? 'Record'} changed` : `${typeLabel(n.assetType)} · ${st.s}`}</span></span>
+                    <span>{card ? `${t(st.s)} · ${t(readsOf(n))}` : n.assetType === 'RECORD' ? <><bdi>{L.changedField ?? t('Record')}</bdi> {t('changed')}</> : `${t(typeLabel(n.assetType))} · ${t(st.s)}`}</span></span>
                 </button>
               );
             })}
@@ -250,63 +252,63 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
           <div className="insp" aria-live="polite">
             <div className="sub fade" key={`${sel.id}-${view}`} style={{ rowGap: 20 }}>
               <div className="c1-5" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <span className="cap" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><EntityIcon type={sel.assetType} size={14} />{typeLabel(sel.assetType)} · selected</span>
-                <span style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}><b style={{ fontSize: 20, lineHeight: '28px', fontWeight: 600 }}>{sel.assetType === 'SOURCE' ? L.sourceName : sel.name}</b><span className="chip"><StateMark s={ss.k} />{ss.s}</span></span>
-                <p className="body">{whyOf(sel)}</p>
+                <span className="cap" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><EntityIcon type={sel.assetType} size={14} />{t(typeLabel(sel.assetType))} · {t('selected')}</span>
+                <span style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}><b style={{ fontSize: 20, lineHeight: '28px', fontWeight: 600 }}>{sel.assetType === 'SOURCE' ? L.sourceName : sel.name}</b><span className="chip"><StateMark s={ss.k} />{t(ss.s)}</span></span>
+                <p className="body">{t(whyOf(sel))}</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px 8px', fontSize: 13, color: 'var(--ink-3)' }}>
-                  <span className="cap" style={{ marginRight: 4 }}>Path</span>
-                  {path.map((id, i) => <span key={id} style={{ display: 'contents' }}><span className="crumb">{short(byId.get(id)).split(' — ')[0]}</span>{i < path.length - 1 && <span aria-hidden="true" style={{ color: 'var(--ink-4)' }}>→</span>}</span>)}
+                  <span className="cap" style={{ marginInlineEnd: 4 }}>{t('Path')}</span>
+                  {path.map((id, i) => <span key={id} style={{ display: 'contents' }}><span className="crumb">{short(byId.get(id)).split(' — ')[0]}</span>{i < path.length - 1 && <span aria-hidden="true" className="flip-rtl" style={{ color: 'var(--ink-4)' }}>→</span>}</span>)}
                 </div>
               </div>
               <div className="c6-10">
-                <div className="kv"><span>Asset type</span><span className="mono">{sel.assetType}</span></div>
-                <div className="kv"><span>Derivation</span><span className="mono">{sel.derivationMode ?? '—'}</span></div>
-                <div className="kv"><span>Reads</span><span className="mono">{readsOf(sel)}</span></div>
-                <div className="kv"><span>Impact evidence</span><span>{evidenceOf(sel)}</span></div>
+                <div className="kv"><span>{t('Asset type')}</span><span className="mono">{sel.assetType}</span></div>
+                <div className="kv"><span>{t('Derivation')}</span><span className="mono">{sel.derivationMode ?? '—'}</span></div>
+                <div className="kv"><span>{t('Reads')}</span><span className="mono">{t(readsOf(sel))}</span></div>
+                <div className="kv"><span>{t('Impact evidence')}</span><span>{t(evidenceOf(sel))}</span></div>
               </div>
             </div>
           </div>
         )}
       </div>
       {after
-        ? <p className="body fade" style={{ display: 'flex', gap: 10, alignItems: 'baseline', color: 'var(--ink-3)' }}><span className="mk mk-hum" style={{ width: 8, height: 8, background: 'var(--ink-3)' }} />Preview only. Computed with the same rules after promotion; nothing changes until a reviewer signs.</p>
-        : <p className="body" style={{ color: 'var(--ink-3)' }}>Exposure comes from the dependency graph. Impact needs proof: a material regression run against a protected app. Stale applies only to frozen copies after a promotion.</p>}
+        ? <p className="body fade" style={{ display: 'flex', gap: 10, alignItems: 'baseline', color: 'var(--ink-3)' }}><span className="mk mk-hum" style={{ width: 8, height: 8, background: 'var(--ink-3)' }} />{t('Preview only. Computed with the same rules after promotion; nothing changes until a reviewer signs.')}</p>
+        : <p className="body" style={{ color: 'var(--ink-3)' }}>{t('Exposure comes from the dependency graph. Impact needs proof: a material regression run against a protected app. Stale applies only to frozen copies after a promotion.')}</p>}
         </div>
       </div>
     </section>
 
     <section id="assets" className="band" aria-labelledby="h-assets">
       <div className="wrap g">
-        <div className="rail"><span className="mk mk-det" /><h2 id="h-assets">Assets</h2><p>How each asset reads the source.</p></div>
+        <div className="rail"><span className="mk mk-det" /><h2 id="h-assets">{t('Assets')}</h2><p>{t('How each asset reads the source.')}</p></div>
         <div className="main">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}><h3 className="h3">Downstream assets · {filter === 'all' ? rows.length : `${rows.filter((r) => r.st.k === filter).length} of ${rows.length}`}</h3><span className="meta mono">incident_asset_impacts</span></div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}><h3 className="h3">{t('Downstream assets')} · {filter === 'all' ? rows.length : t('{m} of {n}', { m: rows.filter((r) => r.st.k === filter).length, n: rows.length })}</h3><span className="meta mono">incident_asset_impacts</span></div>
           <div className="plate tight" style={{ overflowX: 'auto' }}>
             <table className="tb">
-              <caption className="sr-only">Downstream assets{after ? ' if the candidate is approved (preview)' : ''}</caption>
-              <thead><tr><th scope="col">Asset</th><th scope="col">Type</th><th scope="col">Derivation</th><th scope="col">Reads</th><th scope="col">State</th><th scope="col" style={{ textAlign: 'right' }}>Evidence</th></tr></thead>
+              <caption className="sr-only">{t(after ? 'Downstream assets if the candidate is approved (preview)' : 'Downstream assets')}</caption>
+              <thead><tr><th scope="col">{t('Asset')}</th><th scope="col">{t('Type')}</th><th scope="col">{t('Derivation')}</th><th scope="col">{t('Reads')}</th><th scope="col">{t('State')}</th><th scope="col" style={{ textAlign: 'end' }}>{t('Evidence')}</th></tr></thead>
               <tbody>
                 {rows.filter((r) => filter === 'all' || r.st.k === filter).map((r) => (
                   <tr key={r.id}>
                     <td><span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}><EntityIcon type={r.type} size={15} style={{ color: 'var(--ink-3)', flex: 'none' }} /><b style={{ fontWeight: 600 }} dir="auto">{r.name}</b></span></td>
                     <td><span className="mono" style={{ fontSize: 13, color: 'var(--ink-2)' }}>{r.type}</span></td>
                     <td><span className="mono" style={{ fontSize: 13, color: 'var(--ink-2)' }}>{r.mode}</span></td>
-                    <td><span className="mono" style={{ fontSize: 13 }}>{r.reads}</span></td>
-                    <td><span className="chip"><StateMark s={r.st.k} />{r.st.s}</span></td>
-                    <td style={{ textAlign: 'right', color: 'var(--ink-3)' }}>{r.evidence}</td>
+                    <td><span className="mono" style={{ fontSize: 13 }}>{t(r.reads)}</span></td>
+                    <td><span className="chip"><StateMark s={r.st.k} />{t(r.st.s)}</span></td>
+                    <td style={{ textAlign: 'end', color: 'var(--ink-3)' }}>{t(r.evidence)}</td>
                   </tr>
                 ))}
-                {filter !== 'all' && !rows.some((r) => r.st.k === filter) && <tr><td colSpan={6} style={{ color: 'var(--ink-3)' }}>No {filter} asset in this view.</td></tr>}
+                {filter !== 'all' && !rows.some((r) => r.st.k === filter) && <tr><td colSpan={6} style={{ color: 'var(--ink-3)' }}>{t(`No ${filter} asset in this view.`)}</td></tr>}
               </tbody>
             </table>
           </div>
           <div className="sub" style={{ rowGap: 24 }}>
             <div className="c1-5" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}><span className="chip" style={{ padding: '1px 9px 1px 7px', fontSize: 12 }}><StateMark s="impacted" />Impacted</span><span className="meta">Only a protected app, only with proof</span></span>
-              <p className="body">An asset is impacted when it is exposed, it is a protected app, and a regression run against it found a material change.{protectedNames.length ? ` ${listNames(protectedNames)} ${protectedNames.length === 1 ? 'is the only protected app' : `are the ${protectedNames.length} protected apps`} here.` : ' No protected app is in this radius.'}</p>
+              <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}><span className="chip" style={{ padding: '1px 9px 1px 7px', fontSize: 12 }}><StateMark s="impacted" />{t('Impacted')}</span><span className="meta">{t('Only a protected app, only with proof')}</span></span>
+              <p className="body">{t('An asset is impacted when it is exposed, it is a protected app, and a regression run against it found a material change.')}{protectedNames.length ? ` ${protectedNames.length === 1 ? t('{names} is the only protected app here.', { names: listNames(protectedNames, t) }) : t('{names} are the {n} protected apps here.', { names: listNames(protectedNames, t), n: protectedNames.length })}` : ` ${t('No protected app is in this radius.')}`}</p>
             </div>
             <div className="c6-10" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}><span className="chip" style={{ padding: '1px 9px 1px 7px', fontSize: 12 }}><StateMark s="stale" />Stale</span><span className="meta">Only frozen copies, only after promotion</span></span>
-              <p className="body">{frozen.length ? <>{listNames(frozen)} {frozen.length === 1 ? 'keeps' : 'keep'} a materialized copy of <span className="mono">{L.trustedLabel}</span>. If <span className="mono">{L.candidate}</span> is approved {frozen.length === 1 ? 'it keeps' : 'they keep'} reading the superseded version until rebuilt.</> : 'No asset in this radius keeps a materialized copy, so none can go stale.'}</p>
+              <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}><span className="chip" style={{ padding: '1px 9px 1px 7px', fontSize: 12 }}><StateMark s="stale" />{t('Stale')}</span><span className="meta">{t('Only frozen copies, only after promotion')}</span></span>
+              <p className="body">{frozen.length ? <>{listNames(frozen, t)} {t(frozen.length === 1 ? 'keeps a materialized copy of' : 'keep a materialized copy of')} <span className="mono">{L.trustedLabel}</span>. {t('If')} <span className="mono">{L.candidate}</span> {t(frozen.length === 1 ? 'is approved it keeps reading the superseded version until rebuilt.' : 'is approved they keep reading the superseded version until rebuilt.')}</> : t('No asset in this radius keeps a materialized copy, so none can go stale.')}</p>
             </div>
           </div>
         </div>
@@ -317,8 +319,8 @@ export function BlastInstrument({ br, labels: L }: { br: BlastRadius; labels: Bl
 }
 
 /** "A and B", "A, B and C", "A, B and 9 others". */
-function listNames(xs: string[]) {
-  if (xs.length <= 2) return xs.join(' and ');
-  if (xs.length <= 4) return `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}`;
+function listNames(xs: string[], t: (s: string, v?: Record<string, string | number>) => string = (s) => s) {
+  if (xs.length <= 2) return xs.join(t(' and '));
+  if (xs.length <= 4) return `${xs.slice(0, -1).join(t(', '))}${t(' and ')}${xs.at(-1)}`;
   return `${xs.slice(0, 3).join(', ')} and ${xs.length - 3} others`;
 }

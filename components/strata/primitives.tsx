@@ -1,6 +1,7 @@
 import { Icon } from './icons';
 import type { CSSProperties, ReactNode } from 'react';
 import Link from 'next/link';
+import { Tx } from './i18n/client';
 
 /**
  * Strata primitives: thin, typed wrappers over the frozen class names. They add no styling of their
@@ -53,7 +54,7 @@ export function Rail({ layer, id, title, children, decision, titleStyle }: {
 }) {
   return (
     <div className="rail" style={decision ? { paddingTop: 4 } : undefined}>
-      <Mk layer={layer} /><h2 id={id} style={titleStyle}>{title}</h2><p>{children}</p>
+      <Mk layer={layer} /><h2 id={id} style={titleStyle}><Tx>{title}</Tx></h2><p>{children}</p>
     </div>
   );
 }
@@ -77,7 +78,7 @@ export function HeadRow({ title, right, align = 'baseline' }: { title: ReactNode
 }
 
 export function Lnk({ href, children }: { href: string; children: ReactNode }) {
-  return <Link className="lnk" href={href}>{children} <span aria-hidden="true">→</span></Link>;
+  return <Link className="lnk" href={href}>{children} <span aria-hidden="true" className="flip-rtl">→</span></Link>;
 }
 
 /** Page header band: crumbs, answer-first H1, lede and the status panel (columns 9–12). */
@@ -101,7 +102,7 @@ export const Sep = () => <span aria-hidden="true">/</span>;
 /** The controlled-synthetic notice (D-13), as a fact in the case's state panel rather than in navigation. */
 export function SyntheticRow() {
   return (
-    <div className="kv"><dt>Source data</dt><dd><span className="pill" style={{ padding: '2px 10px', border: '1px solid var(--am-soft)', background: 'var(--am-soft)', color: 'var(--am-ink)', fontSize: 12.5 }}><Dot tone="am" />Controlled test data · see source provenance</span></dd></div>
+    <div className="kv"><dt><Tx>Source data</Tx></dt><dd><span className="pill" style={{ padding: '2px 10px', border: '1px solid var(--am-soft)', background: 'var(--am-soft)', color: 'var(--am-ink)', fontSize: 12.5 }}><Dot tone="am" /><Tx>Controlled test data · see source provenance</Tx></span></dd></div>
   );
 }
 
@@ -118,7 +119,7 @@ export function Ev({ mark, time, title, note, code, titleStyle }: {
 }
 
 const Arrow = () => (
-  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 11l6-6M6 5h5v5" /></svg>
+  <svg className="flip-rtl" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 11l6-6M6 5h5v5" /></svg>
 );
 
 /**
@@ -164,21 +165,21 @@ export function SummaryDock({ railText, left, right, question, body, href, cta, 
  */
 export const ReviewerStatus = ({ active }: { active: boolean }) => (
   <span className="chip" style={{ color: active ? 'var(--ink)' : 'var(--ink-2)' }}>
-    <Icon name={active ? 'user-check' : 'lock'} size={14} />{active ? 'Reviewer active' : 'Reviewer locked'}
+    <Icon name={active ? 'user-check' : 'lock'} size={14} /><Tx>{active ? 'Reviewer active' : 'Reviewer locked'}</Tx>
   </span>
 );
 export const HandedToYou = ({ children = 'Handed to you' }: { children?: ReactNode }) => (
-  <span className="chip" style={{ color: 'var(--ink)' }}><Mk layer="hum" style={{ width: 8, height: 8 }} />{children}</span>
+  <span className="chip" style={{ color: 'var(--ink)' }}><Mk layer="hum" style={{ width: 8, height: 8 }} />{typeof children === 'string' ? <Tx>{children}</Tx> : children}</span>
 );
 export const HeldBy = ({ code, verb = 'Held by' }: { code: string; verb?: string }) => (
-  <span className="chip"><Mk layer="pol" style={{ width: 8, height: 8, borderColor: 'var(--ink-2)' }} />{verb} <span className="mono">{code}</span></span>
+  <span className="chip"><Mk layer="pol" style={{ width: 8, height: 8, borderColor: 'var(--ink-2)' }} /><Tx>{verb}</Tx> <span className="mono">{code}</span></span>
 );
 
 /** A read failure, stated plainly inside the band it belongs to. */
 export function ReadError({ message, code }: { message: string; code: string }) {
   return (
     <div className="plate" role="alert" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <b style={{ fontSize: 16 }}>Not available</b>
+      <b style={{ fontSize: 16 }}><Tx>Not available</Tx></b>
       <p className="body">{message}</p>
       <span className="meta mono">{code}</span>
     </div>
