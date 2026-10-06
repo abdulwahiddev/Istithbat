@@ -39,7 +39,7 @@ const STAGE_HREF: Record<string, string> = { Detect: '#source', Understand: '#ad
 const vlab = (v: Version) => (v ? versionText(v.label, v.revision, 'label') : '—');
 const FLOW = 'Detect → Understand → Test → Trace → Contain → Human decision';
 
-type Stage = 'loading' | 'locked' | 'ready' | 'published' | 'off-baseline' | 'running';
+type Stage = 'loading' | 'unavailable' | 'locked' | 'ready' | 'published' | 'off-baseline' | 'running';
 
 export function SandboxConsole({ scenario: sc }: { scenario: SandboxScenario }) {
   const [state, setState] = useState<State | null>(null);
@@ -52,11 +52,14 @@ export function SandboxConsole({ scenario: sc }: { scenario: SandboxScenario }) 
   const [confirmReset, setConfirmReset] = useState(false);
   const [paused, setPaused] = useState(false);
   const [pollEpoch, setPollEpoch] = useState(0);
+  const [readFailed, setReadFailed] = useState(false);
   const alive = useRef(true);
   const readState = useCallback(async () => {
-    const result = SandboxConsoleState.parse(await readJson('/api/sandbox/status'));
-    if (alive.current) setState(result);
-    return result;
+    try {
+      const result = SandboxConsoleState.parse(await readJson('/api/sandbox/status'));
+      if (alive.current) { setState(result); setReadFailed(false); }
+      return result;
+    } catch (err) { if (alive.current) setReadFailed(true); throw err; }
   }, []);
   useEffect(() => {
     alive.current = true;
@@ -120,7 +123,7 @@ export function SandboxConsole({ scenario: sc }: { scenario: SandboxScenario }) 
   const incidentHref = run?.incidentId ? `/incidents/${run.incidentId}` : null;
   const atBaseline = state?.fixture === sc.baselineFixture;
   const published = state?.fixture === sc.candidateFixture;
-  const stage: Stage = !state ? 'loading' : running ? 'running' : published ? 'published' : !atBaseline ? 'off-baseline' : auth ? 'ready' : 'locked';
+  const stage: Stage = !state ? (readFailed ? 'unavailable' : 'loading') : running ? 'running' : published ? 'published' : !atBaseline ? 'off-baseline' : auth ? 'ready' : 'locked';
   const served = state?.served[0];
   const versions = state ? <>Latest <Mono>{vlab(state.latestSeen)}</Mono> · Trusted <Mono>{vlab(state.trusted)}</Mono> · Served <Mono>{vlab(served?.version ?? null)}</Mono></> : null;
 
@@ -147,6 +150,7 @@ export function SandboxConsole({ scenario: sc }: { scenario: SandboxScenario }) 
   // What the operator sees right now: state, the one next action, and why anything else is unavailable.
   const panel: Record<Stage, { tone: Tone; chip: string; title: string; body: ReactNode; primary: ReactNode; secondary?: ReactNode }> = {
     loading: { tone: 'n4', chip: 'Reading', title: 'Reading the demo state…', body: 'The current upstream, trusted and served versions are being read from the persisted state.', primary: null },
+    unavailable: { tone: 'co', chip: 'Unavailable', title: 'Demo state unavailable', body: 'The sandbox state could not be read from this deployment, so no demo action is offered. Nothing was changed.', primary: <button type="button" className="btn btn-ghost sbx-btn-s" disabled={busy} onClick={refresh}><Icon name="refresh-cw" size={15} />Check again</button> },
     locked: { tone: 'n4', chip: 'Locked', title: 'Unlock demo control', body: 'Required to reset or publish the controlled test.', primary: unlockForm() },
     ready: {
       tone: 'tq', chip: 'Ready to run', title: 'Ready to run', body: <>Clean baseline: upstream, trusted and served are all <span className="mono">{sc.baselineLabel}</span>. Publishing sends one signed source update with the prepared <span className="mono">{sc.candidateLabel}</span> candidate.</>,
@@ -170,7 +174,7 @@ export function SandboxConsole({ scenario: sc }: { scenario: SandboxScenario }) 
   const P = panel[stage];
   const step = (n: number) => {
     const done = n === 1 ? auth : n === 2 ? atBaseline || published || running : n === 3 ? published || running : n === 4 ? !!run && !running && published : n === 5 && false;
-    const now = { locked: 1, 'off-baseline': auth ? 2 : 1, ready: 3, running: 4, published: 5, loading: 0 }[stage] === n;
+    const now = { locked: 1, 'off-baseline': auth ? 2 : 1, ready: 3, running: 4, published: 5, loading: 0, unavailable: 0 }[stage] === n;
     return done && !now ? 'done' : now ? 'now' : 'todo';
   };
   const STEPS = ['Unlock demo control', 'Ensure clean baseline', 'Publish controlled candidate', 'Watch Istithbat process it', 'Open incident'];
