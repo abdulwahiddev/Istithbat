@@ -1,23 +1,23 @@
 # Data sources
 
-Istithbat monitors upstream Islamic knowledge sources. It never edits them. Real sources are read-only. The **Hadith Evidence Sandbox** is the only source Istithbat intentionally changes, and everything in it is synthetic.
+Istithbat monitors upstream Islamic knowledge sources. It never edits them. Real sources are read-only. The **Hadith Evidence Sandbox** is the only source Istithbat intentionally changes, and every altered candidate is a clearly labelled controlled test. Its source-derived scenario preserves the original HadeethEnc record unchanged; the existing fully synthetic fallback remains available.
 
 Terms were checked on **4 October 2026**.
 
 | | Hadith Evidence Sandbox | HadeethEnc | QuranEnc |
 |---|---|---|---|
-| **Kind** | Controlled synthetic demo source | Real, read-only | Real, read-only |
+| **Kind** | Controlled integrity-test simulator | Real, read-only | Real, read-only |
 | **Istithbat source id** | `hadith-evidence-sandbox` | `hadeethenc` | `quranenc-english-saheeh` |
 | **Provider** | Istithbat (demo infrastructure) | HadeethEnc.com (Islamic Content Service Association) | QuranEnc.com (Islamic Content Service Association) |
 | **Official URL** | — | https://hadeethenc.com | https://quranenc.com |
 | **Access method** | Internal endpoint `/api/sandbox/current` | Public REST API `https://hadeethenc.com/api/v1` (docs: hadeethenc.com/api-docs). No key | Public REST API `https://quranenc.com/api/v1` (docs: quranenc.com/en/home/api). No key |
-| **Data used** | One synthetic record, `HAD-4821` | 3 hadith entries (ids 2962, 4560, 1751). Each is fetched in Arabic and in English | Translation `english_saheeh` (Noor International Center), surahs 1 and 112. Also the translation's own `version` and `last_update` from the official translations list |
+| **Data used** | One record per test version: existing synthetic `HAD-4821`, or source-derived 10618 after explicit activation | 3 hadith entries (ids 2962, 4560, 1751). Each is fetched in Arabic and in English | Translation `english_saheeh` (Noor International Center), surahs 1 and 112. Also the translation's own `version` and `last_update` from the official translations list |
 | **Purpose** | Controlled mutation demo and evaluation | Real-source integrity monitoring: snapshot, hash, diff, provenance | Real-source integrity monitoring: snapshot, hash, diff, provenance |
 | **Terms / licence** | Authored for this project | No modification, addition or deletion of the content. The publisher and the source (HadeethEnc.com) must be credited clearly | Translations may be downloaded and re-published with no modification, addition or deletion. The publisher and the source (QuranEnc.com) must be credited clearly |
 | **Attribution** | — | "Source: HadeethEnc.com", stored on the source record | "Source: QuranEnc.com, translation english_saheeh (Noor International Center)", stored on the source record |
 | **Storage** | Repo fixtures, plus a private snapshot bucket | Exact response bytes are kept in the **private** snapshot bucket only | Exact response bytes are kept in the **private** snapshot bucket only |
-| **Redistribution / public repo** | Fixtures are public and fully synthetic | Runtime snapshots are not redistributed. The repo holds only small, unmodified test fixtures with attribution (`tests/fixtures/real/`) | Runtime snapshots are not redistributed. The repo holds only small, unmodified test fixtures with attribution (`tests/fixtures/real/`) |
-| **Mutation policy** | The only intentionally mutated source. Every value is synthetic and labelled | Never mutated. A change is reported only if HadeethEnc itself changes its response | Never mutated. A change is reported only if QuranEnc itself changes its response |
+| **Redistribution / public repo** | Original 10618 source fields retain attribution; altered grading is a separately labelled Istithbat test, never a provider publication | Runtime snapshots are not redistributed. The repo holds only small, unmodified test fixtures with attribution (`tests/fixtures/real/`) | Runtime snapshots are not redistributed. The repo holds only small, unmodified test fixtures with attribution (`tests/fixtures/real/`) |
+| **Mutation policy** | The only intentionally mutated source. Only `ar.grade` changes in source-derived 10618; other original fields remain exact | Never mutated. A change is reported only if HadeethEnc itself changes its response | Never mutated. A change is reported only if QuranEnc itself changes its response |
 | **Version label** | Fixture label (`v13`, `v14`) | None is published. The label is the literal `unversioned` | The translation's own published `version` (for example `1.1.2`) |
 
 ## How real sources are monitored

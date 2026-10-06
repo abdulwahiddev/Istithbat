@@ -111,6 +111,7 @@ describe('separate control session and protected mutations',()=>{
   const query=vi.fn().mockResolvedValue([]).mockResolvedValueOnce([{id:'baseline'}]);
   Object.assign(query,{json:(v:unknown)=>v});
   Object.assign(mocks.query,{begin:async(callback:(tx:unknown)=>Promise<void>)=>callback(query)});
+  mocks.query.mockResolvedValueOnce([{fixture_name:'had-4821.v14.json'}]);
   const response=await reset(req('/api/demo/reset',{},makeModeCookie('control').value));
   expect(await response.json()).toEqual({reset:true,trustedLabel:'v13'});
   const statements=query.mock.calls.map(([parts])=>parts.join('?')).join('\n');
