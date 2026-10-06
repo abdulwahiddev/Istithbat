@@ -12,7 +12,7 @@
 <h1 align="center">Know when trusted knowledge changes.</h1>
 
 <p align="center"><strong>AI advises. Policy governs. Humans decide.</strong><br />
-<a href="https://istithbat.vercel.app">Live app</a> · <a href="https://istithbat.vercel.app/sandbox">Sandbox demo</a></p>
+<a href="https://istithbat.vercel.app">Live app</a> · <a href="https://istithbat.vercel.app/sandbox">Sandbox demo</a> · <a href="https://youtu.be/DiOQbYYhkv4">Demo video</a></p>
 
 ## What Istithbat is
 
