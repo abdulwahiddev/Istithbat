@@ -1,10 +1,11 @@
+import { readReviewer } from '../../../_data/session';
 import { versionText } from '@/components/strata/format';
 import { AutoRefresh } from '@/components/strata/AutoRefresh';
 import { notFound } from 'next/navigation';
 import { canReview } from '@/lib/governance/transitions';
 import { RecordLedger } from '@/components/record/RecordLedger';
 import { isArabic } from '@/components/strata/diff';
-import { Band, Chip, Dk, HandedToYou, HeldBy, Mk, Mono, PageHeader, Rail, ReadError, Sep, SummaryDock } from '@/components/strata/primitives';
+import { Band, Chip, Dk, HandedToYou, HeldBy, Mk, Mono, PageHeader, Rail, ReadError, ReviewerStatus, Sep, SummaryDock } from '@/components/strata/primitives';
 import { readAudit, readGatewayInventory, readIncidentItem, readSourceDetail, readShell } from '../../../_data/read';
 import { summarizeIncident } from '../../../_data/incident-summary';
 
@@ -12,6 +13,7 @@ export const metadata = { title: 'Record · Istithbat' };
 export const dynamic = 'force-dynamic';
 
 export default async function RecordPage({ params }: { params: Promise<{ incidentId: string }> }) {
+  const reviewer = await readReviewer();
   const { incidentId } = await params;
   await readShell(); // queue the chrome's reads first so the skeleton streams immediately
   // Light path: the list row, the persisted audit page and the source detail (not the full aggregate).
@@ -98,7 +100,7 @@ export default async function RecordPage({ params }: { params: Promise<{ inciden
       {open ? (
         <SummaryDock
           railText="Nothing above decides. The record waits for a signature."
-          left={sum.policyCode ? <HeldBy code={sum.policyCode} /> : <Chip tone="am">Held for review</Chip>} right={<HandedToYou />}
+          left={sum.policyCode ? <HeldBy code={sum.policyCode} /> : <Chip tone="am">Held for review</Chip>} right={<ReviewerStatus active={!!reviewer} />}
           question="The next entry is yours."
           body={<>Signing appends one <span className="mono" style={{ fontSize: 13.5 }}>REVIEW_DECISION</span>.{approveAllowed && <> An approval also appends <span className="mono" style={{ fontSize: 13.5 }}>VERSION_PROMOTED</span> in the same transaction.</>}</>}
           href={`${base}#decision`} cta="Review the evidence and decide" helper="Entries already recorded cannot be edited"

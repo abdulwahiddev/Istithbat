@@ -1,8 +1,9 @@
+import { readReviewer } from '../../_data/session';
 import { notFound } from 'next/navigation';
 import { GatewayLanes, type GateLane } from '@/components/gateway/GateInstrument';
 import { FOLDED, LANE_MARK, narrate } from '@/components/strata/events';
 import { dayTime, evTime, versionText } from '@/components/strata/format';
-import { Band, Chip, Dk, Ev, HandedToYou, HeadRow, HeldBy, Lnk, Mk, Mono, PageHeader, Rail, ReadError, Sep, SummaryDock } from '@/components/strata/primitives';
+import { Band, Chip, Dk, Ev, HandedToYou, HeadRow, HeldBy, Lnk, Mk, Mono, PageHeader, Rail, ReadError, ReviewerStatus, Sep, SummaryDock } from '@/components/strata/primitives';
 import { summarizeIncident } from '../../_data/incident-summary';
 import { readAudit, readGatewayInventory, readGatewayState, readIncidentItem, readSources, readShell } from '../../_data/read';
 
@@ -14,6 +15,7 @@ const vr = (v: { label: string; revisionNumber: number } | null | undefined) => 
 const vb = (v: { label: string; revisionNumber: number } | null | undefined) => (v ? versionText(v.label, v.revisionNumber, 'label') : '—');
 
 export default async function GatewayPage({ params }: { params: Promise<{ appId: string }> }) {
+  const reviewer = await readReviewer();
   const appId = decodeURIComponent((await params).appId);
   await readShell(); // queue the chrome's reads first so the skeleton streams immediately
   const inventory = await readGatewayInventory();
@@ -166,7 +168,7 @@ export default async function GatewayPage({ params }: { params: Promise<{ appId:
         <SummaryDock
           railText="The gateway never decides. It waits for a signature."
           left={policyCode ? <HeldBy code={policyCode} verb="Locked by" /> : <Chip tone="am">Held for review</Chip>}
-          right={<HandedToYou>Opens only on your signature</HandedToYou>}
+          right={<ReviewerStatus active={!!reviewer} />}
           question={<>Should <span className="mono" style={{ fontSize: 25 }}>{vb(held.version)}</span> replace <span className="mono" style={{ fontSize: 25 }}>{vb(g.served)}</span> in production?</>}
           body="Review the evidence and sign on the incident. Approving runs the transaction above."
           href={`/incidents/${inc.id}#decision`} cta="Review the evidence and decide"

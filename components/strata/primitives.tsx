@@ -1,3 +1,4 @@
+import { Icon } from './icons';
 import type { CSSProperties, ReactNode } from 'react';
 import Link from 'next/link';
 
@@ -157,6 +158,15 @@ export function SummaryDock({ railText, left, right, question, body, href, cta, 
   );
 }
 
+/**
+ * Who can sign right now. Locked: anyone may inspect and preview decisions, but signing needs
+ * Reviewer Mode. Active: the signed-in reviewer's signature records a real decision.
+ */
+export const ReviewerStatus = ({ active }: { active: boolean }) => (
+  <span className="chip" style={{ color: active ? 'var(--ink)' : 'var(--ink-2)' }}>
+    <Icon name={active ? 'user-check' : 'lock'} size={14} />{active ? 'Reviewer active' : 'Reviewer locked'}
+  </span>
+);
 export const HandedToYou = ({ children = 'Handed to you' }: { children?: ReactNode }) => (
   <span className="chip" style={{ color: 'var(--ink)' }}><Mk layer="hum" style={{ width: 8, height: 8 }} />{children}</span>
 );

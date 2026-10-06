@@ -1,9 +1,10 @@
+import { readReviewer } from '../../../_data/session';
 import { AutoRefresh } from '@/components/strata/AutoRefresh';
 import { notFound } from 'next/navigation';
 import { BlastInstrument } from '@/components/blast/BlastInstrument';
 import { GRAPH_LIMITS } from '@/lib/blast-radius/graph';
 import { dayTime, evTime, plural, shortHash, versionText, word } from '@/components/strata/format';
-import { Band, Chip, Dk, HandedToYou, HeadRow, Kv, Mk, Mono, PageHeader, Rail, ReadError, Sep, SummaryDock } from '@/components/strata/primitives';
+import { Band, Chip, Dk, HandedToYou, HeadRow, Kv, Mk, Mono, PageHeader, Rail, ReadError, ReviewerStatus, Sep, SummaryDock } from '@/components/strata/primitives';
 import { incidentSem } from '@/components/strata/semantics';
 import { readBlast, readGatewayInventory, readIncidentItem, readRegressions, readSourceDetail, readShell } from '../../../_data/read';
 import { summarizeIncident } from '../../../_data/incident-summary';
@@ -12,6 +13,7 @@ export const metadata = { title: 'Blast Radius · Istithbat' };
 export const dynamic = 'force-dynamic';
 
 export default async function BlastRadiusPage({ params }: { params: Promise<{ incidentId: string }> }) {
+  const reviewer = await readReviewer();
   const { incidentId } = await params;
   await readShell(); // queue the chrome's reads first so the skeleton streams immediately
   // Light path: the list row, the light summary and the Blast Radius read (not the full aggregate).
@@ -100,7 +102,7 @@ export default async function BlastRadiusPage({ params }: { params: Promise<{ in
         <SummaryDock
           railText="The radius informs the decision. It never makes it."
           left={impacted.length ? <Chip tone="co">Impact proven on {impacted.map((n) => n.name).join(' and ')}</Chip> : <Chip tone="am">Exposure only, no proven impact</Chip>}
-          right={<HandedToYou />}
+          right={<ReviewerStatus active={!!reviewer} />}
           question={impacted.length ? <>{impacted.map((n) => n.name).join(' and ')} {impacted.length === 1 ? 'answers' : 'answer'} differently with <span className="mono" style={{ fontSize: 25 }}>{cand}</span>. Should it be promoted?</> : <>Should <span className="mono" style={{ fontSize: 25 }}>{cand}</span> be promoted?</>}
           body={`Approving switches the protected app${frozen ? ` and makes ${word(frozen).toLowerCase()} frozen ${frozen === 1 ? 'copy' : 'copies'} stale` : ''}.`}
           href={`/incidents/${inc.id}#decision`} cta="Review the evidence and decide"

@@ -1,14 +1,16 @@
+import { readReviewer } from '../_data/session';
 import { notFound } from 'next/navigation';
 import { SourcesScreen } from '@/components/sources/SourcesScreen';
 import type { SourceView } from '@/components/sources/types';
 import { plural, word } from '@/components/strata/format';
-import { Chip, Dk, HandedToYou, PageHeader, ReadError, Sep, SummaryDock } from '@/components/strata/primitives';
+import { Chip, Dk, HandedToYou, PageHeader, ReadError, ReviewerStatus, Sep, SummaryDock } from '@/components/strata/primitives';
 import { readGatewayInventory, readSourceDetail, readSources } from '../_data/read';
 import { sourceModel, vl } from '../_data/source-model';
 import { sourceView } from '../_data/source-view';
 
 /** Shared by /sources and /sources/{id}: the same screen with that source selected (handoff §2). */
 export async function SourcesPage({ selectedId }: { selectedId?: string }) {
+  const reviewer = await readReviewer();
   const sources = await readSources();
   const gateway = await readGatewayInventory();
   if (!sources.ok) {
@@ -56,7 +58,7 @@ export async function SourcesPage({ selectedId }: { selectedId?: string }) {
         <SummaryDock
           railText={`Sources never decide. The held ${leadHeld.facts.title} candidate waits for a signature.`}
           left={<Chip tone="co">{leadHeld.facts.title} <span className="mono">{vl(leadHeld.latest)}</span> held</Chip>}
-          right={<HandedToYou />}
+          right={<ReviewerStatus active={!!reviewer} />}
           question={held.length === 1 ? 'One source has a candidate waiting.' : `${word(held.length)} sources have candidates waiting.`}
           body={models.filter((m) => m.state === 'agreement').length ? `${models.filter((m) => m.state === 'agreement').map((m) => m.facts.title).join(' and ')} need nothing: they match their trusted baselines.` : 'Every other source needs a look as well.'}
           href={`/incidents/${leadHeld.held!.incidentId}#decision`} cta={`Review the ${leadHeld.facts.title} change`}

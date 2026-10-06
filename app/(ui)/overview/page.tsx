@@ -1,3 +1,4 @@
+import { readReviewer } from '../_data/session';
 import { AutoRefresh } from '@/components/strata/AutoRefresh';
 import Link from 'next/link';
 import type { IncidentAggregate } from '@/lib/contracts';
@@ -6,7 +7,7 @@ import { FOLDED, LANE_MARK, narrate } from '@/components/strata/events';
 import { evTime, versionHint, versionText, word } from '@/components/strata/format';
 import type { IncidentSummary } from '@/components/strata/incident-model';
 import { summarizeIncident } from '../_data/incident-summary';
-import { Band, Chip, Dk, Ev, HandedToYou, HeadRow, HeldBy, Lnk, Mk, Mono, PageHeader, Rail, ReadError, Sep, SummaryDock } from '@/components/strata/primitives';
+import { Band, Chip, Dk, Ev, HandedToYou, HeadRow, HeldBy, Lnk, Mk, Mono, PageHeader, Rail, ReadError, ReviewerStatus, Sep, SummaryDock } from '@/components/strata/primitives';
 import { leadIncident, needsDecision } from '@/components/strata/semantics';
 import { IncidentCard } from '@/components/strata/IncidentCard';
 import { readAudit, readGatewayInventory, readIncidents, readSources } from '../_data/read';
@@ -16,6 +17,7 @@ export const metadata = { title: 'Overview · Istithbat' };
 export const dynamic = 'force-dynamic';
 
 export default async function OverviewPage() {
+  const reviewer = await readReviewer();
   const incidents = await readIncidents();
   const sources = await readSources();
   const gateway = await readGatewayInventory();
@@ -112,7 +114,7 @@ export default async function OverviewPage() {
         <SummaryDock
           railText={held.length === 1 ? 'One case is waiting. Everything else is serving trusted knowledge.' : `${word(held.length)} cases are waiting.`}
           left={leadSum.policyCode ? <HeldBy code={leadSum.policyCode} /> : <Chip tone="am">Held for review</Chip>}
-          right={<HandedToYou />}
+          right={<ReviewerStatus active={!!reviewer} />}
           question={<>Should <span className="mono" style={{ fontSize: 25 }}>{versionText(lead.candidateLabel, lead.candidateRevision, 'label')}</span> of {leadSum.sourceTitle} replace <span className="mono" style={{ fontSize: 25 }}>{lead.previousLabel ?? 'the trusted version'}</span>?</>}
           body="The evidence, the AI reading and the regression are on the incident."
           href={`/incidents/${lead.id}#decision`} cta="Review the evidence and decide"

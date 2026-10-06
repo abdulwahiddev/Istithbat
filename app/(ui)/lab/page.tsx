@@ -4,10 +4,11 @@ import { BlastInstrument } from '@/components/blast/BlastInstrument';
 import { GatewayLanes } from '@/components/gateway/GateInstrument';
 import { blastFixture, DIFF_FIXTURES, incidentFixtures, laneFixtures, recordFixture, sourceFixtures } from '@/components/lab/fixtures';
 import { RecordLedger } from '@/components/record/RecordLedger';
+import { DecisionDock } from '@/components/incident/DecisionDock';
 import { SourcesScreen } from '@/components/sources/SourcesScreen';
 import { ExactDiff } from '@/components/strata/ExactDiff';
 import { IncidentList } from '@/components/strata/IncidentList';
-import { Chip } from '@/components/strata/primitives';
+import { Chip, ReviewerStatus } from '@/components/strata/primitives';
 
 export const metadata = { title: 'Fixture lab · Istithbat', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
@@ -15,7 +16,7 @@ export const dynamic = 'force-dynamic';
 const STORIES = [
   'incidents-0', 'incidents-1', 'incidents-5', 'incidents-24',
   'blast-1', 'blast-2', 'blast-5', 'blast-12', 'blast-long',
-  'gateway-1', 'gateway-3', 'gateway-7', 'sources-6', 'record', 'diff',
+  'gateway-1', 'gateway-3', 'gateway-7', 'sources-6', 'record', 'diff', 'dock-locked', 'dock-active',
 ] as const;
 
 /**
@@ -53,6 +54,16 @@ export default async function Lab({ searchParams }: { searchParams: Promise<{ s?
           <div className="plate tight"><ExactDiff oldValue={d.old} newValue={d.neu} oldLabel="v1" newLabel="v2" oldChip={<Chip tone="tq" small>Trusted</Chip>} newChip={<Chip tone="co" small>Candidate</Chip>} flags={d.flags} /></div>
         </div>
       ))}</Section>}
+      {kind === 'dock' && (
+        // The UI state only: `reviewer` is a fixture prop, not a session. Signing from here would hit
+        // the real review route without a session and be refused (401); QA never clicks Sign.
+        <section className="band" style={{ paddingTop: 0 }}><div className="wrap g"><div className="main" style={{ gap: 0 }}>
+          <div className="handoff"><span /><span className="handoff-line" aria-hidden="true" /><ReviewerStatus active={arg === 'active'} /></div>
+          <div className="handoff-drop" aria-hidden="true" />
+          <DecisionDock key={s} incidentId="fixture" candidate="v2" previous="v1" served="v1" appName="Fixture Protected App" candidateState="Quarantined"
+            allowed={['APPROVE', 'REJECT', 'KEEP_QUARANTINED', 'ESCALATE']} aiPill={null} reviewer={arg === 'active' ? { name: 'Fixture Reviewer' } : null} recorded={null} resolved={false} />
+        </div></div></section>
+      )}
       <div style={{ height: 120 }} />
     </main>
   );

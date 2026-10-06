@@ -1,9 +1,10 @@
 'use client';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useActionState, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
 import { ThemeSwitch } from './theme';
 import { Icon } from './icons';
+import { REVIEWER_UNLOCK_EVENT } from './reviewer-events';
 import type { UnlockState } from '@/app/(ui)/_actions/reviewer';
 
 export type ChromeIncident = {
@@ -175,13 +176,31 @@ const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2)
 /** Reviewer pill. Signed in: name from the review session. Otherwise it opens the D-11 unlock. */
 function Reviewer({ reviewer, available, actions }: { reviewer: ChromeData['reviewer']; available: boolean; actions: Actions }) {
   const [open, setOpen] = useState(false);
-  const [state, submit, pending] = useActionState(actions.unlock, { ok: false });
+  const [state, setState] = useState<UnlockState>({ ok: false });
+  const [pending, setPending] = useState(false);
+  // Same server action as before, awaited directly: the dialog reflects the verdict as soon as the
+  // server answers, instead of waiting for the whole (possibly slow) page to re-render first.
+  const submit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setPending(true);
+    try { setState(await actions.unlock({ ok: false }, new FormData(e.currentTarget))); }
+    catch { setState({ ok: false, error: 'The sign-in request did not reach the server.' }); }
+    finally { setPending(false); }
+  };
   const box = useRef<HTMLDivElement>(null);
-  const router = useRouter();
-  useEffect(() => { if (state.ok) { setOpen(false); router.refresh(); } }, [state, router]);
+  // A full reload after sign-in/out: the httpOnly session cookie is already set, and an in-place
+  // router refresh can stall on Incident Review's slow reads after the action's own revalidation.
+  useEffect(() => { if (state.ok) { setOpen(false); window.location.reload(); } }, [state]);
+  // "Unlock Reviewer Mode" elsewhere on the page opens this same sign-in (no second auth path).
+  useEffect(() => {
+    const onUnlock = () => setOpen(true);
+    window.addEventListener(REVIEWER_UNLOCK_EVENT, onUnlock);
+    return () => window.removeEventListener(REVIEWER_UNLOCK_EVENT, onUnlock);
+  }, []);
+  useEffect(() => { if (open && !reviewer) box.current?.querySelector<HTMLInputElement>('.unlock input')?.focus(); }, [open, reviewer]);
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setOpen(false); box.current?.querySelector<HTMLButtonElement>('.who')?.focus(); } };
     const onDown = (e: MouseEvent) => { if (box.current && !box.current.contains(e.target as Node)) setOpen(false); };
     document.addEventListener('keydown', onKey); document.addEventListener('mousedown', onDown);
     return () => { document.removeEventListener('keydown', onKey); document.removeEventListener('mousedown', onDown); };
@@ -201,12 +220,12 @@ function Reviewer({ reviewer, available, actions }: { reviewer: ChromeData['revi
           {reviewer ? (
             <>
               <p>Signed in as <b style={{ color: 'var(--ink)' }}>{reviewer.name}</b>. Decisions are recorded under this name.</p>
-              <button type="button" className="ubtn" onClick={async () => { await actions.lock(); setOpen(false); router.refresh(); }}>Sign out of Reviewer Mode</button>
+              <button type="button" className="ubtn" onClick={async () => { await actions.lock(); setOpen(false); window.location.reload(); }}>Sign out of Reviewer Mode</button>
             </>
           ) : !available ? (
             <p>Reviewer sign-in is not configured on this deployment, so no decision can be signed here. Read-only views stay public.</p>
           ) : (
-            <form action={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <p>Only reviewers can sign decisions. Read-only views stay public.</p>
               <label>Username<input name="username" autoComplete="username" required maxLength={120} /></label>
               <label>Password<input name="password" type="password" autoComplete="current-password" required /></label>

@@ -10,7 +10,7 @@ import { ExposureTrack, GateMini } from '@/components/incident/Instruments';
 import { atPath, isArabic, sameJson } from '@/components/strata/diff';
 import { cap, dayTime, dayYear, plural, shortHash, versionHint, versionText } from '@/components/strata/format';
 import { incidentFacts } from '@/components/strata/incident-model';
-import { Band, Chip, HandedToYou, HeadRow, HeldBy, Kv, Lnk, Mk, Mono, Rail, ReadError, SyntheticRow } from '@/components/strata/primitives';
+import { Band, Chip, HandedToYou, HeadRow, HeldBy, Kv, Lnk, Mk, Mono, Rail, ReadError, ReviewerStatus, SyntheticRow } from '@/components/strata/primitives';
 import { aiSuggestion, analysisText, deltaText, incidentSem, policyFacts, RESULT_TEXT, ROLE_TEXT, twoLines } from '@/components/strata/semantics';
 import { readGatewayInventory, readIncidentDetail, readRegressions, readSourceDetail, readShell } from '../../_data/read';
 import { readReviewer } from '../../_data/session';
@@ -338,12 +338,12 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
       {/* 07 HUMAN DECISION */}
       <section id="decision" aria-labelledby="h-dec" style={{ padding: '64px 0 120px' }}>
         <div className="wrap g">
-          <Rail layer="hum" id="h-dec" title="Review decision" decision>{inc.status === 'RESOLVED' ? 'Decided and recorded.' : 'Nothing changes until a reviewer signs.'}</Rail>
+          <Rail layer="hum" id="h-dec" title="Review decision" decision>{inc.status === 'RESOLVED' ? 'Decided and recorded.' : reviewer ? 'Reviewer active. Your signature records a real decision.' : 'Reviewer authentication required to sign a decision.'}</Rail>
           <div className="main" style={{ gap: 0 }}>
             <div className="handoff">
               {f.policyCode ? <HeldBy code={f.policyCode} /> : <Chip tone="am">Policy pending</Chip>}
               <span className="handoff-line" aria-hidden="true" />
-              <HandedToYou>{inc.status === 'RESOLVED' ? 'Signed' : 'Handed to you'}</HandedToYou>
+              {inc.status === 'RESOLVED' ? <HandedToYou>Signed</HandedToYou> : <ReviewerStatus active={!!reviewer} />}
             </div>
             <div className="handoff-drop" aria-hidden="true" />
             <DecisionDock incidentId={inc.id} candidate={cand} previous={prev} served={served} appName={appName} candidateState={heldText}

@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Endpoints } from '@/lib/contracts';
+import { requestReviewerUnlock } from '@/components/strata/reviewer-events';
 
 type Decision = 'APPROVE' | 'REJECT' | 'KEEP_QUARANTINED' | 'ESCALATE';
 export type DockProps = {
@@ -33,20 +34,23 @@ export function DecisionDock(p: DockProps) {
   const [stage, setStage] = useState<'choose' | 'confirm' | 'sending' | 'done'>('choose');
   const [result, setResult] = useState<{ ok: boolean; title: string; body: string } | null>(null);
   const confirmRef = useRef<HTMLDivElement>(null);
+  const locked = !p.reviewer;
   useEffect(() => { if (stage === 'confirm') confirmRef.current?.querySelector('button')?.focus(); }, [stage]);
+  // No anonymous drafts: a reason exists only while Reviewer Mode is active.
+  useEffect(() => { if (locked) setReason(''); }, [locked]);
 
   const c = p.candidate, prev = p.previous, app = p.appName;
-  const O: Record<Decision, { label: string; summary: string; tag?: string; btn: string; confirmTitle: string; confirmBody: string; done: string; effects: [string, string, string][] }> = {
-    APPROVE: { label: 'Approve', summary: `Promote ${c} to trusted. The gateway switches to it in one transaction.`, tag: 'Changes production', btn: 'Review approval',
+  const O: Record<Decision, { label: string; ifLabel: string; summary: string; tag?: string; btn: string; confirmTitle: string; confirmBody: string; done: string; effects: [string, string, string][] }> = {
+    APPROVE: { label: 'Approve', ifLabel: 'If approved', summary: `Promote ${c} to trusted. The gateway switches to it in one transaction.`, tag: 'Changes production', btn: 'Review approval',
       confirmTitle: `Promote ${c} to production?`, confirmBody: `${app} will read ${c} as soon as you sign. ${prev} becomes superseded.`, done: `${c} approved and now served`,
       effects: [[`Candidate ${c}`, p.candidateState, 'Trusted'], [`Previous ${prev}`, 'Trusted', 'Superseded'], [`${app} reads`, p.served, c], ['Incident', 'Open', 'Resolved']] },
-    REJECT: { label: 'Reject', summary: `Refuse the candidate. ${prev} stays trusted and keeps serving.`, btn: 'Review rejection',
+    REJECT: { label: 'Reject', ifLabel: 'If rejected', summary: `Refuse the candidate. ${prev} stays trusted and keeps serving.`, btn: 'Review rejection',
       confirmTitle: `Reject ${c}?`, confirmBody: `${c} is marked rejected. Production keeps serving ${p.served}.`, done: `${c} rejected · ${p.served} still served`,
       effects: [[`Candidate ${c}`, p.candidateState, 'Rejected'], [`${app} reads`, p.served, p.served], ['Incident', 'Open', 'Resolved']] },
-    KEEP_QUARANTINED: { label: 'Keep quarantined', summary: `Leave ${c} contained while more evidence is gathered.`, btn: 'Review decision',
+    KEEP_QUARANTINED: { label: 'Keep quarantined', ifLabel: 'If kept quarantined', summary: `Leave ${c} contained while more evidence is gathered.`, btn: 'Review decision',
       confirmTitle: `Keep ${c} quarantined?`, confirmBody: `The incident stays open and ${p.served} keeps serving.`, done: `${c} kept in quarantine`,
       effects: [[`Candidate ${c}`, p.candidateState, 'Quarantined'], [`${app} reads`, p.served, p.served], ['Incident', 'Open', 'Open']] },
-    ESCALATE: { label: 'Escalate', summary: 'Ask a qualified specialist before anyone decides.', btn: 'Review escalation',
+    ESCALATE: { label: 'Escalate', ifLabel: 'If escalated', summary: 'Ask a qualified specialist before anyone decides.', btn: 'Review escalation',
       confirmTitle: 'Escalate to a specialist?', confirmBody: `${c} stays untrusted and the incident is flagged as escalated.`, done: 'Escalated to a specialist',
       effects: [[`Candidate ${c}`, p.candidateState, p.candidateState], [`${app} reads`, p.served, p.served], ['Incident', 'Open', 'Escalated']] },
   };
@@ -54,7 +58,8 @@ export function DecisionDock(p: DockProps) {
   const pick = d ? O[d] : null;
   const needsReason = d === 'KEEP_QUARANTINED';
   const reasonMissing = needsReason && !reason.trim();
-  const blocked = !pick || reasonMissing || p.resolved;
+  // Locked visitors may preview every option; the reason requirement applies only to a real signature.
+  const blocked = !pick || p.resolved || (!locked && reasonMissing);
 
   async function submit() {
     if (!d || !p.reviewer) return;
@@ -108,10 +113,13 @@ export function DecisionDock(p: DockProps) {
 
         <div className="sub" style={{ rowGap: 32, alignItems: 'start' }}>
           <div className="c1-5" style={{ display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 15, fontWeight: 600, paddingBottom: 12, borderBottom: '1px solid var(--h-line-2)' }}>What will happen</div>
-            {!pick ? <p style={{ margin: 0, padding: '16px 0', fontSize: 15, lineHeight: '24px', color: 'var(--h-ink-2)' }}>Choose a decision to preview its exact effect.</p> : (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, fontSize: 15, fontWeight: 600, paddingBottom: 12, borderBottom: '1px solid var(--h-line-2)' }}>
+              <span>{pick ? (locked ? pick.ifLabel : `${pick.ifLabel}, on your signature`) : locked ? 'Decision preview' : 'What signing will do'}</span>
+              {locked && <span style={{ fontWeight: 400, fontSize: 13, color: 'var(--h-ink-3)' }}>Preview only · nothing is recorded</span>}
+            </div>
+            {!pick ? <p style={{ margin: 0, padding: '16px 0', fontSize: 15, lineHeight: '24px', color: 'var(--h-ink-2)' }}>{locked ? 'Choose a decision to see what it would do. Anyone can preview; only an authenticated reviewer can sign.' : 'Choose a decision to preview its exact effect before you sign.'}</p> : (
               <div className="fade" key={d}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.3fr) minmax(0,1fr) 20px minmax(0,1fr)', gap: '0 12px', padding: '12px 0 4px', fontSize: 13, color: 'var(--h-ink-3)' }}><span /><span>Now</span><span /><span>After</span></div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.3fr) minmax(0,1fr) 20px minmax(0,1fr)', gap: '0 12px', padding: '12px 0 4px', fontSize: 13, color: 'var(--h-ink-3)' }}><span /><span>Now</span><span /><span>{locked ? 'Would become' : 'After signing'}</span></div>
                 {pick.effects.map(([what, now, after]) => (
                   <div key={what} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.3fr) minmax(0,1fr) 20px minmax(0,1fr)', gap: '0 12px', padding: '13px 0', borderTop: '1px solid var(--h-line)', fontSize: 15, lineHeight: '22px', alignItems: 'baseline' }}>
                     <span style={{ color: 'var(--h-ink-2)' }}>{what}</span><span style={{ color: 'var(--h-ink-3)' }}>{now}</span><span aria-hidden="true" style={{ color: 'var(--h-ink-3)' }}>→</span>
@@ -124,29 +132,42 @@ export function DecisionDock(p: DockProps) {
           <div className="c6-10" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <label htmlFor="reason" style={{ fontSize: 15, fontWeight: 600, display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                <span>Reason</span><span style={{ fontWeight: 400, fontSize: 14, color: 'var(--h-ink-3)' }}>{needsReason ? 'Required to keep quarantined' : 'Recorded with your decision'}</span>
+                <span>Reason</span><span style={{ fontWeight: 400, fontSize: 14, color: 'var(--h-ink-3)' }}>{locked ? 'Reviewer only' : needsReason ? 'Required to keep quarantined' : 'Recorded with your signed decision'}</span>
               </label>
-              <textarea id="reason" className="field" rows={4} value={reason} maxLength={2000} disabled={p.resolved || stage === 'sending' || stage === 'done'}
-                onChange={(e) => setReason(e.target.value)} placeholder="In your words, why this decision" aria-required={needsReason} />
+              <textarea id="reason" className="field" rows={4} value={reason} maxLength={2000} disabled={locked || p.resolved || stage === 'sending' || stage === 'done'}
+                onChange={(e) => setReason(e.target.value)} placeholder={locked ? 'Available once Reviewer Mode is unlocked' : 'In your words, why this decision'}
+                aria-required={!locked && needsReason} aria-describedby={locked ? 'reason-locked' : undefined} />
+              {locked && !p.resolved && <span id="reason-locked" style={{ fontSize: 14, lineHeight: '21px', color: 'var(--h-ink-3)' }}>Unlock Reviewer Mode to record a reason and sign this decision.</span>}
             </div>
             {stage === 'choose' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <button type="button" className="btn btn-go" disabled={blocked} onClick={() => { if (!blocked) setStage('confirm'); }}>{p.resolved ? 'Already decided' : pick ? pick.btn : 'Choose a decision'}<Arrow /></button>
                 <span style={{ fontSize: 14, lineHeight: '21px', color: 'var(--h-ink-3)' }} aria-live="polite">
                   {p.resolved && p.recorded ? `Decided by ${p.recorded.reviewer} · ${p.recorded.at}. The record is append-only.`
+                    : locked ? (pick ? 'Preview only. Reviewer authentication is required to sign.' : 'Reviewer authentication required to sign a decision.')
                     : !pick ? 'Your identity and reason are written to the append-only record.'
                     : reasonMissing ? `Add a reason to keep ${c} quarantined.` : 'You will confirm before anything is signed.'}
                 </span>
               </div>
             )}
             {(stage === 'confirm' || stage === 'sending') && pick && (
-              <div ref={confirmRef} role="alertdialog" aria-label="Confirm decision" className="confirm enter" style={{ display: 'flex', flexDirection: 'column', gap: 16, borderRadius: 16, background: 'var(--h-card)', border: '1px solid var(--h-sel)', padding: 20, boxShadow: 'var(--h-card-shadow-2)' }}>
-                <p style={{ margin: 0, fontSize: 16, lineHeight: '24px' }}><b>{pick.confirmTitle}</b><br /><span style={{ color: 'var(--h-ink-2)' }}>{pick.confirmBody}</span></p>
-                {!p.reviewer && <p style={{ margin: 0, fontSize: 14, lineHeight: '21px', color: 'var(--h-ink-2)' }}>Reviewer mode is locked. Unlock it from the reviewer pill in the header to sign.</p>}
+              <div ref={confirmRef} role="alertdialog" aria-label={locked ? 'Decision preview' : 'Confirm decision'} className="confirm enter" style={{ display: 'flex', flexDirection: 'column', gap: 16, borderRadius: 16, background: 'var(--h-card)', border: '1px solid var(--h-sel)', padding: 20, boxShadow: 'var(--h-card-shadow-2)' }}>
+                {locked ? (
+                  <>
+                    <p style={{ margin: 0, fontSize: 16, lineHeight: '24px' }}><b>{pick.ifLabel}</b><span style={{ color: 'var(--h-ink-3)', fontWeight: 400 }}> · preview</span><br /><span style={{ color: 'var(--h-ink-2)' }}>{pick.confirmBody}</span></p>
+                    <p style={{ margin: 0, fontSize: 14, lineHeight: '21px', color: 'var(--h-ink-2)' }}>Nothing has been queued or recorded. Reviewer authentication is required to sign a decision.</p>
+                  </>
+                ) : (
+                  <>
+                    <p style={{ margin: 0, fontSize: 16, lineHeight: '24px' }}><b>{pick.confirmTitle}</b><br /><span style={{ color: 'var(--h-ink-2)' }}>{pick.confirmBody}</span></p>
+                    <p style={{ margin: 0, fontSize: 14, lineHeight: '21px', color: 'var(--h-ink-2)' }}>This is a real signed decision. It is appended to the record under {p.reviewer!.name}.</p>
+                    {reasonMissing && <p role="status" style={{ margin: 0, fontSize: 14, lineHeight: '21px', color: 'var(--h-ink)' }}>Add a reason to keep {c} quarantined before signing.</p>}
+                  </>
+                )}
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                  <button type="button" className="btn btn-go" style={{ flex: 1 }} disabled={!p.reviewer || stage === 'sending'} onClick={submit}>
-                    {stage === 'sending' ? 'Signing…' : p.reviewer ? `Sign as ${p.reviewer.name}` : 'Reviewer mode required'}<Arrow />
-                  </button>
+                  {locked
+                    ? <button type="button" className="btn btn-go" style={{ flex: 1 }} onClick={requestReviewerUnlock}>Unlock Reviewer Mode<Arrow /></button>
+                    : <button type="button" className="btn btn-go" style={{ flex: 1 }} disabled={stage === 'sending' || reasonMissing} onClick={submit}>{stage === 'sending' ? 'Signing…' : `Sign as ${p.reviewer!.name}`}<Arrow /></button>}
                   <button type="button" className="btn btn-ghost" disabled={stage === 'sending'} onClick={() => setStage('choose')}>Back</button>
                 </div>
               </div>
