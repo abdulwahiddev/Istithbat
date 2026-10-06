@@ -113,5 +113,6 @@ function radius(s: Scenario) {
   const imp = s.assets.filter((a) => impact(a) === 'IMPACTED').length;
   const pending = s.assets.filter((a) => impact(a) === 'PENDING').length;
   const stale = 0; // stale applies only to frozen copies after a promotion; nothing is promoted
-  return { graph, verified, down, imp, pending, exp: down - imp - pending - stale, stale, pendingNames: s.assets.filter((a) => impact(a) === 'PENDING').map((a) => a.name) };
+  // pending is a subset of exposed: without proven material impact, the product counts the app as EXPOSED
+  return { graph, verified, down, imp, pending, exp: down - imp - stale, stale, pendingNames: s.assets.filter((a) => impact(a) === 'PENDING').map((a) => a.name) };
 }

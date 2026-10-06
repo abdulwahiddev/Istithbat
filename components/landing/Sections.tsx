@@ -84,17 +84,11 @@ function ChangeSection({ d }: { d: Derived }) {
           <Head id="h-change" lines={['The source changed.', 'Production didn’t.']}>
             Istithbat fingerprints every monitored record. When a field changes it shows the exact change, word for word, while production keeps serving the version a reviewer trusted.
           </Head>
-          <dl className="prov">
-            <div className="pv fx-fade" data-t={380}>
-              <dt><Icon name="database" size={15} />Original · real record</dt>
-              <dd><b>{s.source.name} · record <Mono>{s.source.recordId}</Mono></b><span>Published by {s.source.name}. Unmodified.</span>
-                <a className="pv-a" href={s.source.href} target="_blank" rel="noreferrer">View the original <Icon name="arrow-up-right" size={14} /></a></dd>
-            </div>
-            <div className="pv test fx-fade" data-t={520}>
-              <dt><Icon name="flask-conical" size={15} />Test mutation · Istithbat</dt>
-              <dd><b>Controlled sandbox input</b><span>Applied by Istithbat to test the pipeline. Never published by {s.source.name}, never served.</span></dd>
-            </div>
-          </dl>
+          <div className="disc fx-fade" data-t={380}>
+            <p className="disc-k"><Icon name="database" size={15} />Real {s.source.name} source record · Istithbat-controlled test mutation</p>
+            <p className="disc-v">Original record from {s.source.name}. The candidate mutation was created in the Istithbat sandbox and was not published by {s.source.name}.</p>
+            <a className="pv-a" href={s.source.href} target="_blank" rel="noreferrer">View the original record <Icon name="arrow-up-right" size={14} /></a>
+          </div>
         </div>
 
         <figure className="ex" data-seq aria-labelledby="ex-cap">
@@ -106,32 +100,36 @@ function ChangeSection({ d }: { d: Derived }) {
             <Draft d={d} what="Scenario draft · under validation" />
           </figcaption>
 
-          <div className="ex-row">
+          <div className="ex-grid">
+            <span className="xh" aria-hidden="true">Version</span>
+            <span className="xh r" aria-hidden="true"><Mono>{c.path}</Mono> · exact value</span>
+            <span className="xh p" aria-hidden="true">Production</span>
+
             <div className="ex-ver fx-fade" data-t={160}><span className="ver tq mono">{s.original.version}</span><span className="vl">Trusted<small>Original value</small></span></div>
-            <p className="ex-ar big fx-wipe" data-t={240} lang="ar" dir="rtl">
+            <p className="ex-ar fx-wipe" data-t={240} lang="ar" dir="rtl"><span className="ex-v">
               {c.pieces.old.map((p, i) => p.kind === 'removed'
                 ? <span key={i}><span className="rm fx-glow" data-t={1750 + (k++) * 140}>{p.text.trimEnd()}</span>{p.text.slice(p.text.trimEnd().length)}</span>
                 : <span key={i}>{p.text}</span>)}
-            </p>
+            </span></p>
             <div className="ex-prod on fx-fade" data-t={2750}><span className="rule" aria-hidden="true" /><span><b>Served</b> to {s.app.name}</span>
               <span className="sr-only">. Words removed in {s.mutation.version}: <span lang="ar">{removedText}</span></span></div>
-          </div>
 
-          <div className="ex-step fx-fade" data-t={980} aria-hidden="true"><span className="ln-v" /><Icon name="flask-conical" size={14} />Istithbat test mutation applied in the sandbox</div>
+            <span className="ex-lin fx-grow-y" data-t={950} aria-hidden="true" />
+            <span className="ex-mut fx-fade" data-t={980} aria-hidden="true"><span className="lbl"><Icon name="flask-conical" size={14} />Test mutation · Istithbat sandbox</span></span>
+            <span aria-hidden="true" />
 
-          <div className="ex-row cand">
             <div className="ex-ver fx-fade" data-t={1080}><span className="ver co mono">{s.mutation.version}</span><span className="vl co">Latest seen<small>Test mutation</small></span></div>
-            <p className="ex-ar fx-wipe" data-t={1160} lang="ar" dir="rtl">
+            <p className="ex-ar cand fx-wipe" data-t={1160} lang="ar" dir="rtl"><span className="ex-v">
               {c.pieces.ops.map((p, i) => p.kind === 'removed'
                 ? (c.pieces.ops[i - 1]?.kind === 'removed' ? null : <span key={i} className="gap fx-gap" data-t={1900} role="img" aria-label={`removed: ${removedText}`} style={{ width: `${Math.min(3.4, Math.max(1, removedText.length * 0.16)).toFixed(2)}em` }} />)
                 : <span key={i}>{p.text}</span>)}
-            </p>
+            </span></p>
             <div className="ex-prod off fx-fade" data-t={2950}><Icon name="lock" size={14} /><span><b>Not served</b> · held</span></div>
           </div>
 
           <div className="ex-foot fx-fade" data-t={2250}>
             <span className="ex-hash"><Mark layer="det" size={14} /><span className="k">Field fingerprint</span><Mono>{short(c.oldHash)}</Mono><span className="arr" aria-hidden="true">→</span>
-              <span className="mono co" data-t={2300} data-scramble={short(c.newHash)} data-from={short(c.oldHash)}>{short(c.newHash)}</span></span>
+              <span className="mono co">{short(c.newHash)}</span></span>
             <span className="note">{c.flags.length ? `Flagged ${c.flags.join(', ').toLowerCase()}.` : 'Not whitespace-, Unicode-, harakat- or punctuation-only: substantive by rule.'}</span>
             <span className="note dim">{REVISION_NOTE}</span>
           </div>
@@ -193,14 +191,15 @@ function ReachSection({ d }: { d: Derived }) {
           <figcaption id="rad-cap" className="rad-head">
             <div className="rad-tally">
               <span className="cap fx-fade" data-t={0}>Blast radius · {r.down} downstream assets of record <Mono>{s.source.recordId}</Mono></span>
-              <div className="rbar" role="img" aria-label={`${r.exp} exposed, ${r.pending} with impact pending validation, ${r.imp} impacted, ${r.stale} stale`} style={{ gridTemplateColumns: `repeat(${r.down},minmax(0,1fr))` }}>
+              <div className="rbar" role="img" aria-label={`${r.exp} exposed, of which ${r.pending} protected app awaits impact validation; ${r.imp} impacted; ${r.stale} stale`} style={{ gridTemplateColumns: `repeat(${r.down},minmax(0,1fr))` }}>
                 {Array.from({ length: r.down }, (_, i) => <span key={i} className={`fx-grow ${i < r.imp ? 'imp' : i < r.imp + r.pending ? 'pend' : 'exp'}`} data-t={260 + i * 90} />)}
               </div>
             </div>
             <div className="rad-cnt">
-              <span className="cnt fx-fade" data-t={500}><b className="am" data-t={500} data-count={String(r.exp)}>{r.exp}</b><span className="cap">Exposed</span></span>
-              {r.verified || r.imp ? <span className="cnt fx-fade" data-t={600}><b className="co">{r.imp}</b><span className="cap">Impacted</span></span>
-                : <span className="cnt pend fx-fade" data-t={600}><b>{r.pending}</b><span className="cap">Impact pending <Draft d={d} /></span></span>}
+              <span className="cnt fx-fade" data-t={500}><b className="am">{r.exp}</b><span className="cap">Exposed</span></span>
+              {r.verified || r.imp
+                ? <span className="cnt fx-fade" data-t={600}><b className="co">{r.imp}</b><span className="cap">Impacted</span></span>
+                : <span className="cnt pend fx-fade" data-t={600}><b>Pending</b><span className="cap">Impact validation <Draft d={d} /></span><span className="sub">{r.pending} protected app awaiting impact validation</span></span>}
               <span className="cnt fx-fade" data-t={700}><b className="dim">{r.stale}</b><span className="cap">Stale</span></span>
             </div>
           </figcaption>
@@ -335,10 +334,6 @@ function ContainSection({ d }: { d: Derived }) {
 function EvidenceSection() {
   const E = EVIDENCE;
   const n = (x: number) => x.toLocaleString('en-US');
-  const bars = [
-    { name: 'HadeethEnc', prod: E.production.hadeethencRecords, full: E.corpus.hadeethArabic, unit: 'unique Arabic records' },
-    { name: 'QuranEnc', prod: E.production.quranencAyat, full: E.corpus.ayat, unit: 'ayat' },
-  ];
   return (
     <section id="evidence" className="ls ls-evidence" aria-labelledby="h-evidence">
       <Chapter n="05" layer={['src']} label="Evidence" aside="Leave the live system. Inspect the record." />
@@ -346,44 +341,34 @@ function EvidenceSection() {
         <div className="ls-wrap">
           <div data-seq>
             <Head id="h-evidence" lines={['Real sources.', 'Measured scope.']}>
-              Both connectors read the official APIs. The full corpora were validated offline; Production monitors a deliberately small set.
+              Both connectors read the official HadeethEnc and QuranEnc APIs. Thousands of records were validated offline; Production deliberately serves a small, trusted baseline.
             </Head>
           </div>
 
           <div className="ev" data-seq>
-            <div className="ev-live">
-              <h3 className="ev-h fx-fade" data-t={0}><span className="dot tq" aria-hidden="true" />In Production · live connectors</h3>
-              <dl className="ev-list">
-                <div className="fx-fade" data-t={150}><dt><Icon name="plug" size={16} />HadeethEnc connector</dt><dd><b>{E.production.hadeethencRecords}</b> records monitored · Arabic and English · official API</dd></div>
-                <div className="fx-fade" data-t={280}><dt><Icon name="plug" size={16} />QuranEnc connector</dt><dd><b>{E.production.quranencAyat}</b> ayat monitored · <Mono>{E.corpus.quranTranslation}</Mono> · official API</dd></div>
-              </dl>
-            </div>
-            <div className="ev-off">
-              <h3 className="ev-h fx-fade" data-t={120}><span className="dot ring" aria-hidden="true" />Offline full-corpus validation <span className="ev-tag">Not Production ingestion</span></h3>
-              <dl className="ev-nums">
-                <div className="fx-fade" data-t={300}><dt>Unique HadeethEnc Arabic records</dt><dd data-t={300} data-count={String(E.corpus.hadeethArabic)}>{n(E.corpus.hadeethArabic)}</dd></div>
-                <div className="fx-fade" data-t={420}><dt>English translations</dt><dd data-t={420} data-count={String(E.corpus.hadeethEnglish)}>{n(E.corpus.hadeethEnglish)}</dd></div>
-                <div className="fx-fade" data-t={540}><dt>Quran surahs · ayat</dt><dd><span data-t={540} data-count={String(E.corpus.surahs)}>{E.corpus.surahs}</span><span className="sl">/</span><span data-t={540} data-count={String(E.corpus.ayat)}>{n(E.corpus.ayat)}</span></dd></div>
-              </dl>
-              <p className="ev-fine fx-fade" data-t={700}>{E.corpus.passes} independent passes; every raw, canonical, record and field hash matched. Quran figures are for <Mono>{E.corpus.quranTranslation}</Mono> ({E.corpus.quranPublisher}, v{E.corpus.quranVersion}). The validated artifacts stay unassessed and unserved; the validator has no import flag.</p>
-            </div>
+            <h3 className="ev-h fx-fade" data-t={0}><span className="dot tq" aria-hidden="true" />Validated offline · full corpus <span className="ev-tag">Offline validation, not Production ingestion</span></h3>
+            <dl className="ev-nums">
+              <div className="fx-fade" data-t={150}><dt>HadeethEnc Arabic records validated</dt><dd>{n(E.corpus.hadeethArabic)}</dd></div>
+              <div className="fx-fade" data-t={260}><dt>English translations validated</dt><dd>{n(E.corpus.hadeethEnglish)}</dd></div>
+              <div className="fx-fade" data-t={370}><dt>Quran surahs / ayat validated</dt><dd>{E.corpus.surahs}<span className="sl">/</span>{n(E.corpus.ayat)}</dd></div>
+              <div className="fx-fade" data-t={480}><dt>Automated tests passing</dt><dd>{E.tests.passed}</dd></div>
+            </dl>
+            <p className="ev-fine fx-fade" data-t={620}>{E.corpus.passes} independent passes over the official APIs; every raw, canonical, record and field hash matched. Quran figures are for <Mono>{E.corpus.quranTranslation}</Mono> ({E.corpus.quranPublisher}, v{E.corpus.quranVersion}). Tests: {E.tests.skipped} {E.tests.skippedNote} skipped; typecheck and Production build pass. Validated artifacts stay unassessed and unserved.</p>
           </div>
 
-          <div className="scope" data-seq role="group" aria-label="Production scope compared with the offline-validated corpus">
-            {bars.map((b, i) => (
-              <div key={b.name} className="sc-row">
-                <span className="sc-name fx-fade" data-t={i * 160}>{b.name}</span>
-                <span className="sc-bar" aria-hidden="true"><span className="full fx-grow" data-t={100 + i * 160} /><span className="prod fx-fade" data-t={900 + i * 160} style={{ width: `max(3px, ${((b.prod / b.full) * 100).toFixed(3)}%)` }} /></span>
-                <span className="sc-txt fx-fade" data-t={1000 + i * 160}><b>{n(b.prod)}</b> in Production <span className="dim">of {n(b.full)} {b.unit} validated offline</span></span>
-              </div>
-            ))}
+          <div className="baseline" data-seq>
+            <h3 className="ev-h fx-fade" data-t={0}><span className="dot ring" aria-hidden="true" />Current live baseline</h3>
+            <dl className="live-list fx-fade" data-t={120}>
+              <div><dt><Icon name="plug" size={15} />HadeethEnc</dt><dd><b>{E.production.hadeethencRecords}</b> monitored records · Arabic and English</dd></div>
+              <div><dt><Icon name="plug" size={15} />QuranEnc</dt><dd><b>{E.production.quranencAyat}</b> monitored ayat · <Mono>{E.corpus.quranTranslation}</Mono></dd></div>
+            </dl>
+            <p className="live-note fx-fade" data-t={240}>Production intentionally uses a small trusted baseline. Full-corpus coverage was validated offline before live ingestion is expanded.</p>
           </div>
 
           <div className="ev-foot">
-            <span className="tests"><Icon name="list-checks" size={18} /><span><b>{E.tests.passed} automated tests passing</b> · {E.tests.skipped} {E.tests.skippedNote} skipped · typecheck and Production build</span></span>
             <span className="links">
               <a href={E.evidenceDoc} target="_blank" rel="noreferrer">Technical evidence <Icon name="arrow-up-right" size={14} /></a>
-              <a href={E.corpusReport} target="_blank" rel="noreferrer">Corpus report <Icon name="arrow-up-right" size={14} /></a>
+              <a href={E.corpusReport} target="_blank" rel="noreferrer">Corpus validation report <Icon name="arrow-up-right" size={14} /></a>
             </span>
             <span className="date">Audited {E.auditDate}</span>
           </div>
@@ -433,7 +418,6 @@ export function LandingFooter() {
           <div className="lf-brand">
             <span className="lf-lock"><BrandLockup theme="dark" /></span>
             <p>Integrity infrastructure for Islamic knowledge.</p>
-            <p className="lf-pr"><span><Mark layer="ai" size={14} />AI advises.</span><span><Mark layer="pol" size={14} />Policy governs.</span><span><Mark layer="hum" size={14} />Humans decide.</span></p>
           </div>
           <nav className="lf-col" aria-label="Product">
             <h2>Product</h2>
@@ -447,17 +431,12 @@ export function LandingFooter() {
             <h2>Project</h2>
             {ext(E.repo, 'GitHub')}
             {ext(`${E.repo}#readme`, 'Documentation')}
-            {ext(`${E.repo}#how-it-works`, 'Architecture')}
             {ext(E.evidenceDoc, 'Technical evidence')}
-          </nav>
-          <nav className="lf-col" aria-label="Sources">
-            <h2>Sources</h2>
-            {ext('https://hadeethenc.com', 'HadeethEnc')}
-            {ext('https://quranenc.com', 'QuranEnc')}
+            {ext(E.corpusReport, 'Corpus validation report')}
           </nav>
         </div>
         <div className="lf-bottom">
-          <p>Sources: HadeethEnc.com, Encyclopedia of Translated Prophetic Hadiths (Islamic Content Service Association) · QuranEnc.com, <Mono>{E.corpus.quranTranslation}</Mono> by {E.corpus.quranPublisher}. Connectors are read-only; test mutations exist only inside the Istithbat sandbox.</p>
+          <p>Sources: HadeethEnc · QuranEnc. HadeethEnc.com, Encyclopedia of Translated Prophetic Hadiths (Islamic Content Service Association); QuranEnc.com, <Mono>{E.corpus.quranTranslation}</Mono> by {E.corpus.quranPublisher}. Connectors are read-only; test mutations exist only inside the Istithbat sandbox.</p>
           <p>Hashes prove that content changed; they do not determine religious truth, hadith authenticity or a fatwa. An independent open-source project.</p>
         </div>
       </div>

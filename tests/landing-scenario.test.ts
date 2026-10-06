@@ -32,6 +32,8 @@ describe('landing scenario', () => {
     expect(deriveScenario(draft).radius.imp).toBe(0);
     expect(deriveScenario(draft).radius.pending).toBe(SCENARIO.assets.filter((a) => a.protected).length);
     expect(deriveScenario(draft).radius.graph.nodes.some((n) => n.state === 'impacted')).toBe(false);
+    // every downstream asset is exposed while impact is unproven; pending is a subset, not a bucket
+    expect(deriveScenario(draft).radius.exp).toBe(SCENARIO.assets.length);
   });
 
   it('marks only a protected app with a recorded, validated material regression as impacted', () => {

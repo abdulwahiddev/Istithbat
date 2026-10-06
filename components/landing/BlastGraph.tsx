@@ -8,7 +8,8 @@ import type { Derived } from './derive';
 type G = Derived['radius']['graph'];
 const HOP = 280; // ms per dependency hop while the radius draws outward
 const START = 260;
-const TONE: Record<string, string> = { neutral: 'var(--ink-3)', changed: 'var(--co)', exposed: 'var(--am)', pending: 'var(--am)', impacted: 'var(--co)' };
+/** Signal tone by the asset an edge reaches. The source → record edge stays neutral; coral only for verified impact. */
+const TONE: Record<string, string> = { neutral: 'var(--ink-3)', changed: 'var(--ink-3)', exposed: 'var(--am)', pending: 'var(--am)', impacted: 'var(--co)' };
 
 /**
  * Blast radius on the landing: the product's placement (components/blast/layout), the product's
@@ -49,7 +50,8 @@ export function BlastGraph({ g, source, field, trusted, candidate }: { g: G; sou
       <div ref={host} className="bg-stage" style={{ aspectRatio: `${g.w} / ${g.h}` }}>
         {g.headings.map((h) => <span key={h.depth} className="colh fx-fade" data-t={START + h.depth * HOP - 120} style={{ left: `${h.x}%` }}>{h.label}</span>)}
         <svg className="bg-edges" viewBox={`0 0 ${g.w} ${g.h}`}>
-          {g.edges.map((e) => <path key={e.id} className={`e-${e.toState} k-${e.kind} fx-draw`} d={e.path} pathLength={1} data-t={START + e.fromDepth * HOP} />)}
+          {/* a dashed (pending) edge cannot also be drawn by dash offset, so it fades in at its hop */}
+          {g.edges.map((e) => <path key={e.id} className={`e-${e.toState} k-${e.kind} ${e.toState === 'pending' ? 'fx-fade' : 'fx-draw'}`} d={e.path} pathLength={1} data-t={START + e.fromDepth * HOP} />)}
         </svg>
         {flow && <FlowLayer edges={edges} width={g.w} height={g.h} host={host} cycleKey="landing" />}
         {g.nodes.map((n) => (

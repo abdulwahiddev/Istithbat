@@ -94,7 +94,6 @@ export function HeldHero() {
           <li><Mark layer="det" /><span>2 of 3 matched answers changed</span></li>
         </ul>
 
-        <p className="lh-syn"><i aria-hidden="true" />Controlled synthetic source — not real hadith data</p>
       </div>
     </section>
   );

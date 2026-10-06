@@ -8,7 +8,8 @@ import { useEffect } from 'react';
  *  · Scenes (`[data-seq]`) play a short narrative once when they enter view. Each step inside is an
  *    element with `data-t` (ms after entry) and an effect class (`fx-*`, see sections.css); the
  *    engine adds `.on` at its time. Quick transition → readable hold → next step.
- *  · Counters (`[data-count]`) and fingerprints (`[data-scramble]`) animate when their step lands.
+ *  · Measured values (hashes, counts) are never animated through intermediate values: only their
+ *    container's opacity/mask moves, so the string on screen is correct at every frame.
  *  · `[data-par]` elements drift with scroll (a few px), `--rise` lifts the evidence plane.
  *  · `[data-live]` is set on scenes that are on screen and visible, so continuous motion (serving
  *    packets, dependency signal) runs only while it can be seen.
@@ -30,6 +31,13 @@ export function LandingMotion() {
     // sticky bar state (also under reduced motion: it is state, not motion)
     const onTop = () => bar?.toggleAttribute('data-scrolled', window.scrollY > 8);
     onTop();
+    const menu = document.querySelector<HTMLDetailsElement>('.lmenu');
+    const closeMenu = (e: Event) => {
+      if (!menu?.open) return;
+      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !menu.contains(e.target as Node)) { menu.open = false; if (e instanceof KeyboardEvent) menu.querySelector('summary')?.focus(); }
+    };
+    document.addEventListener('click', closeMenu);
+    document.addEventListener('keydown', closeMenu);
 
     const play = (scene: HTMLElement) => {
       if (scene.dataset.seq !== 'armed') return;
@@ -37,8 +45,6 @@ export function LandingMotion() {
       for (const el of scene.querySelectorAll<HTMLElement>('[data-t]')) {
         timers.push(window.setTimeout(() => {
           el.classList.add('on');
-          if (el.dataset.count) countUp(el);
-          if (el.dataset.scramble) scramble(el);
         }, Number(el.dataset.t) || 0));
       }
     };
@@ -80,8 +86,6 @@ export function LandingMotion() {
       for (const s of scenes) {
         if (s.getBoundingClientRect().top < vh() * 0.9) continue; // already in view: leave final
         s.dataset.seq = 'armed';
-        for (const el of s.querySelectorAll<HTMLElement>('[data-scramble]')) el.textContent = el.dataset.from ?? el.textContent;
-        for (const el of s.querySelectorAll<HTMLElement>('[data-count]')) el.textContent = format(0, el.dataset.count!);
         enter.observe(s);
       }
     };
@@ -93,8 +97,6 @@ export function LandingMotion() {
       for (const s of scenes) {
         s.dataset.seq = 'done';
         s.querySelectorAll<HTMLElement>('[data-t]').forEach((el) => el.classList.add('on'));
-        s.querySelectorAll<HTMLElement>('[data-scramble]').forEach((el) => { el.textContent = el.dataset.scramble!; });
-        s.querySelectorAll<HTMLElement>('[data-count]').forEach((el) => { el.textContent = format(Number(el.dataset.count), el.dataset.count!); });
       }
       par.forEach((el) => { el.style.removeProperty('--par'); el.style.removeProperty('--rise'); });
     };
@@ -104,31 +106,8 @@ export function LandingMotion() {
       timers.forEach(clearTimeout); enter.disconnect(); seen.disconnect(); cancelAnimationFrame(raf);
       window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll);
       document.removeEventListener('visibilitychange', onVis); mq.removeEventListener('change', finish);
+      document.removeEventListener('click', closeMenu); document.removeEventListener('keydown', closeMenu);
     };
   }, []);
   return null;
-}
-
-const format = (n: number, final: string) => (final.length > 3 ? Math.round(n).toLocaleString('en-US') : String(Math.round(n)));
-
-/** 0 → target over ~0.9s, decelerating; lands exactly on the server-rendered value. */
-function countUp(el: HTMLElement) {
-  const target = Number(el.dataset.count), t0 = performance.now(), dur = 900;
-  const step = (now: number) => {
-    const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
-    el.textContent = format(target * e, el.dataset.count!);
-    if (k < 1) requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
-}
-
-/** Old fingerprint → new, character by character, left to right (~0.6s). */
-function scramble(el: HTMLElement) {
-  const from = el.dataset.from ?? '', to = el.dataset.scramble!, hex = '0123456789abcdef', t0 = performance.now(), dur = 620;
-  const step = (now: number) => {
-    const k = Math.min(1, (now - t0) / dur), settled = Math.floor(k * to.length);
-    el.textContent = [...to].map((c, i) => (i < settled || !/[0-9a-f]/.test(c) ? c : k < 1 && (i - settled) < 4 ? hex[(Math.random() * 16) | 0] : from[i] ?? c)).join('');
-    if (k < 1) requestAnimationFrame(step); else el.textContent = to;
-  };
-  requestAnimationFrame(step);
 }
