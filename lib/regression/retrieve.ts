@@ -5,12 +5,13 @@ import { hashJson, type JsonValue } from '@/lib/hashing/canonicalize';
 export const LEXICAL_CONFIG = {
   strategy: 'lexical-v1' as const,
   k: 3,
-  fields: ['arabic_text','translation','judgment','scholar','reference'],
+  fields: ['arabic_text','translation','judgment','scholar','reference','ar','en'],
 };
 export const PINNED_CONFIG = {
   strategy: 'pinned-record-v1' as const,
   k: 1,
-  fields: LEXICAL_CONFIG.fields,
+  // Pinned selection is by identity, not field ranking; retain the existing tuple.
+  fields: ['arabic_text','translation','judgment','scholar','reference'],
 };
 export type RetrievalConfig = typeof LEXICAL_CONFIG | typeof PINNED_CONFIG;
 export type RetrievedRecord = {

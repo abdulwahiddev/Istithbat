@@ -1,3 +1,4 @@
+import { isSourceDerived } from '@/lib/contracts/sandbox-scenario';
 import { hashJson, type JsonValue } from '@/lib/hashing/canonicalize';
 
 export type ContextElementKind =
@@ -26,7 +27,7 @@ export function contextPacketHash(packet: ContextPacket): string {
 
 export function makeContextPacket(input: Omit<ContextPacket, 'elements'>): ContextPacket {
   const elements: ContextElement[] = [];
-  if (input.source.synthetic) elements.push({kind:'SYNTHETIC_MUTATION',canonical_key:null,field_path:null,value:'Controlled synthetic source; not a real hadith or provider mutation.'});
+  if (input.source.synthetic) elements.push({kind:'SYNTHETIC_MUTATION',canonical_key:null,field_path:null,value:input.records.some(r=>isSourceDerived(r.old_metadata as Record<string,unknown>)||isSourceDerived(r.new_metadata as Record<string,unknown>)) ? 'Original record preserved from HadeethEnc; only the candidate grading mutation is an Istithbat-created controlled test. Sandbox version labels are not HadeethEnc publications. No source text was modified.' : 'Controlled synthetic source; not a real hadith or provider mutation.'});
   for (const change of input.changes) {
     const kind: ContextElementKind = change.field_role === 'UNCLASSIFIED' ? 'SURROUNDING_CONTEXT' : change.field_role as ContextElementKind;
     elements.push({kind,canonical_key:change.canonical_key,field_path:change.field_path,value:{old:change.old_value,new:change.new_value,change_type:change.change_type,flags:change.flags}});

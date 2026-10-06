@@ -8,6 +8,7 @@ import { Icon } from '@/components/strata/icons';
 import { dayTime, versionHint, versionText } from '@/components/strata/format';
 import { Band, Chip, HeadRow, Kv, Mk, Mono, Rail, SyntheticRow, type Layer, type Tone } from '@/components/strata/primitives';
 import type { SandboxScenario } from '@/app/(sandbox)/sandbox/scenario';
+import { isSourceDerived } from '@/lib/contracts/sandbox-scenario';
 
 /**
  * Demo sandbox: the operator console for the controlled test. One flow, always stated:
@@ -36,6 +37,8 @@ const statusTone = (s: string | null | undefined): Tone =>
   !s ? 'n4' : /QUARANTINED|REJECTED|FAILED/.test(s) ? 'co' : /TRUSTED|HEALTHY|SERVING/.test(s) ? 'tq' : /ANALYZING|NEEDS|DEGRADED|PENDING/.test(s) ? 'am' : 'n4';
 const STAGE_LAYER: Record<string, Layer> = { Detect: 'det', Understand: 'ai', Test: 'det', Trace: 'det', Contain: 'pol' };
 const STAGE_HREF: Record<string, string> = { Detect: '#source', Understand: '#advisory', Test: '#behavior', Trace: '/blast-radius', Contain: '#containment' };
+/** read a dotted path ('ar.grade') from a record's content */
+const at = (o: unknown, path: string): unknown => path.split('.').reduce<unknown>((v, k) => (v && typeof v === 'object' ? (v as Record<string, unknown>)[k] : undefined), o);
 const vlab = (v: Version) => (v ? versionText(v.label, v.revision, 'label') : '—');
 const FLOW = 'Detect → Understand → Test → Trace → Contain → Human decision';
 
@@ -109,8 +112,8 @@ export function SandboxConsole({ scenario: sc }: { scenario: SandboxScenario }) 
   async function action(kind: 'publish' | 'reset') {
     setBusy(true); setError(''); setNotice('');
     try {
-      const result = await readJson(kind === 'publish' ? '/api/sandbox/publish' : '/api/demo/reset', { method: 'POST', headers: { 'content-type': 'application/json' }, body: kind === 'publish' ? JSON.stringify({ fixture: sc.candidateFixture }) : '{}' });
-      setNotice(kind === 'reset' ? 'Demo reset to v13. Audit history is retained.' : result.status === 'NO_CHANGE' ? 'Already published: the existing observation and pipeline are reused.' : 'Published upstream. Source update sent to Istithbat.');
+      const result = await readJson(kind === 'publish' ? '/api/sandbox/publish' : '/api/demo/reset', { method: 'POST', headers: { 'content-type': 'application/json' }, body: kind === 'publish' ? JSON.stringify({ fixture: sc.candidateFixture }) : JSON.stringify({ scenario: sc.scenarioId }) });
+      setNotice(kind === 'reset' ? `Demo reset to the ${sc.baselineLabel} baseline. Audit history is retained.` : result.status === 'NO_CHANGE' ? 'Already published: the existing observation and pipeline are reused.' : 'Published in the controlled simulator. Test source update sent to Istithbat.');
       await readState(); signalDemoChange(result.runId ?? null); setPollEpoch((n) => n + 1); setConfirmReset(false);
     } catch (err) { setError((err as Error).message); await readState().catch(() => {}); }
     finally { setBusy(false); }
@@ -118,7 +121,12 @@ export function SandboxConsole({ scenario: sc }: { scenario: SandboxScenario }) 
   async function refresh() { setError(''); try { await readState(); setPollEpoch((n) => n + 1); setPaused(false); } catch (err) { setError((err as Error).message); } }
 
   const record = state?.payload.records[0];
-  const judgment = sc.field ? String(record?.content[sc.field] ?? '') : '';
+  // The published record describes itself: provenance labels come from the live payload, not the scenario.
+  const liveDerived = isSourceDerived(state?.payload.metadata);
+  const liveSynthetic = !liveDerived && state?.payload.metadata.synthetic === true;
+  const liveField = sc.field && at(record?.content, sc.field) !== undefined ? sc.field : liveDerived ? 'ar.grade' : 'judgment';
+  const liveText = at(record?.content, 'ar.hadeeth') !== undefined ? 'ar.hadeeth' : 'arabic_text';
+  const judgment = String(at(record?.content, liveField) ?? '');
   const run = state?.pipeline;
   const incidentHref = run?.incidentId ? `/incidents/${run.incidentId}` : null;
   const atBaseline = state?.fixture === sc.baselineFixture;
@@ -187,6 +195,7 @@ export function SandboxConsole({ scenario: sc }: { scenario: SandboxScenario }) 
           <h1 className="sbx-h1">Trigger one known source change and watch Istithbat respond.</h1>
           <p className="sbx-flowline" aria-label={`Istithbat will ${FLOW}`}>{FLOW.split(' → ').map((x, i) => <span key={x}>{i > 0 && <i aria-hidden="true">→</i>}{x}</span>)}</p>
 
+          {sc.disclosure && <p className="sbx-disclosure top"><Icon name="info" size={14} />{sc.disclosure}</p>}
           {/* Demo run: the operator console */}
           <div className="plate sbx-run" aria-labelledby="sbx-run-h">
             <ol className="sbx-steps" aria-label="Demo run">
@@ -258,9 +267,9 @@ export function SandboxConsole({ scenario: sc }: { scenario: SandboxScenario }) 
           {!state ? <div className="plate"><p className="body" role="status">Reading the current source…</p></div> : (
             <div className="sub" style={{ rowGap: 24, alignItems: 'start' }}>
               <div className="c1-6 plate in l sbx-record" style={{ marginLeft: -24, paddingLeft: 24 }}>
-                <span style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>{sc.synthetic && <Chip tone="am" small>Synthetic record</Chip>}<Mono>{record?.canonical_key}</Mono></span>
-                <p className="ar sbx-ar" dir="rtl" lang="ar">{String(record?.content.arabic_text ?? '')}</p>
-                {sc.field && <div className="sbx-judg"><span className="cap">Current <span className="mono">{sc.field}</span></span><span className="ar" dir="rtl" lang="ar">{judgment}</span></div>}
+                <span style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>{liveSynthetic && <Chip tone="am" small>Synthetic record</Chip>}{liveDerived && <Chip tone="am" small>Real source record · controlled test mutation</Chip>}<Mono>{record?.canonical_key}</Mono></span>
+                <p className="ar sbx-ar" dir="rtl" lang="ar">{String(at(record?.content, liveText) ?? '')}</p>
+                {judgment && <div className="sbx-judg"><span className="cap">Current <span className="mono">{liveField}</span></span><span className="ar" dir="rtl" lang="ar">{judgment}</span></div>}
               </div>
               <div className="c7-10 plate in r" style={{ marginRight: -24, paddingRight: 24 }}>
                 <Kv k="Published label"><span title={versionHint(state.payload.upstreamVersionLabel)}><Mono>{versionText(state.payload.upstreamVersionLabel, null, 'label')}</Mono></span></Kv>
@@ -269,7 +278,8 @@ export function SandboxConsole({ scenario: sc }: { scenario: SandboxScenario }) 
                 <Kv k="Trusted"><Mono>{ver(state.trusted)}</Mono></Kv>
                 {state.served.map((g) => <Kv key={g.appId} k={<>Served · <Mono>{g.appId}</Mono></>}><span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}><Mono>{ver(g.version)}</Mono><Chip tone={statusTone(g.gatewayStatus)} small>{human(g.gatewayStatus)}</Chip></span></Kv>)}
                 <Kv k="Fixture"><Mono>{state.fixture}</Mono></Kv>
-                {sc.synthetic && <SyntheticRow />}
+                {liveSynthetic && <SyntheticRow />}
+                {liveDerived && <Kv k="Versions"><span className="meta">Sandbox test versions, not HadeethEnc publications</span></Kv>}
               </div>
             </div>
           )}
@@ -284,6 +294,7 @@ export function SandboxConsole({ scenario: sc }: { scenario: SandboxScenario }) 
           <div className="plate sbx-about">
             <p className="body">The sandbox is a controlled upstream source inside the same Istithbat app and backend. Publishing replaces its current fixture with the prepared candidate and sends one signed source update; Istithbat then fetches, fingerprints, analyses, tests, traces and applies policy exactly as for any source, and a human decides.</p>
             <p className="body">Demo control can publish and reset fixtures only. It is separate from Reviewer Mode: it cannot sign a review decision. Reset returns upstream, trusted and served to the baseline and clears sandbox candidate incidents, reviews and pipeline state; the audit history is retained.</p>
+            {sc.disclosure && <p className="meta sbx-disclosure"><Icon name="info" size={14} />{sc.disclosure}</p>}
             {sc.synthetic && <p className="meta">Controlled fixtures only. Their text, evaluator and references are fictional; this is not a religious authority or a real hadith provider.</p>}
           </div>
         </div>

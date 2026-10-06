@@ -1,3 +1,4 @@
+import { SANDBOX_FIXTURES } from './sandbox-scenario';
 import { z } from 'zod';
 import { IncidentAnalysisSchema } from '@/lib/ai/schemas/incident-analysis';
 import { BehaviorDeltaSchema, QaAnswerSchema } from '@/lib/ai/schemas/regression';
@@ -94,7 +95,7 @@ export type AuditPage=z.infer<typeof AuditPage>;
 
 // Upstream simulator read model: actual published fixture and separately persisted governance state.
 export const SandboxVersion=z.object({id:z.string(),label:z.string(),revision:z.number().int(),status:VersionStatus});
-export const SandboxConsoleState=z.object({sourceId:z.string(),fixture:z.enum(['had-4821.v13.json','had-4821.v14.json','had-4821.v14-r2.json']),
+export const SandboxConsoleState=z.object({sourceId:z.string(),fixture:z.enum(SANDBOX_FIXTURES),
   payload:z.object({upstreamVersionLabel:z.string(),upstreamPublishedAt:z.string(),metadata:z.record(z.string(),z.unknown()),records:z.array(NormalizedRecord)}),
   publishedAt:z.string(),health:z.string(),latestSeen:SandboxVersion.nullable(),trusted:SandboxVersion.nullable(),
   served:z.array(z.object({appId:z.string(),gatewayStatus:z.string(),version:SandboxVersion.nullable()})),pipeline:PipelineRunState.nullable(),
