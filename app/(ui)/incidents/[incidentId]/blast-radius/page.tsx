@@ -1,4 +1,3 @@
-import { AutoRefresh } from '@/components/strata/AutoRefresh';
 import { notFound } from 'next/navigation';
 import { BlastInstrument } from '@/components/blast/BlastInstrument';
 import { GRAPH_LIMITS } from '@/lib/blast-radius/graph';
@@ -39,7 +38,6 @@ export default async function BlastRadiusPage({ params }: { params: Promise<{ in
 
   return (
     <main id="main" className="scr-blast">
-      <AutoRefresh active={inc.pipelineStatus === 'RUNNING'} />
       <PageHeader
         crumbs={<><span>Blast Radius</span><Sep /><Mono>{sum.recordKey}</Mono></>}
         synthetic={source?.source.isDemoFixture}

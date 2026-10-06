@@ -1,5 +1,4 @@
 import { versionText } from '@/components/strata/format';
-import { AutoRefresh } from '@/components/strata/AutoRefresh';
 import { notFound } from 'next/navigation';
 import { canReview } from '@/lib/governance/transitions';
 import { RecordLedger } from '@/components/record/RecordLedger';
@@ -38,7 +37,6 @@ export default async function RecordPage({ params }: { params: Promise<{ inciden
 
   return (
     <main id="main" className="scr-record">
-      <AutoRefresh active={inc.pipelineStatus === 'RUNNING'} />
       <PageHeader
         crumbs={<><span>Record</span><Sep /><Mono>{sum.recordKey}</Mono></>}
         synthetic={src.ok && !!src.data?.source.isDemoFixture}

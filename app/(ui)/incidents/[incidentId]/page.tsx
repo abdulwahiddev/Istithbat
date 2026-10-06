@@ -1,4 +1,3 @@
-import { AutoRefresh } from '@/components/strata/AutoRefresh';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { ContextPacket } from '@/lib/analysis/context';
@@ -116,7 +115,6 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
 
   return (
     <main id="main" className="scr-incident">
-      <AutoRefresh active={inc.pipeline?.status === 'RUNNING'} />
       <section className="phd">
         <div className="wrap g" style={{ rowGap: 14, alignItems: 'start' }}>
           <nav aria-label="Breadcrumb" className="crumbs" style={{ gridColumn: '1 / -1' }}>

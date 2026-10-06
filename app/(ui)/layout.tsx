@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { Amiri, Instrument_Sans, JetBrains_Mono, Newsreader } from 'next/font/google';
+import { AutoRefresh } from '@/components/strata/AutoRefresh';
 import { Chrome } from '@/components/strata/Chrome';
 import { ThemeRoot } from '@/components/strata/theme';
 import { lockReviewer, unlockReviewer } from './_actions/reviewer';
@@ -60,6 +61,7 @@ export default async function StrataLayout({ children }: { children: ReactNode }
     <ThemeRoot initial={theme} className={`${instrument.variable} ${newsreader.variable} ${jetbrains.variable} ${amiri.variable}`}>
       <a href="#main" className="sr-only">Skip to content</a>
       <Chrome data={chromeData(incidents, sources, gateway, reviewer)} actions={{ unlock: unlockReviewer, lock: lockReviewer }} />
+      <AutoRefresh active={incidents.ok && incidents.data.some(i => i.pipelineStatus === 'RUNNING')} />
       {children}
     </ThemeRoot>
   );

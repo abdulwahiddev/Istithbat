@@ -1,4 +1,3 @@
-import { AutoRefresh } from '@/components/strata/AutoRefresh';
 import Link from 'next/link';
 import type { IncidentAggregate } from '@/lib/contracts';
 type PipelineStepState = IncidentAggregate['pipelineSteps'][number];
@@ -40,7 +39,6 @@ export default async function OverviewPage() {
 
   return (
     <main id="main" className="scr-overview">
-      <AutoRefresh active={open.some((i) => i.pipelineStatus === 'RUNNING')} />
       <PageHeader
         crumbs={<><span>Overview</span><Sep /><span>{sources.ok ? `${models.length} sources · ${records} records monitored` : 'Sources unavailable'}</span></>}
         title={servingTrusted ? <>Production is serving<br />trusted knowledge.</> : bindingList.length ? <>Production is not on<br />a trusted version.</> : <>No protected app<br />is bound yet.</>}
