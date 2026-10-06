@@ -5,12 +5,14 @@ import { wordDiff, type Seg } from '@/components/strata/diff';
 export type BehaviorQuestion = {
   id: string; origin: string; text: string; result: string | null; resultLabel: string; material: boolean;
   oldAnswer: string | null; newAnswer: string | null;
-  verdict: { label: string; delta: string; why: string; confidence: string | null; mode: string | null } | null;
+  verdict: { label: string; delta: string; why: string; uncertainties: string[]; confidence: string | null; mode: string | null } | null;
   failure: string | null;
+  /** persisted matched configuration of this question's pair (null when not read) */
+  config: { model: string | null; retrieval: string | null; hash: string | null; matched: boolean } | null;
 };
 
 /** Matched comparison: question tabs swap the answers, the highlighted words and the advisory verdict. */
-export function Behavior({ questions, oldLabel, newLabel, recordKey, config }: { questions: BehaviorQuestion[]; oldLabel: string; newLabel: string; recordKey: string; config: React.ReactNode }) {
+export function Behavior({ questions, oldLabel, newLabel, recordKey }: { questions: BehaviorQuestion[]; oldLabel: string; newLabel: string; recordKey: string }) {
   const [q, setQ] = useState(0);
   const c = questions[q];
   if (!c) return null;
@@ -56,7 +58,15 @@ export function Behavior({ questions, oldLabel, newLabel, recordKey, config }: {
         </div>
       </div>
       <div className="sub" style={{ rowGap: 32, alignItems: 'stretch' }}>
-        {config}
+        <div className="c1-5 plate in l fade" key={`c-${c.id}`} style={{ marginLeft: -24, paddingLeft: 24 }}>
+          {c.config ? (() => { const k = c.config; const ok = (t: string) => <span className={k.matched ? 'ok' : ''} style={k.matched ? undefined : { color: 'var(--co-ink)', fontWeight: 600 }}>{k.matched ? t : 'Differs'}</span>; return <>
+            <div className="kv"><span>Model{k.model && <> <span className="mono" style={{ color: 'var(--ink-3)' }}>{k.model}</span></>}, temperature, tokens</span>{ok('Identical')}</div>
+            <div className="kv"><span>System prompt</span>{ok('Identical')}</div>
+            <div className="kv"><span>Retrieval{k.retrieval && <> <span className="mono" style={{ color: 'var(--ink-3)' }}>{k.retrieval}</span></>}</span>{ok('Identical')}</div>
+            <div className="kv"><span>Config hash</span><span className="mono" style={{ color: 'var(--ink-2)' }}>{k.hash ? `${k.hash.slice(0, 6)}…${k.hash.slice(-4)}` : '—'}</span></div>
+          </>; })() : <div className="kv"><span>Matched configuration</span><span>Not readable</span></div>}
+          <div className="kv"><span style={{ color: 'var(--ink)', fontWeight: 600 }}>Knowledge version</span><span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 10 }}><span className="cap">only variable</span><span className="mono" style={{ color: 'var(--ink)' }}>{oldLabel} ≠ {newLabel}</span></span></div>
+        </div>
         <div className="c6-10 fade verdict" key={`v-${c.id}`} style={{ display: 'flex', flexDirection: 'column', gap: 14, border: '1px dashed var(--pu-line)', borderRadius: 16, padding: 24, marginRight: -24, boxSizing: 'border-box' }}>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}><span className="mk mk-ai" aria-hidden="true" /><span style={{ fontSize: 14, fontWeight: 600, color: 'var(--pu-ink)' }}>Verdict · advisory</span>
             <span className="meta" style={{ marginLeft: 'auto' }}>{c.verdict?.confidence ? `Confidence ${c.verdict.confidence}` : c.verdict?.mode ?? ''}</span></div>
@@ -65,6 +75,7 @@ export function Behavior({ questions, oldLabel, newLabel, recordKey, config }: {
             {c.verdict && <span style={{ fontSize: 14, color: 'var(--ink-3)' }}>{c.verdict.delta}</span>}
           </div>
           <p className="body">{c.verdict?.why ?? (c.failure ? `No comparison was stored: ${c.failure}.` : 'No comparison is stored for this question yet.')}</p>
+          {c.verdict && c.verdict.uncertainties.length > 0 && <p className="body" style={{ color: 'var(--ink-3)', fontSize: 14, lineHeight: '22px' }}><span style={{ fontWeight: 600, color: 'var(--pu-ink)' }}>Uncertain.</span> {c.verdict.uncertainties.join(' ')}</p>}
           {c.verdict?.mode && c.verdict.confidence && <span className="meta">{c.verdict.mode}</span>}
         </div>
       </div>

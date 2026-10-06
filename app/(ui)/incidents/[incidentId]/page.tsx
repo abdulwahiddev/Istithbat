@@ -81,24 +81,30 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
     id: r.id, origin: r.origin === 'pinned' ? 'Pinned question' : 'Generated', text: r.question,
     result: r.result, resultLabel: r.result ? RESULT_TEXT[r.result] ?? cap(r.result) : 'Pending', material: r.result === 'MATERIAL_CHANGE',
     oldAnswer: r.oldAnswer, newAnswer: r.newAnswer, verdict: null,
-    failure: 'the advisory comparison could not be read from the regression endpoint',
+    failure: 'the advisory comparison could not be read from the regression endpoint', config: null,
   }));
-  const questionsDetail: BehaviorQuestion[] = batch.map((r) => ({
-    id: r.id, origin: r.origin === 'pinned' ? 'Pinned question' : 'Generated', text: r.question,
-    result: r.result, resultLabel: r.result ? RESULT_TEXT[r.result] ?? cap(r.result) : r.status === 'FAILED' ? 'Failed' : 'Pending', material: r.result === 'MATERIAL_CHANGE',
-    oldAnswer: r.oldAnswer, newAnswer: r.newAnswer,
-    verdict: r.comparison ? { label: RESULT_TEXT[r.comparison.result] ?? r.comparison.result, delta: deltaText(r.comparison.delta_types), why: r.comparison.explanation,
-      confidence: r.comparison.confidence.toLowerCase(), mode: MODE[String((r.comparisonMeta as { mode?: string } | null)?.mode ?? '')] ?? null } : null,
-    failure: r.failure ? String((r.failure as { code?: string; errorCode?: string }).code ?? (r.failure as { errorCode?: string }).errorCode ?? 'stored failure') : null,
-  }));
+  const questionsDetail: BehaviorQuestion[] = batch.map((r) => {
+    const cmp = r.comparison, adv = cmp?.advisory ?? null;
+    const cfgR = (r.config ?? null) as { model?: string; retrieval_config?: { strategy?: string; k?: number } } | null;
+    const cls = cmp?.classification ?? r.result;
+    return {
+      id: r.id, origin: r.origin === 'pinned' ? 'Pinned question' : 'Generated', text: r.question,
+      result: cls ?? null, resultLabel: cls ? RESULT_TEXT[cls] ?? cap(cls) : r.status === 'FAILED' ? 'Failed' : 'Pending', material: cls === 'MATERIAL_CHANGE',
+      oldAnswer: r.oldAnswer, newAnswer: r.newAnswer,
+      verdict: adv ? { label: RESULT_TEXT[adv.result] ?? adv.result, delta: deltaText(adv.delta_types), why: adv.explanation, uncertainties: adv.uncertainties,
+          confidence: adv.confidence.toLowerCase(), mode: MODE[String((r.comparisonMeta as { mode?: string } | null)?.mode ?? '')] ?? null }
+        : cmp?.classification_source === 'deterministic-identical-output' ? { label: 'No change', delta: 'Identical output', why: 'Both runs produced byte-identical answers, so no model comparison was needed.', uncertainties: [], confidence: null, mode: 'Deterministic' }
+        : null,
+      failure: r.failure ? String((r.failure as { code?: string; errorCode?: string }).code ?? (r.failure as { errorCode?: string }).errorCode ?? 'stored failure') : null,
+      config: { model: cfgR?.model ?? null, retrieval: cfgR?.retrieval_config?.strategy ? `${cfgR.retrieval_config.strategy}${cfgR.retrieval_config.k ? `, k=${cfgR.retrieval_config.k}` : ''}` : null,
+        hash: cmp?.model_config_hash ?? r.modelConfigHash, matched: cmp?.matched_config ?? true },
+    };
+  });
   const questions = fallback ? fromAggregate : questionsDetail;
   const resultRows = fallback ? inc.regressions.map((r) => ({ result: r.result, status: r.result ? 'COMPLETE' : 'PENDING' })) : batch;
   const matCount = resultRows.filter((r) => r.result === 'MATERIAL_CHANGE').length;
   const batchDone = resultRows.length > 0 && resultRows.every((r) => r.status === 'COMPLETE' || r.status === 'FAILED');
   const blastDone = inc.pipelineSteps.some((s) => s.step === 'BLAST_RADIUS' && s.status === 'DONE');
-  const cfg = batch[0]?.config as Record<string, unknown> | null | undefined;
-  const retrieval = (cfg?.retrieval_config ?? cfg?.retrievalConfig ?? cfg?.retrieval) as { strategy?: string; k?: number } | undefined;
-  const hashes = new Set(batch.map((r) => r.modelConfigHash).filter(Boolean));
   const br = inc.blastRadius ?? null;
   const downstream = br ? br.nodes.filter((n) => n.assetType !== 'SOURCE' && n.assetType !== 'RECORD') : [];
   const impactedApps = downstream.filter((n) => n.impact === 'IMPACTED');
@@ -262,19 +268,12 @@ export default async function IncidentReviewPage({ params }: { params: Promise<{
           {questions.length === 0 ? (
             <div className="plate"><b>No matched regression is recorded yet.</b><p className="body">{inc.pipeline?.status === 'RUNNING' ? 'The regression steps are still running.' : 'Behavior was not tested for this candidate.'}</p></div>
           ) : (
-            <Behavior questions={questions} oldLabel={prev} newLabel={cand} recordKey={f.recordKey}
-              config={
-                <div className="c1-5 plate in l" style={{ marginLeft: -24, paddingLeft: 24 }}>
-                  <Kv k="Model, temperature, tokens"><span className="ok">{hashes.size === 1 ? 'Identical' : 'Per question'}</span></Kv>
-                  <Kv k="System prompt"><span className="ok">Identical</span></Kv>
-                  <Kv k={<>Retrieval{retrieval?.strategy && <> <Mono style={{ color: 'var(--ink-3)' }}>{retrieval.strategy}{retrieval.k ? `, k=${retrieval.k}` : ''}</Mono></>}</>}><span className="ok">Identical</span></Kv>
-                  <Kv k="Config hash"><Mono style={{ color: 'var(--ink-2)' }}>{hashes.size === 1 ? shortHash([...hashes][0]) : `${hashes.size} hashes`}</Mono></Kv>
-                  <Kv k={<span style={{ color: 'var(--ink)', fontWeight: 600 }}>Knowledge version</span>}><span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 10 }}><span className="cap">only variable</span><Mono style={{ color: 'var(--ink)' }}>{prev} ≠ {cand}</Mono></span></Kv>
-                </div>
-              } />
+            <Behavior questions={questions} recordKey={f.recordKey}
+              oldLabel={batch[0] ? (batch[0].oldVersion.revisionNumber > 1 ? `${batch[0].oldVersion.label} r${batch[0].oldVersion.revisionNumber}` : batch[0].oldVersion.label) : prev}
+              newLabel={batch[0] ? (batch[0].newVersion.revisionNumber > 1 ? `${batch[0].newVersion.label} r${batch[0].newVersion.revisionNumber}` : batch[0].newVersion.label) : cand} />
           )}
           {fallback && questions.length > 0 && <span className="prov" role="note"><Mk layer="ai" />Answers and results are from the incident record. The advisory verdict, batch and config hash could not be read: <Mono>{`GET /api/incidents/${inc.id.slice(0, 8)}…/regressions`}</Mono> returned an error.</span>}
-          {batch[0] && <span className="prov"><Mk layer="det" />Batch <Mono>{batch[0].batchId.slice(0, 8)}</Mono> against the protected app <Mono>{batch[0].protectedAppId}</Mono>. Answers and retrieved records are stored for both runs.</span>}
+          {batch[0] && <span className="prov"><Mk layer="det" />Batch <Mono>{batch[0].batchId.slice(0, 8)}</Mono> against the protected app <Mono>{batch[0].protectedAppId}</Mono>, comparing <Mono>{batch[0].oldVersion.label} r{batch[0].oldVersion.revisionNumber}</Mono> → <Mono>{batch[0].newVersion.label} r{batch[0].newVersion.revisionNumber}</Mono>. Answers and retrieved records are stored for both runs.</span>}
         </div>
       </Band>
 
