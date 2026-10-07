@@ -6,10 +6,11 @@ import { resetDemo } from '@/lib/server/reset-demo';
 import { SOURCE_DERIVED_SCENARIO as scenario } from '@/lib/contracts/sandbox-scenario';
 import { POST as publish } from '@/app/api/sandbox/publish/route';
 import { NextRequest } from 'next/server';
-beforeEach(()=>{vi.clearAllMocks();mocks.upload.mockResolvedValue(undefined);mocks.transaction.mockImplementation(async callback=>{
+beforeEach(()=>{vi.clearAllMocks();mocks.query.mockResolvedValue([]);mocks.upload.mockResolvedValue(undefined);mocks.transaction.mockImplementation(async callback=>{
  const tx=Object.assign(vi.fn(async(strings:TemplateStringsArray)=>{
   const text=strings.join('?');
   if(text.includes('INSERT INTO source_versions'))return [{id:'new-baseline'}];
+  if(text.includes('UPDATE sandbox_state'))return [{updated_at:'2026-10-07T00:00:00Z'}];
   return [];
  }),{json:(value:unknown)=>value});
  (mocks.transaction as any).tx=tx;
@@ -32,6 +33,22 @@ describe('explicit source-derived activation, isolated transaction seam only',()
  it('does not begin activation if immutable snapshot storage fails',async()=>{
   mocks.upload.mockRejectedValueOnce(new Error('SNAPSHOT_STORAGE_FAILED'));
   await expect(resetDemo({scenario:scenario.id})).rejects.toThrow('SNAPSHOT_STORAGE_FAILED');expect(mocks.transaction).not.toHaveBeenCalled();
+ });
+ it('reuses the existing source-derived baseline on repeated resets without requiring storage uploads',async()=>{
+  mocks.query.mockResolvedValue([{id:'existing-baseline'}]);
+  mocks.transaction.mockImplementation(async callback=>{
+    const tx=Object.assign(vi.fn(async(strings:TemplateStringsArray)=>{
+      const text=strings.join('?');
+      if(text.includes('SELECT v.id FROM source_versions')) return [{id:'existing-baseline'}];
+      if(text.includes('UPDATE sandbox_state')) return [{updated_at:'2026-10-07T00:00:00Z'}];
+      return [];
+    }),{json:(value:unknown)=>value});
+    return callback(tx);
+  });
+  await resetDemo({scenario:scenario.id});
+  await resetDemo({scenario:scenario.id});
+  expect(mocks.upload).not.toHaveBeenCalled();
+  expect(mocks.transaction).toHaveBeenCalledTimes(2);
  });
  it('never accepts an unauthenticated candidate publication or activation',async()=>{
   const response=await publish(new NextRequest('https://example.test/api/sandbox/publish',{method:'POST',body:JSON.stringify({fixture:scenario.candidateFixture}),headers:{'content-type':'application/json'}}));

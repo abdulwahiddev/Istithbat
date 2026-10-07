@@ -52,6 +52,7 @@ export function SandboxConsole({ scenario: sc }: { scenario: SandboxScenario }) 
   const [configured, setConfigured] = useState(true);
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [confirmReset, setConfirmReset] = useState(false);
@@ -112,13 +113,13 @@ export function SandboxConsole({ scenario: sc }: { scenario: SandboxScenario }) 
     try { await readJson('/api/demo/control', { method: 'DELETE' }); setAuth(false); setConfirmReset(false); } catch (err) { setError((err as Error).message); }
   }
   async function action(kind: 'publish' | 'reset') {
-    setBusy(true); setError(''); setNotice('');
+    setBusy(true); setResetting(kind === 'reset'); setError(''); setNotice('');
     try {
       const result = await readJson(kind === 'publish' ? '/api/sandbox/publish' : '/api/demo/reset', { method: 'POST', headers: { 'content-type': 'application/json' }, body: kind === 'publish' ? JSON.stringify({ fixture: sc.candidateFixture }) : JSON.stringify({ scenario: sc.scenarioId }) });
       setNotice(kind === 'reset' ? t('Demo reset to the {b} baseline. Audit history is retained.', { b: sc.baselineLabel }) : t(result.status === 'NO_CHANGE' ? 'Already published: the existing observation and pipeline are reused.' : 'Published in the controlled simulator. Test source update sent to Istithbat.'));
       await readState(); signalDemoChange(result.runId ?? null); setPollEpoch((n) => n + 1); setConfirmReset(false);
     } catch (err) { setError((err as Error).message); await readState().catch(() => {}); }
-    finally { setBusy(false); }
+    finally { setBusy(false); setResetting(false); }
   }
   async function refresh() { setError(''); try { await readState(); setPollEpoch((n) => n + 1); setPaused(false); } catch (err) { setError((err as Error).message); } }
 
@@ -151,30 +152,28 @@ export function SandboxConsole({ scenario: sc }: { scenario: SandboxScenario }) 
     <div className="sbx-confirm" role="alertdialog" aria-label={t('Confirm demo reset')}>
       <p><b>{t('This clears the current sandbox investigation.')}</b> {t('Return upstream, trusted and served to')} <span className="mono">{sc.baselineLabel}</span>{t('? Audit history is retained.')}</p>
       <div className="sbx-row">
-        <button type="button" className="btn btn-go sbx-btn-s" disabled={busy || !auth || running} onClick={() => action('reset')}>{busy ? t('Resetting…') : t('Confirm reset to {b}', { b: sc.baselineLabel })}</button>
+        <button type="button" className="btn btn-go sbx-btn-s" disabled={busy || !auth} onClick={() => action('reset')}>{resetting ? t('Resetting…') : t('Confirm reset to {b}', { b: sc.baselineLabel })}</button>
         <button type="button" className="btn btn-ghost sbx-btn-s" disabled={busy} onClick={() => setConfirmReset(false)}>{t('Cancel')}</button>
       </div>
     </div>
-  ) : <button type="button" className="btn btn-ghost sbx-btn-s" disabled={!auth || busy || running} onClick={() => setConfirmReset(true)}><Icon name="refresh-cw" size={15} />{label}</button>;
+  ) : <button type="button" className="btn btn-ghost sbx-btn-s" disabled={!auth || busy} onClick={() => setConfirmReset(true)}><Icon name="refresh-cw" size={15} />{label}</button>;
 
   // What the operator sees right now: state, the one next action, and why anything else is unavailable.
-  const panel: Record<Stage, { tone: Tone; chip: string; title: string; body: ReactNode; primary: ReactNode; secondary?: ReactNode }> = {
+  const panel: Record<Stage, { tone: Tone; chip: string; title: string; body: ReactNode; primary: ReactNode }> = {
     loading: { tone: 'n4', chip: t('Reading'), title: t('Reading the demo state…'), body: t('The current upstream, trusted and served versions are being read from the persisted state.'), primary: null },
     unavailable: { tone: 'co', chip: t('Unavailable'), title: t('Demo state unavailable'), body: t('The sandbox state could not be read from this deployment, so no demo action is offered. Nothing was changed.'), primary: <button type="button" className="btn btn-ghost sbx-btn-s" disabled={busy} onClick={refresh}><Icon name="refresh-cw" size={15} />{t('Check again')}</button> },
     locked: { tone: 'n4', chip: t('Locked'), title: t('Unlock demo control'), body: t('Required to reset or publish the controlled test.'), primary: unlockForm() },
     ready: {
       tone: 'tq', chip: t('Ready to run'), title: t('Ready to run'), body: <>{t('Clean baseline: upstream, trusted and served are all')} <span className="mono">{sc.baselineLabel}</span>. {t('Publishing sends one signed source update with the prepared')} <span className="mono">{sc.candidateLabel}</span> {t('candidate.')}</>,
       primary: <button type="button" className="btn btn-go sbx-cta" onClick={() => action('publish')} disabled={busy || !auth || !atBaseline || running}><Icon name="arrow-up-right" size={18} />{t(busy ? 'Publishing…' : 'Publish controlled candidate')}</button>,
-      secondary: resetControl(t('Reset baseline')),
     },
     published: {
       tone: 'co', chip: t('Candidate already published'), title: t('Candidate already published'), body: <>{t('The controlled candidate has been processed; its incident is open for review. Reset to')} <span className="mono">{sc.baselineLabel}</span> {t('before running the demo again.')}</>,
       primary: incidentHref ? <Link prefetch={false} className="btn btn-go sbx-cta" href={incidentHref}><Icon name="arrow-up-right" size={18} />{t('Open incident')}</Link> : <span className="meta">{t('No incident is recorded for this run.')}</span>,
-      secondary: auth ? resetControl(t('Reset demo to {b}', { b: sc.baselineLabel })) : <span className="sbx-why">{t('Unlock demo control to reset the demo.')} {unlockForm(true)}</span>,
     },
     'off-baseline': {
       tone: 'am', chip: t('Not at baseline'), title: t('Reset to the baseline first'), body: <>{t('The source is at a different fixture')} ({state ? <span className="mono">{state.fixture}</span> : '—'}). {t('Reset to')} <span className="mono">{sc.baselineLabel}</span> {t('to start the controlled test.')}</>,
-      primary: auth ? resetControl(t('Reset demo to {b}', { b: sc.baselineLabel })) : unlockForm(),
+      primary: auth ? null : unlockForm(),
     },
     running: {
       tone: 'am', chip: t('Processing'), title: t('Processing controlled candidate…'), body: <>{t('Istithbat is working through the pipeline below. Publishing again is disabled until it finishes.')}</>,
@@ -208,7 +207,8 @@ export function SandboxConsole({ scenario: sc }: { scenario: SandboxScenario }) 
               <h2 id="sbx-run-h" className="sbx-now-t">{P.title}</h2>
               <p className="body">{P.body}</p>
               {P.primary && <div className="sbx-primary">{P.primary}</div>}
-              {P.secondary && <div className="sbx-secondary">{P.secondary}</div>}
+              {auth && <div className="sbx-secondary">{resetControl(t('Reset demo to {b}', { b: sc.baselineLabel }))}</div>}
+              {!auth && (stage === 'published' || stage === 'running') && <div className="sbx-secondary">{unlockForm(true)}</div>}
               {auth && stage !== 'locked' && (
                 <p className="meta sbx-session"><Chip tone="tq" small>{t('Demo control active')}</Chip>{t('Not a reviewer permission.')} <button type="button" className="sbx-textbtn" disabled={busy} onClick={signOut}>{t('Sign out of demo control')}</button></p>
               )}

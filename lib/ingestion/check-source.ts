@@ -30,13 +30,18 @@ class IntegrityError extends Error {
   constructor(public readonly code: 'SOURCE_FETCH_FAILED' | 'SNAPSHOT_STORAGE_FAILED' | 'DIFF_FAILED') { super(code); }
 }
 
+class SandboxGenerationChanged extends Error {
+  constructor() { super('SANDBOX_GENERATION_CHANGED'); }
+}
+
 export async function checkSource(sourceId: string, trigger: CheckTrigger, origin: string): Promise<CheckResult> {
   const connector = getConnectorDefinition(sourceId);
   if (!connector) throw new IntegrityError('SOURCE_FETCH_FAILED');
   const labelPublished = connector.publishesVersionLabel !== false;
   let rawSha256: string | null = null;
   try {
-    const endpoints=await getSql()`SELECT endpoint,is_demo_fixture FROM sources WHERE id=${sourceId}`;
+    const endpoints=await getSql()`SELECT s.endpoint,s.is_demo_fixture,ss.updated_at::text AS sandbox_generation
+      FROM sources s LEFT JOIN sandbox_state ss ON ss.source_id=s.id WHERE s.id=${sourceId}`;
     if(!endpoints.length) throw new IntegrityError('SOURCE_FETCH_FAILED');
     const raw = await fetchSourceSnapshot(sourceId,endpoints[0].endpoint,origin);
     const incoming = prepareSourceEvidence(sourceId, raw);
@@ -51,6 +56,13 @@ export async function checkSource(sourceId: string, trigger: CheckTrigger, origi
     return await getSql().begin(async tx => {
       const source = await tx`SELECT id FROM sources WHERE id=${sourceId} FOR UPDATE`;
       if (!source.length) throw new IntegrityError('DIFF_FAILED');
+      // A reset can happen after the webhook fetched old fixture bytes. Reject
+      // that observation before it creates a new version in the reset generation.
+      if (endpoints[0].is_demo_fixture) {
+        const [current]=await tx`SELECT updated_at::text AS sandbox_generation FROM sandbox_state WHERE source_id=${sourceId}`;
+        if (!current || !endpoints[0].sandbox_generation || current.sandbox_generation!==endpoints[0].sandbox_generation)
+          throw new SandboxGenerationChanged();
+      }
       let previousRows = await tx`SELECT v.* FROM gateway_bindings g JOIN source_versions v ON v.id=g.latest_seen_version_id WHERE g.source_id=${sourceId} ORDER BY g.updated_at DESC LIMIT 1`;
       if (!previousRows.length) previousRows = await tx`SELECT * FROM source_versions WHERE source_id=${sourceId} ORDER BY detected_at DESC,id DESC LIMIT 1`;
       const previous = previousRows[0];
@@ -113,6 +125,7 @@ export async function checkSource(sourceId: string, trigger: CheckTrigger, origi
       return {status:'NEW_VERSION',sourceId,versionId,upstreamLabel:label,revisionNumber,rawSha256:incoming.rawSha256,canonicalSha256:incoming.canonicalSha256,silentMutation,changeClass,changes,runId};
     });
   } catch (error) {
+    if (error instanceof SandboxGenerationChanged) throw error;
     const code = error instanceof IntegrityError ? error.code : error instanceof Error && error.message==='SOURCE_FETCH_FAILED' ? 'SOURCE_FETCH_FAILED' : 'DIFF_FAILED';
     await getSql()`INSERT INTO source_checks (source_id,trigger_type,status,error_code,raw_sha256) VALUES (${sourceId},${trigger},'FAILED',${code},${rawSha256})`;
     await getSql()`UPDATE sources SET last_checked_at=now(),connector_health='DEGRADED' WHERE id=${sourceId}`;

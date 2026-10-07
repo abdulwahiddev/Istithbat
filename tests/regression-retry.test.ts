@@ -24,12 +24,12 @@ vi.mock('@/lib/db/client',()=>{
       state.row.old_retrieval_json=values[0];state.row.old_answer=values[1];
       state.row.old_output_json=values[2];state.row.old_meta_json=values[3];
       state.row.config_json=values[4];state.row.model_config_hash=values[5];
-      state.row.status='BASE_DONE';state.row.failure_json=null;return [];
+      state.row.status='BASE_DONE';state.row.failure_json=null;return [{id:'regression-id'}];
     }
     if(query.includes('UPDATE regression_runs SET new_retrieval_json')) {
       state.row.new_retrieval_json=values[0];state.row.new_answer=values[1];
       state.row.new_output_json=values[2];state.row.new_meta_json=values[3];
-      state.row.status='ANSWERS_DONE';state.row.failure_json=null;return [];
+      state.row.status='ANSWERS_DONE';state.row.failure_json=null;return [{id:'regression-id'}];
     }
     if(query.includes('INSERT INTO audit_events')) {state.audits++;return [];}
     throw new Error(`Unexpected SQL in regression retry test: ${query.slice(0,100)}`);

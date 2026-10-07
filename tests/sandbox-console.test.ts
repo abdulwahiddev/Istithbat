@@ -157,7 +157,14 @@ describe('separate sandbox session and protected mutations',()=>{
   expect(failed.status).toBe(502);expect(await failed.json()).toMatchObject({published:true,webhookSent:false});
  });
  it('uses the existing transactional reset semantics and retains the audit trail',async()=>{
-  const query=vi.fn().mockResolvedValue([]).mockResolvedValueOnce([{id:'baseline'}]);
+  const query=vi.fn(async(parts:TemplateStringsArray)=>{
+    const statement=parts.join('?');
+    if(statement.includes('SELECT v.id FROM source_versions')) return [{id:'baseline'}];
+    if(statement.includes('SELECT id FROM source_versions WHERE source_id=')) return [{id:'baseline'}];
+    if(statement.includes("r.status='RUNNING'")) return [{id:runId}];
+    if(statement.includes('UPDATE sandbox_state')) return [{updated_at:stamp}];
+    return [];
+  });
   Object.assign(query,{json:(v:unknown)=>v});
   Object.assign(mocks.query,{begin:async(callback:(tx:unknown)=>Promise<void>)=>callback(query)});
   mocks.query.mockResolvedValueOnce([{fixture_name:'had-4821.v14.json'}]);
@@ -166,6 +173,8 @@ describe('separate sandbox session and protected mutations',()=>{
   const statements=query.mock.calls.map(([parts])=>parts.join('?')).join('\n');
   expect(statements).toContain('DELETE FROM pipeline_runs');expect(statements).toContain('UPDATE gateway_bindings SET served_version_id=');
   expect(statements).toContain('INSERT INTO audit_events');expect(statements).not.toContain('DELETE FROM audit_events');
+  expect(statements).toContain('FOR UPDATE OF r');expect(statements).toContain('DEMO_RUN_CANCELLED');
+  expect(statements).toContain('clock_timestamp()');
  });
 });
 

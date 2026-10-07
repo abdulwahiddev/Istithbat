@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result, {status:result.status === 'NEW_VERSION' ? 202 : 200});
   } catch (error) {
     const code = error instanceof Error ? error.message : 'DIFF_FAILED';
+    if (code === 'SANDBOX_GENERATION_CHANGED') return NextResponse.json({error:{code,message:'This source update was superseded by a demo reset.'}},{status:409});
     return NextResponse.json({error:{code,message:'Source integrity check failed'}},{status:502});
   }
 }

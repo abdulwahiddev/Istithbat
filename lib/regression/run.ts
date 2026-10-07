@@ -106,13 +106,13 @@ async function runSide(row:Record<string,any>,side:'old'|'new'):Promise<string> 
   const actualConfig={...config,provider:result.meta.provider,model:result.meta.model,
     temperature:result.meta.temperature,effort:result.meta.effort};
   await sql.begin(async tx=>{
-    if(side==='old') await tx`UPDATE regression_runs SET old_retrieval_json=${tx.json(evidence as JsonValue)},old_answer=${answer},
+    const updated=side==='old' ? await tx`UPDATE regression_runs SET old_retrieval_json=${tx.json(evidence as JsonValue)},old_answer=${answer},
       old_output_json=${tx.json(result.data)},old_meta_json=${tx.json(result.meta as unknown as JsonValue)},status='BASE_DONE',failure_json=NULL,
       config_json=${tx.json(actualConfig as JsonValue)},model_config_hash=${modelConfigHash(actualConfig as QaConfig)},
-      updated_at=now() WHERE id=${row.id} AND old_answer IS NULL`;
-    else await tx`UPDATE regression_runs SET new_retrieval_json=${tx.json(evidence as JsonValue)},new_answer=${answer},
+      updated_at=now() WHERE id=${row.id} AND old_answer IS NULL RETURNING id` : await tx`UPDATE regression_runs SET new_retrieval_json=${tx.json(evidence as JsonValue)},new_answer=${answer},
       new_output_json=${tx.json(result.data)},new_meta_json=${tx.json(result.meta as unknown as JsonValue)},status='ANSWERS_DONE',failure_json=NULL,
-      updated_at=now() WHERE id=${row.id} AND new_answer IS NULL`;
+      updated_at=now() WHERE id=${row.id} AND new_answer IS NULL RETURNING id`;
+    if (!updated.length) throw failure('regression run cancelled or already updated');
     await tx`INSERT INTO audit_events (event_type,entity_type,entity_id,actor,metadata_json,idempotency_key)
       VALUES (${side==='old'?'REGRESSION_BASE_COMPLETED':'REGRESSION_CANDIDATE_COMPLETED'},'regression_run',${row.id},
         'system:regression',${tx.json({versionId,question:row.question,answerHash:sha256(answer),recordHashes:records.map(r=>r.record_hash),mode:result.meta.mode})},
@@ -148,9 +148,10 @@ async function compare(row:Record<string,any>):Promise<string> {
     classification_source:identical?'deterministic-identical-output':'structured-ai',
     matched_config:true,model_config_hash:row.model_config_hash};
   await sql.begin(async tx=>{
-    await tx`UPDATE regression_runs SET result=${classification},material_change=${classification==='MATERIAL_CHANGE'},
+    const updated=await tx`UPDATE regression_runs SET result=${classification},material_change=${classification==='MATERIAL_CHANGE'},
       comparison_json=${tx.json(comparison as JsonValue)},comparison_meta_json=${tx.json(result.meta as unknown as JsonValue)},
-      status='COMPLETE',failure_json=NULL,completed_at=now(),updated_at=now() WHERE id=${row.id} AND status<>'COMPLETE'`;
+      status='COMPLETE',failure_json=NULL,completed_at=now(),updated_at=now() WHERE id=${row.id} AND status<>'COMPLETE' RETURNING id`;
+    if (!updated.length) throw failure('regression run cancelled or already updated');
     await tx`INSERT INTO audit_events (event_type,entity_type,entity_id,actor,metadata_json,idempotency_key)
       VALUES ('REGRESSION_COMPARISON_COMPLETED','regression_run',${row.id},'system:regression',
       ${tx.json({result:classification,materialChange:classification==='MATERIAL_CHANGE',mode:result.meta.mode,

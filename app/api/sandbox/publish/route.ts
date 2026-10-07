@@ -10,7 +10,7 @@ export async function POST(request:NextRequest) {
   const body=await request.json().catch(()=>null);
   const fixture=body?.fixture;
   if(!fixtureNames.includes(fixture)) return NextResponse.json({error:{code:'INVALID_FIXTURE',message:'Unknown sandbox fixture'}},{status:400});
-  const updated=await getSql()`UPDATE sandbox_state SET fixture_name=${fixture},updated_at=CASE WHEN fixture_name=${fixture} THEN updated_at ELSE now() END WHERE source_id=${SANDBOX_ID} AND (fixture_name LIKE 'hadeethenc-10618.%')=${fixture.startsWith('hadeethenc-10618.')} RETURNING source_id`;
+  const updated=await getSql()`UPDATE sandbox_state SET fixture_name=${fixture},updated_at=CASE WHEN fixture_name=${fixture} THEN updated_at ELSE clock_timestamp() END WHERE source_id=${SANDBOX_ID} AND (fixture_name LIKE 'hadeethenc-10618.%')=${fixture.startsWith('hadeethenc-10618.')} RETURNING source_id`;
   if(!updated.length) return NextResponse.json({error:{code:'NOT_SEEDED',message:'Sandbox is missing or the requested scenario is not active. Reset the selected scenario before publishing.'}},{status:503});
   const webhookBody=JSON.stringify({sourceId:SANDBOX_ID});
   let webhook: Response;
