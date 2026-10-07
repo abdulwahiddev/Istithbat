@@ -77,7 +77,7 @@ The current [Production sandbox](https://istithbat.vercel.app/sandbox) uses **re
 
 **Original record from HadeethEnc · candidate mutation created for demonstration.** HadeethEnc did **not** publish this candidate. The v13/v14 labels belong to Istithbat's sandbox. The unchanged English `grade_ar` retains the exception, so the field discrepancy remains visible.
 
-The verified Production run detected a `SCHOLAR_JUDGMENT` change, and deterministic **POL-002 quarantined v14**. Its three matched comparisons were **3 MATERIAL / 0 NON-MATERIAL**; Blast Radius found **6 EXPOSED / 1 IMPACTED / 0 STALE**. The impacted asset was the protected Islamic Q&A app. **Latest v14 is quarantined; Trusted and Served remain v13; no human decision has been recorded.** Live model verdicts can vary; the policy containment is deterministic. Inspect [Incidents](https://istithbat.vercel.app/incidents), [sandbox](https://istithbat.vercel.app/sandbox), [local validation history](docs/source-derived-demo.md) and [console guide](docs/sandbox-demo.md).
+The pre-submission verified Production run detected a `SCHOLAR_JUDGMENT` change, and deterministic **POL-002 quarantined v14**. Its three matched comparisons were **3 MATERIAL / 0 NON-MATERIAL**; Blast Radius found **6 EXPOSED / 1 IMPACTED / 0 STALE**. The impacted asset was the protected Islamic Q&A app. A fresh recovery rehearsal on 7 October returned **2 MATERIAL / 1 NON-MATERIAL** and the same POL-002 containment. Live model verdicts can vary; policy quarantine is deterministic. After a completed demo run, **Latest v14 is quarantined; Trusted and Served remain v13; no human decision is recorded**. Inspect the current state in [Incidents](https://istithbat.vercel.app/incidents), [sandbox](https://istithbat.vercel.app/sandbox), [local validation history](docs/source-derived-demo.md) and [console guide](docs/sandbox-demo.md).
 
 ## Judge access
 
@@ -96,7 +96,7 @@ Open [Incidents](https://istithbat.vercel.app/incidents), select the current hel
 - **Username:** `IslamicAIChallenge2026`
 - **Password:** `IstithbatReviewer2026!`
 
-This judge session can inspect evidence and preview Approve, Reject, Keep quarantined and Escalate. It cannot sign, approve, promote or record any decision. The real signer, administrator, webhook, database and AI provider credentials remain private. **Latest v14 is quarantined; Trusted and Served remain v13.**
+This judge session can inspect evidence and preview Approve, Reject, Keep quarantined and Escalate. It cannot sign, approve, promote or record any decision. The real signer, administrator, webhook, database and AI provider credentials remain private. In the completed demo state, **Latest v14 is quarantined; Trusted and Served remain v13.**
 
 ## Post-submission polish
 
