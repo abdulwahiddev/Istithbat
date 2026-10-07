@@ -35,6 +35,7 @@ export default async function OverviewPage() {
   for (const i of open.slice(0, 3)) summaries.push(await summarizeIncident(i));
   const leadSum = summaries.find((d) => d.item.id === lead?.id) ?? null;
   const held = open.filter(needsDecision);
+  const investigating = open.some((i) => i.pipelineStatus === 'RUNNING');
   const quarantined = held.filter((i) => i.status === 'QUARANTINED').length;
   const records = models.reduce((n, m) => n + (m.recordCount ?? 0), 0);
   const versionLabel = new Map(models.flatMap((m) => [m.latest, m.trusted]).filter(Boolean).map((v) => [v!.id, vr(v)!]));
@@ -51,7 +52,7 @@ export default async function OverviewPage() {
           : open.length ? t('A candidate is being investigated. It stays unserved while the pipeline runs.') : t('Nothing is held. Every protected app reads its trusted version.')}
         status={<>
           <Dk k={t('Production')}>{servingTrusted ? <Chip tone="tq">{t('Serving trusted')}</Chip> : <Chip tone="co">{t('Not serving trusted')}</Chip>}</Dk>
-          <Dk k={t('Held candidates')}>{held.length ? <Chip tone="co">{quarantined ? t('{n} quarantined', { n: quarantined }) : t('{n} held for review', { n: held.length })}</Chip> : <Chip tone="tq">{t('None')}</Chip>}</Dk>
+          <Dk k={t('Held candidates')}>{held.length ? <Chip tone="co">{quarantined ? t('{n} quarantined', { n: quarantined }) : t('{n} held for review', { n: held.length })}</Chip> : investigating ? <Chip tone="am">{t('Investigating')}</Chip> : <Chip tone="tq">{t('None')}</Chip>}</Dk>
           <Dk k={t('Protected apps')}>{bindingList.length ? <>{new Set(bindingList.map((b) => b.appId)).size} · <Mono>{[...new Set(bindingList.map((b) => b.appId))].join(', ')}</Mono></> : t('None')}</Dk>
         </>}
       />
@@ -65,7 +66,7 @@ export default async function OverviewPage() {
               <div className="srow shead" aria-hidden="true">
                 <span>{t('Source')}</span><span>{t('Latest seen')}</span><span /><span>{t('Trusted')}</span><span /><span>{t('Served')}</span><span style={{ textAlign: 'end' }}>{t('State')}</span>
               </div>
-              {models.map((m) => <SourceRow key={m.summary.id} t={t} m={m} incidentId={open.find((i) => i.sourceId === m.summary.id)?.id ?? null} />)}
+              {models.map((m) => <SourceRow key={m.summary.id} t={t} m={m} investigating={open.some((i) => i.sourceId === m.summary.id && i.pipelineStatus === 'RUNNING')} incidentId={open.find((i) => i.sourceId === m.summary.id)?.id ?? null} />)}
             </div>
           )}
           <p className="body" style={{ color: 'var(--ink-3)' }}>
@@ -122,9 +123,9 @@ export default async function OverviewPage() {
         />
       ) : (
         <SummaryDock
-          railText={t('Nothing is waiting. Every protected app is serving trusted knowledge.')}
-          left={<Chip tone="tq">{t('Nothing held')}</Chip>} right={<HandedToYou>{t('Nothing to sign')}</HandedToYou>}
-          question={t('Nothing is waiting for a decision.')} body={t('Policy holds a candidate the moment a substantive change needs a person.')}
+          railText={investigating ? t('A candidate is being investigated. It stays unserved while the pipeline runs.') : t('Nothing is waiting. Every protected app is serving trusted knowledge.')}
+          left={investigating ? <Chip tone="am">{t('Investigating')}</Chip> : <Chip tone="tq">{t('Nothing held')}</Chip>} right={<HandedToYou>{t('Nothing to sign')}</HandedToYou>}
+          question={investigating ? t('Pipeline running · results arrive step by step') : t('Nothing is waiting for a decision.')} body={investigating ? t('A candidate is being investigated. It stays unserved while the pipeline runs.') : t('Policy holds a candidate the moment a substantive change needs a person.')}
           href="/incidents" cta={t('Open the incidents')} helper={t('AI advises · policy governs · humans decide')}
         />
       )}
@@ -132,14 +133,14 @@ export default async function OverviewPage() {
   );
 }
 
-function SourceRow({ m, incidentId, t }: { m: SourceModel; incidentId: string | null; t: T }) {
+function SourceRow({ m, incidentId, investigating, t }: { m: SourceModel; incidentId: string | null; investigating: boolean; t: T }) {
   const s = m.summary;
   const latest = m.latest, trusted = m.trusted;
   const latestNote = m.changed
-    ? <><span className="dot" style={{ background: m.state === 'investigating' ? 'var(--am)' : 'var(--co)' }} />{t(latest?.status === 'QUARANTINED' ? 'Quarantined' : latest?.status === 'REJECTED' ? 'Rejected' : m.state === 'investigating' ? 'Investigating' : 'Held for review')}</>
+    ? <><span className="dot" style={{ background: investigating || m.state === 'investigating' ? 'var(--am)' : 'var(--co)' }} />{t(latest?.status === 'QUARANTINED' ? 'Quarantined' : latest?.status === 'REJECTED' ? 'Rejected' : investigating || m.state === 'investigating' ? 'Investigating' : 'Held for review')}</>
     : t(s.versionLabelPublished === false ? 'No label published' : m.facts.real ? 'Provider version' : 'Published label');
   return (
-    <div className={`srow${m.state === 'held' ? ' held' : ''}`}>
+    <div className={`srow${m.state === 'held' && !investigating ? ' held' : ''}`}>
       <div className="sname">
         <b>{m.facts.title}</b>
         <span className="meta">{t(m.facts.kindShort)} · {t(m.facts.recordsPhrase(m.recordCount))}</span>
@@ -155,8 +156,8 @@ function SourceRow({ m, incidentId, t }: { m: SourceModel; incidentId: string | 
           : <><span className="v" style={{ color: 'var(--ink-3)' }}>—</span><span className="vs">{t('No protected app')}</span></>}
       </div>
       <div className="sstate">
-        {m.state === 'held' ? <><Chip tone="co" ink>{t('Held for decision')}</Chip>{(m.held?.incidentId ?? incidentId) && <Lnk href={`/incidents/${m.held?.incidentId ?? incidentId}`}>{t('Review')}</Lnk>}</>
-          : m.state === 'investigating' ? <Chip tone="am">{t('Investigating')}</Chip>
+        {investigating || m.state === 'investigating' ? <Chip tone="am">{t('Investigating')}</Chip>
+          : m.state === 'held' ? <><Chip tone="co" ink>{t('Held for decision')}</Chip>{(m.held?.incidentId ?? incidentId) && <Lnk href={`/incidents/${m.held?.incidentId ?? incidentId}`}>{t('Review')}</Lnk>}</>
           : m.state === 'no-baseline' ? <Chip tone="am">{t('No baseline')}</Chip>
           : <Chip tone="tq">{t('In agreement')}</Chip>}
       </div>

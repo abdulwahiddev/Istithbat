@@ -28,3 +28,16 @@ export async function getSandboxConsoleState() {
     WHERE ss.source_id=${SANDBOX_ID}`;
   return row ? mapSandboxState(row) : null;
 }
+
+// Persist a recovery heartbeat before scheduling, so many polling clients can
+// elect only one continuation. The runner itself separately claims the lease.
+export async function claimStaleSandboxRecovery(runId: string): Promise<boolean> {
+  const rows=await getSql()`UPDATE pipeline_runs r SET updated_at=now()
+    WHERE r.id=${runId} AND r.status='RUNNING'
+      AND r.updated_at < now() - interval '60 seconds'
+      AND (r.lease_until IS NULL OR r.lease_until < now())
+      AND r.source_version_id=(SELECT v.id FROM source_versions v
+        WHERE v.source_id=${SANDBOX_ID} ORDER BY v.detected_at DESC,v.id DESC LIMIT 1)
+    RETURNING r.id`;
+  return rows.length>0;
+}

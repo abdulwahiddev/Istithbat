@@ -77,7 +77,7 @@ The current [Production sandbox](https://istithbat.vercel.app/sandbox) uses **re
 
 **Original record from HadeethEnc · candidate mutation created for demonstration.** HadeethEnc did **not** publish this candidate. The v13/v14 labels belong to Istithbat's sandbox. The unchanged English `grade_ar` retains the exception, so the field discrepancy remains visible.
 
-The verified Production run detected a `SCHOLAR_JUDGMENT` change, and deterministic **POL-002 quarantined v14**. Its three matched comparisons were **3 MATERIAL / 0 NON-MATERIAL**; Blast Radius found **6 EXPOSED / 1 IMPACTED / 0 STALE**. The impacted asset was the protected Islamic Q&A app. **Latest v14 is quarantined; Trusted and Served remain v13; no human decision has been recorded.** Live model verdicts can vary; the policy containment is deterministic. Inspect the [held Incident Review](https://istithbat.vercel.app/incidents/863d5b03-fc98-4d49-a2a6-ae9d6c3cf753), [sandbox](https://istithbat.vercel.app/sandbox), [local validation history](docs/source-derived-demo.md) and [console guide](docs/sandbox-demo.md).
+The verified Production run detected a `SCHOLAR_JUDGMENT` change, and deterministic **POL-002 quarantined v14**. Its three matched comparisons were **3 MATERIAL / 0 NON-MATERIAL**; Blast Radius found **6 EXPOSED / 1 IMPACTED / 0 STALE**. The impacted asset was the protected Islamic Q&A app. **Latest v14 is quarantined; Trusted and Served remain v13; no human decision has been recorded.** Live model verdicts can vary; the policy containment is deterministic. Inspect [Incidents](https://istithbat.vercel.app/incidents), [sandbox](https://istithbat.vercel.app/sandbox), [local validation history](docs/source-derived-demo.md) and [console guide](docs/sandbox-demo.md).
 
 ## Judge access
 
@@ -91,7 +91,7 @@ This key unlocks only the controlled HadeethEnc 10618 sandbox reset and publish 
 
 ### Preview Access (Reviewer Mode)
 
-Open [the held Incident Review](https://istithbat.vercel.app/incidents/863d5b03-fc98-4d49-a2a6-ae9d6c3cf753) and sign in with:
+Open [Incidents](https://istithbat.vercel.app/incidents), select the current held incident, and sign in with:
 
 - **Username:** `IslamicAIChallenge2026`
 - **Password:** `IstithbatReviewer2026!`

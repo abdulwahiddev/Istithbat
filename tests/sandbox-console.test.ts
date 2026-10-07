@@ -40,7 +40,7 @@ describe('sandbox persisted read reconstruction',()=>{
  });
  it('reconstructs a held completed pipeline with three matched questions and v13 still served',async()=>{
   mocks.query.mockResolvedValue([row()]);
-  const response=await status();expect(response.status).toBe(200);
+  const response=await status(new NextRequest('https://example.test/api/sandbox/status'));expect(response.status).toBe(200);
   const state=SandboxConsoleState.parse(await response.json());
   expect(state.latestSeen).toMatchObject({label:'v14',status:'QUARANTINED'});
   expect(state.trusted?.label).toBe('v13');expect(state.served[0].version?.label).toBe('v13');
@@ -62,7 +62,37 @@ describe('sandbox persisted read reconstruction',()=>{
   expect(state.pipeline?.status).toBe('FAILED_CLOSED');
  });
  it('reports a missing seed without emitting fabricated source or pipeline state',async()=>{
-  mocks.query.mockResolvedValue([]);expect((await current()).status).toBe(503);expect((await status()).status).toBe(503);
+  mocks.query.mockResolvedValue([]);expect((await current()).status).toBe(503);expect((await status(new NextRequest('https://example.test/api/sandbox/status'))).status).toBe(503);
+ });
+ it('reschedules only the current stale unleased sandbox run and preserves persisted steps',async()=>{
+  const request=new NextRequest('https://example.test/api/sandbox/status');
+  const stale=row(true);
+  mocks.query.mockResolvedValueOnce([stale]).mockResolvedValueOnce([{id:runId}]);
+  expect((await status(request)).status).toBe(200);
+  expect(mocks.callbacks).toHaveLength(1);
+  mocks.query.mockResolvedValueOnce([stale]).mockResolvedValueOnce([]);
+  expect((await status(request)).status).toBe(200);
+  expect(mocks.callbacks).toHaveLength(1);
+  expect(mocks.advance).not.toHaveBeenCalled();
+  const leased=row(true);leased.run.lease_until=new Date(Date.now()+60_000).toISOString() as never;
+  mocks.query.mockResolvedValueOnce([leased]);
+  expect((await status(request)).status).toBe(200);
+  expect(mocks.callbacks).toHaveLength(1);
+  const fresh=row(true);fresh.run.updated_at=new Date().toISOString();
+  mocks.query.mockResolvedValueOnce([fresh]);
+  expect((await status(request)).status).toBe(200);
+  expect(mocks.callbacks).toHaveLength(1);
+ });
+ it('recovers a stale run from pipeline polling only when it is the current sandbox run',async()=>{
+  const stale=row(true);
+  mocks.query.mockResolvedValueOnce([stale.run]).mockResolvedValueOnce(stale.steps).mockResolvedValueOnce([stale]).mockResolvedValueOnce([{id:runId}]);
+  const response=await pipelineGet(new NextRequest(`https://example.test/api/pipeline/${runId}`),{params:Promise.resolve({runId})});
+  expect(response.status).toBe(200);
+  expect(PipelineRunState.parse(await response.json()).nextStep).toBe('POLICY');
+  expect(mocks.callbacks).toHaveLength(1);
+  mocks.query.mockResolvedValueOnce([stale.run]).mockResolvedValueOnce(stale.steps).mockResolvedValueOnce([]);
+  expect((await pipelineGet(new NextRequest(`https://example.test/api/pipeline/${runId}`),{params:Promise.resolve({runId})})).status).toBe(200);
+  expect(mocks.callbacks).toHaveLength(1);
  });
 });
 
